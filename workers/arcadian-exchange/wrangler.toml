@@ -1,0 +1,85 @@
+name = "arcadia-exchange"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+ENVIRONMENT = "production"
+ARC_TOKEN_CONTRACT = "REPLACE_WITH_CONTRACT_ADDRESS"
+PLATFORM_WALLET = "REPLACE_WITH_PLATFORM_WALLET"
+
+# KV Namespaces
+[[kv_namespaces]]
+binding = "MARKETPLACE"
+id = "REPLACE_WITH_MARKETPLACE_KV_ID"
+preview_id = "REPLACE_WITH_MARKETPLACE_KV_PREVIEW_ID"
+
+[[kv_namespaces]]
+binding = "ORDER_BOOK"
+id = "REPLACE_WITH_ORDER_BOOK_KV_ID"
+preview_id = "REPLACE_WITH_ORDER_BOOK_KV_PREVIEW_ID"
+
+[[kv_namespaces]]
+binding = "WALLETS"
+id = "REPLACE_WITH_WALLETS_KV_ID"
+preview_id = "REPLACE_WITH_WALLETS_KV_PREVIEW_ID"
+
+[[kv_namespaces]]
+binding = "BOT_STATE"
+id = "REPLACE_WITH_BOT_STATE_KV_ID"
+preview_id = "REPLACE_WITH_BOT_STATE_KV_PREVIEW_ID"
+
+[[kv_namespaces]]
+binding = "PORTFOLIO"
+id = "REPLACE_WITH_PORTFOLIO_KV_ID"
+preview_id = "REPLACE_WITH_PORTFOLIO_KV_PREVIEW_ID"
+
+# Durable Objects
+[[durable_objects.bindings]]
+name = "TRADING_ENGINE"
+class_name = "TradingEngine"
+
+[[durable_objects.bindings]]
+name = "MARKET_MAKER"
+class_name = "MarketMaker"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["TradingEngine", "MarketMaker"]
+
+# D1 Database
+[[d1_databases]]
+binding = "EXCHANGE_DB"
+database_name = "arcadia-exchange"
+database_id = "REPLACE_WITH_EXCHANGE_D1_ID"
+
+# AI Binding
+[ai]
+binding = "AI"
+
+# Cron Triggers
+[triggers]
+crons = [
+  "*/5 * * * *",    # Every 5 min: Arbitrage bot
+  "*/15 * * * *",   # Every 15 min: Market maker
+  "0 * * * *",      # Every hour: DeFi yield optimizer
+  "0 */6 * * *",    # Every 6 hours: Passive income scan
+  "0 2 * * *",      # Daily: Portfolio rebalancing
+  "0 0 * * *"       # Daily: ARC token burn
+]
+
+# Secrets (set via: wrangler secret put SECRET_NAME)
+# JWT_SECRET
+# RBA_API_KEY
+# COINGECKO_API_KEY
+# STRIPE_SECRET_KEY
+# WEB3_RPC_URL
+# INTERNAL_API_KEY
+
+[env.staging]
+name = "arcadia-exchange-staging"
+vars = { ENVIRONMENT = "staging" }
+
+[env.development]
+name = "arcadia-exchange-dev"
+vars = { ENVIRONMENT = "development" }

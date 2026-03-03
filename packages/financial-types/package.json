@@ -1,0 +1,15 @@
+{
+  "name": "@arcadia/financial-types",
+  "version": "1.0.0",
+  "description": "Shared TypeScript types for Royal Bank of Arcadia & Arcadian Exchange",
+  "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
