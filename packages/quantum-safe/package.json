@@ -1,0 +1,35 @@
+{
+  "name": "@trancendos/quantum-safe",
+  "version": "1.0.0",
+  "description": "Post-Quantum Cryptography layer for Infinity OS - NIST PQC standards implementation with migration support",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "test:coverage": "jest --coverage"
+  },
+  "keywords": [
+    "post-quantum-cryptography",
+    "pqc",
+    "ml-dsa",
+    "ml-kem",
+    "crystals-kyber",
+    "crystals-dilithium",
+    "falcon",
+    "quantum-safe",
+    "nist-standards"
+  ],
+  "author": "Trancendos",
+  "license": "MIT",
+  "dependencies": {
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.11",
+    "@types/node": "^20.10.6",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.3"
+  }
+}

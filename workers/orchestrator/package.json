@@ -1,0 +1,20 @@
+{
+  "name": "@trancendos/worker-orchestrator",
+  "version": "1.0.0",
+  "description": "Self-healing orchestrator worker for Infinity OS - Autonomous service management and auto-remediation",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "hono": "^3.11.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20231218.0",
+    "@types/node": "^20.10.6",
+    "typescript": "^5.3.3",
+    "wrangler": "^3.22.0"
+  }
+}

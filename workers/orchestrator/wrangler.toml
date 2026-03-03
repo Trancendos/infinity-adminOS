@@ -1,0 +1,39 @@
+name = "orchestrator"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+# KV Namespaces
+[[kv_namespaces]]
+binding = "ANOMALY_STORE"
+id = "anomaly_store_kv"
+
+[[kv_namespaces]]
+binding = "HEALING_ACTIONS"
+id = "healing_actions_kv"
+
+[[kv_namespaces]]
+binding = "SYSTEM_STATE"
+id = "system_state_kv"
+
+# D1 Database
+[[d1_databases]]
+binding = "DB"
+database_name = "infinity_orchestrator"
+database_id = "orchestrator_db"
+
+# Environment variables
+[vars]
+ENVIRONMENT = "production"
+LOG_LEVEL = "info"
+
+# Triggers
+[triggers]
+crons = ["*/1 * * * *", "*/5 * * * *", "0 * * * *"]
+
+# Bindings
+[r2_buckets]
+binding = "BACKUP_STORAGE"
+bucket_name = "infinity-backups"
+
+[ai]
+binding = "AI"
