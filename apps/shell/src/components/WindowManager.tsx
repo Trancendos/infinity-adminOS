@@ -23,6 +23,7 @@ const NotificationCentre = lazy(() => import('../modules/NotificationCentre'));
 // Project & IT Management modules
 const ITSMDashboard = lazy(() => import('../modules/ITSMDashboard'));
 const ProjectGates = lazy(() => import('../modules/ProjectGates'));
+const TownHallDashboard = lazy(() => import('../modules/TownHallDashboard'));
 const DocumentLibrary = lazy(() => import('../modules/DocumentLibrary'));
 const AssetRegistry = lazy(() => import('../modules/AssetRegistry'));
 const KnowledgeHub = lazy(() => import('../modules/KnowledgeHub'));
@@ -113,6 +114,7 @@ function ModuleRenderer({ moduleId }: { moduleId: string }) {
     // Project & IT Management modules
     'com.infinity-os.itsm': <ITSMDashboard />,
     'com.infinity-os.gates': <ProjectGates />,
+    'com.infinity-os.townhall': <TownHallDashboard />,
     'com.infinity-os.documents': <DocumentLibrary />,
     'com.infinity-os.assets': <AssetRegistry />,
     'com.infinity-os.knowledge': <KnowledgeHub />,
@@ -231,6 +233,7 @@ export default function Window({
 export const MODULE_REGISTRY = [
   { id: 'com.infinity-os.kanban', name: 'Task Board', icon: '📋', category: 'productivity' },
   { id: 'com.infinity-os.admin-panel', name: 'Admin Panel', icon: '👥', category: 'system' },
+  { id: 'com.infinity-os.townhall', name: 'The TownHall', icon: '🏛️', category: 'governance' },
   { id: 'com.infinity-os.compliance', name: 'Compliance', icon: '🛡️', category: 'governance' },
   { id: 'com.infinity-os.hitl-dashboard', name: 'HITL Oversight', icon: '🔍', category: 'governance' },
   { id: 'com.infinity-os.repositories', name: 'Repositories', icon: '📦', category: 'development' },

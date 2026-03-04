@@ -2571,3 +2571,206 @@ class MerkleAuditBatch(Base):
         UniqueConstraint("batch_number", "organisation_id", name="uq_merkle_batch_org"),
         Index("idx_merkle_root", "merkle_root"),
     )
+
+
+# ============================================================
+# THE TOWNHALL — GOVERNANCE HUB (Platform 21)
+# ============================================================
+
+class PolicyStatus(str, PyEnum):
+    DRAFT = "draft"
+    REVIEW = "review"
+    APPROVED = "approved"
+    ACTIVE = "active"
+    DEPRECATED = "deprecated"
+    ARCHIVED = "archived"
+
+
+class MeetingType(str, PyEnum):
+    BOARD = "board"
+    COMMITTEE = "committee"
+    EMERGENCY = "emergency"
+    AGM = "agm"
+    WORKING_GROUP = "working_group"
+
+
+class IPType(str, PyEnum):
+    SOFTWARE = "software"
+    ALGORITHM = "algorithm"
+    BRAND = "brand"
+    TRADE_SECRET = "trade_secret"
+    PATENT = "patent"
+    COPYRIGHT = "copyright"
+    TRADEMARK = "trademark"
+
+
+class ContractStatus(str, PyEnum):
+    DRAFT = "draft"
+    REVIEW = "review"
+    NEGOTIATION = "negotiation"
+    ACTIVE = "active"
+    EXPIRED = "expired"
+    TERMINATED = "terminated"
+    ARCHIVED = "archived"
+
+
+class TownHallPolicy(Base):
+    """Governance policies — version-controlled, machine-readable"""
+    __tablename__ = "townhall_policies"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    policy_id = Column(String(50), unique=True, nullable=False, index=True)
+    title = Column(String(500), nullable=False)
+    category = Column(String(100), nullable=False)
+    description = Column(Text, nullable=True)
+    content = Column(Text, nullable=False)
+    rego_content = Column(Text, nullable=True)
+    version = Column(String(20), default="1.0.0", nullable=False)
+    status = Column(String(50), default="draft", nullable=False, index=True)
+    applicable_frameworks = Column(Text, nullable=True)
+    tags = Column(Text, nullable=True)
+    quantum_signature = Column(Text, nullable=True)
+    ipfs_cid = Column(String(100), nullable=True)
+    chain_tx_hash = Column(String(100), nullable=True)
+    created_by = Column(String, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    updated_by = Column(String, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    approved_by = Column(String, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    approved_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+    updated_at = Column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
+
+    __table_args__ = (
+        Index("idx_townhall_policy_category", "category"),
+        Index("idx_townhall_policy_status", "status"),
+    )
+
+
+class TownHallProcedure(Base):
+    """Operational procedures — step-by-step guides"""
+    __tablename__ = "townhall_procedures"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    procedure_id = Column(String(50), unique=True, nullable=False, index=True)
+    title = Column(String(500), nullable=False)
+    category = Column(String(100), nullable=False)
+    description = Column(Text, nullable=True)
+    content = Column(Text, nullable=False)
+    version = Column(String(20), default="1.0.0", nullable=False)
+    status = Column(String(50), default="active", nullable=False, index=True)
+    related_policy_ids = Column(Text, nullable=True)
+    tags = Column(Text, nullable=True)
+    created_by = Column(String, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    updated_by = Column(String, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+    updated_at = Column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
+
+    __table_args__ = (
+        Index("idx_townhall_proc_category", "category"),
+    )
+
+
+class TownHallBoardMeeting(Base):
+    """Governance board meetings"""
+    __tablename__ = "townhall_board_meetings"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    title = Column(String(500), nullable=False)
+    meeting_type = Column(String(50), nullable=False)
+    scheduled_at = Column(DateTime(timezone=True), nullable=False, index=True)
+    status = Column(String(50), default="scheduled", nullable=False, index=True)
+    location = Column(String(500), nullable=True)
+    agenda = Column(Text, nullable=True)
+    attendees = Column(Text, nullable=True)
+    minutes = Column(Text, nullable=True)
+    quorum_met = Column(Boolean, default=False)
+    recording_ipfs_cid = Column(String(100), nullable=True)
+    chain_tx_hash = Column(String(100), nullable=True)
+    created_by = Column(String, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+    updated_at = Column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
+
+    __table_args__ = (
+        Index("idx_townhall_meeting_type", "meeting_type"),
+        Index("idx_townhall_meeting_status", "status"),
+        Index("idx_townhall_meeting_scheduled", "scheduled_at"),
+    )
+
+
+class TownHallBoardResolution(Base):
+    """Board resolutions and voting records"""
+    __tablename__ = "townhall_board_resolutions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    meeting_id = Column(UUID(as_uuid=True), ForeignKey("townhall_board_meetings.id", ondelete="CASCADE"), nullable=False, index=True)
+    resolution_number = Column(String(50), unique=True, nullable=False)
+    title = Column(String(500), nullable=False)
+    description = Column(Text, nullable=True)
+    resolution_text = Column(Text, nullable=False)
+    proposed_by = Column(String, nullable=True)
+    status = Column(String(50), default="open", nullable=False, index=True)
+    votes_for = Column(Integer, default=0)
+    votes_against = Column(Integer, default=0)
+    votes_abstain = Column(Integer, default=0)
+    quantum_signature = Column(Text, nullable=True)
+    chain_tx_hash = Column(String(100), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+    updated_at = Column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
+
+    __table_args__ = (
+        Index("idx_townhall_resolution_status", "status"),
+    )
+
+
+class TownHallIPRecord(Base):
+    """Intellectual property registry"""
+    __tablename__ = "townhall_ip_registry"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    title = Column(String(500), nullable=False)
+    ip_type = Column(String(50), nullable=False, index=True)
+    description = Column(Text, nullable=False)
+    classification = Column(String(50), default="INTERNAL", nullable=False, index=True)
+    status = Column(String(50), default="registered", nullable=False)
+    creators = Column(Text, nullable=True)
+    tags = Column(Text, nullable=True)
+    related_platforms = Column(Text, nullable=True)
+    c2pa_manifest = Column(Text, nullable=True)
+    quantum_signature = Column(Text, nullable=True)
+    ipfs_cid = Column(String(100), nullable=True)
+    created_by = Column(String, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+    updated_at = Column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
+
+    __table_args__ = (
+        Index("idx_townhall_ip_type", "ip_type"),
+        Index("idx_townhall_ip_classification", "classification"),
+    )
+
+
+class TownHallLegalContract(Base):
+    """Legal contracts and agreements"""
+    __tablename__ = "townhall_legal_contracts"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    title = Column(String(500), nullable=False)
+    contract_type = Column(String(100), nullable=False, index=True)
+    parties = Column(Text, nullable=False)
+    description = Column(Text, nullable=True)
+    status = Column(String(50), default="draft", nullable=False, index=True)
+    effective_date = Column(DateTime(timezone=True), nullable=True)
+    expiry_date = Column(DateTime(timezone=True), nullable=True, index=True)
+    value = Column(Float, nullable=True)
+    ai_analysis = Column(Text, nullable=True)
+    risk_score = Column(Float, nullable=True)
+    tags = Column(Text, nullable=True)
+    quantum_signature = Column(Text, nullable=True)
+    ipfs_cid = Column(String(100), nullable=True)
+    created_by = Column(String, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+    updated_at = Column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
+
+    __table_args__ = (
+        Index("idx_townhall_contract_type", "contract_type"),
+        Index("idx_townhall_contract_status", "status"),
+        Index("idx_townhall_contract_expiry", "expiry_date"),
+    )

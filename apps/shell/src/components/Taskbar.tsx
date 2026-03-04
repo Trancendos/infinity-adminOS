@@ -27,7 +27,8 @@ const PINNED_APPS = [
   { moduleId: 'com.infinity-os.infinity-one',  title: 'Infinity-One',  icon: '∞'  },
   { moduleId: 'com.infinity-os.lighthouse',    title: 'Lighthouse',    icon: '🔦' },
   { moduleId: 'com.infinity-os.void',          title: 'The Void',      icon: '🌌' },
-  // Separator group — productivity & ops
+  // Separator group — governance & ops
+  { moduleId: 'com.infinity-os.townhall',      title: 'TownHall',      icon: '🏛️' },
   { moduleId: 'com.infinity-os.kanban',        title: 'Task Board',    icon: '📋' },
   { moduleId: 'com.infinity-os.itsm',          title: 'ITSM',          icon: '🎫' },
   { moduleId: 'com.infinity-os.terminal',      title: 'Terminal',      icon: '⌨️' },

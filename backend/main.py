@@ -213,6 +213,7 @@ from routers import (
     observability, compliance_frameworks, vulnerability,
     codegen, agent_manager, agent_memory,
     self_healing, adaptive_engine,
+    townhall,
 )
 from routers import version_history as version_history_router
 
@@ -258,6 +259,8 @@ app.include_router(agent_memory.router)
 # Self-Healing & Adaptive Intelligence (2060 future-proofing)
 app.include_router(self_healing.router)
 app.include_router(adaptive_engine.router)
+# The TownHall — Governance Hub (Platform 21)
+app.include_router(townhall.router)
 
 
 # ============================================================
