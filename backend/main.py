@@ -217,6 +217,15 @@ from routers import (
 )
 from routers import version_history as version_history_router
 
+# Wave 1 Migration — 22-Component Architecture Routers
+from routers import (
+    cornelius, the_dr, norman, guardian,
+    hive, nexus, observatory, rbac, admin,
+    search, sync, multiAI, chaos_party,
+    lighthouse, the_void, icebox,
+    library, academy, workshop, treasury, arcadia,
+)
+
 app.include_router(auth.router)
 app.include_router(ai.router)
 app.include_router(compliance.router)
@@ -261,6 +270,58 @@ app.include_router(self_healing.router)
 app.include_router(adaptive_engine.router)
 # The TownHall — Governance Hub (Platform 21)
 app.include_router(townhall.router)
+
+# ============================================================
+# WAVE 1 MIGRATION — 22-COMPONENT ARCHITECTURE (2060 Standard)
+# Migrated from Trancendos monorepo per MIGRATION_PLAN.md
+# ============================================================
+
+# Cognitive Core — Luminous/Cornelius Orchestrator
+app.include_router(cornelius.router)
+app.include_router(multiAI.router)
+
+# Self-Healing — The Lab / TheDr
+app.include_router(the_dr.router)
+
+# Security Intelligence — The Cryptex / Norman
+app.include_router(norman.router)
+
+# IAM — Infinity-One / Guardian
+app.include_router(guardian.router)
+app.include_router(rbac.router)
+
+# Data Transfer — The HIVE + The Nexus
+app.include_router(hive.router)
+app.include_router(nexus.router)
+
+# Immutable Data Hub — The Observatory
+app.include_router(observatory.router)
+
+# Knowledge — The Library + The Academy
+app.include_router(library.router)
+app.include_router(academy.router)
+
+# Code Repository — The Workshop
+app.include_router(workshop.router)
+
+# Adversarial Testing — The Chaos Party
+app.include_router(chaos_party.router)
+
+# Post-Quantum Security — The Lighthouse + The Void + The IceBox
+app.include_router(lighthouse.router)
+app.include_router(the_void.router)
+app.include_router(icebox.router)
+
+# Economic Engine — The Treasury (Royal Bank of Arcadia)
+app.include_router(treasury.router)
+
+# Generative Front-End — Arcadia
+app.include_router(arcadia.router)
+
+# Platform Infrastructure — Admin + Search + Sync
+app.include_router(admin.router)
+app.include_router(search.router)
+app.include_router(sync.router)
 
 
 # ============================================================
