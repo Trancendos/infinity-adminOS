@@ -10,11 +10,13 @@ import uuid
 from datetime import datetime, timezone
 from enum import Enum as PyEnum
 from sqlalchemy import (
-    Column, String, DateTime, JSON, Boolean, BigInteger, Integer,
-    Enum as SQLEnum, ForeignKey, Text, Index, ARRAY, UniqueConstraint,
+    Column, String, DateTime, JSON, Boolean, BigInteger, Integer, Float,
+    Numeric, Enum as SQLEnum, ForeignKey, Text, Index, ARRAY,
+    UniqueConstraint, CheckConstraint,
 )
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+UUID = PG_UUID  # Alias used by TownHall models
 
 Base = declarative_base()
 
@@ -179,6 +181,167 @@ class BoardColumnType(str, PyEnum):
     TESTING = "testing"
     DONE = "done"
     ARCHIVED = "archived"
+
+
+# ============================================================
+# IAM ENUMS — TRN-IAM-002a (Expanded Role Architecture)
+# ============================================================
+
+class IAMRoleLevel(int, PyEnum):
+    """Level 0–6 role hierarchy as defined in IAM_RBAC_DEEP_DIVE.md"""
+    CONTINUITY_GUARDIAN = 0   # Irrevocable platform sovereign
+    PLATFORM_ADMIN = 1        # Full platform administration
+    ORG_ADMIN = 2             # Organisation-scoped administration
+    DEVELOPER = 3             # API, Git, sandbox, agent spawning
+    STANDARD_USER = 4         # Default authenticated user
+    GUEST = 5                 # Read-only, time-limited
+    NON_HUMAN = 6             # AI Agent, Bot, Service Account
+
+
+class IAMRoleType(str, PyEnum):
+    """Role classification types"""
+    SYSTEM = "SYSTEM"
+    ORGANISATION = "ORGANISATION"
+    APPLICATION = "APPLICATION"
+    CUSTOM = "CUSTOM"
+    TEMPORAL = "TEMPORAL"
+    EMERGENCY = "EMERGENCY"
+
+
+class IAMPermissionEffect(str, PyEnum):
+    """Permission evaluation result"""
+    ALLOW = "ALLOW"
+    DENY = "DENY"
+
+
+class IAMAuditDecision(str, PyEnum):
+    """Audit log decision outcomes"""
+    ALLOW = "ALLOW"
+    DENY = "DENY"
+    ERROR = "ERROR"
+
+
+class IAMPrincipalType(str, PyEnum):
+    """Types of identity principals"""
+    HUMAN = "human"
+    AI_AGENT = "ai_agent"
+    BOT = "bot"
+    SERVICE_ACCOUNT = "service_account"
+    EXTERNAL_AI = "external_ai"
+    SYSTEM = "system"
+
+
+class NHIType(str, PyEnum):
+    """Non-Human Identity types"""
+    AI_AGENT = "ai_agent"
+    BOT = "bot"
+    SERVICE_ACCOUNT = "service_account"
+    EXTERNAL_AI = "external_ai"
+    CI_CD = "ci_cd"
+
+
+class AITier(str, PyEnum):
+    """3-Tier AI classification system"""
+    TIER_1_INHOUSE = "tier_1_inhouse"     # Free, full access, can spawn, TIGA-governed
+    TIER_2_FREE = "tier_2_free"           # £0.001/1K tokens, sandboxed, no spawning
+    TIER_3_PREMIUM = "tier_3_premium"     # Market rate, isolated, no PII, mandatory HITL
+
+
+class OperationalTier(str, PyEnum):
+    """Agent operational priority (separate from AI tier)"""
+    T1_CRITICAL = "T1_CRITICAL"
+    T2_IMPORTANT = "T2_IMPORTANT"
+    T3_NICE_TO_HAVE = "T3_NICE_TO_HAVE"
+
+
+class NHIStatus(str, PyEnum):
+    """Non-Human Identity lifecycle states"""
+    ACTIVE = "active"
+    HIBERNATING = "hibernating"
+    PROCESSING = "processing"
+    DEGRADED = "degraded"
+    TERMINATED = "terminated"
+    QUARANTINED = "quarantined"
+
+
+class PresenceProtocol(str, PyEnum):
+    """Fluidic agent presence protocols (replaces HTTP heartbeat polling)"""
+    WEBSOCKET = "websocket"
+    SSE = "sse"
+    WEBHOOK = "webhook"
+    MQTT = "mqtt"
+
+
+class DLQStatus(str, PyEnum):
+    """Dead-Letter Queue task lifecycle"""
+    PENDING_RESCUE = "pending_rescue"
+    RETRYING = "retrying"
+    RESCUED = "rescued"
+    ABANDONED = "abandoned"
+    ESCALATED = "escalated"
+
+
+class SpawnStatus(str, PyEnum):
+    """Bot spawn lifecycle states"""
+    ACTIVE = "active"
+    EXPIRED = "expired"
+    TERMINATED = "terminated"
+    ORPHANED = "orphaned"
+
+
+class SubscriptionBillingStatus(str, PyEnum):
+    """User subscription billing states"""
+    ACTIVE = "active"
+    TRIAL = "trial"
+    PAST_DUE = "past_due"
+    CANCELLED = "cancelled"
+    SUSPENDED = "suspended"
+
+
+class ServiceStatus(str, PyEnum):
+    """Platform service availability states"""
+    ACTIVE = "active"
+    BETA = "beta"
+    MAINTENANCE = "maintenance"
+    DEPRECATED = "deprecated"
+    DISABLED = "disabled"
+
+
+class APIKeyStatus(str, PyEnum):
+    """Scoped API key lifecycle states"""
+    ACTIVE = "active"
+    REVOKED = "revoked"
+    EXPIRED = "expired"
+    ROTATING = "rotating"
+
+
+class GitConnectionStatus(str, PyEnum):
+    """Git connection states"""
+    ACTIVE = "active"
+    SUSPENDED = "suspended"
+    REVOKED = "revoked"
+
+
+class GitProvider(str, PyEnum):
+    """Supported Git providers"""
+    GITHUB = "github"
+    GITLAB = "gitlab"
+    BITBUCKET = "bitbucket"
+    GITEA = "gitea"
+
+
+class ComplianceVerificationStatus(str, PyEnum):
+    """Compliance evidence verification states"""
+    PENDING = "pending"
+    VERIFIED = "verified"
+    REJECTED = "rejected"
+    EXPIRED = "expired"
+
+
+class OwnerType(str, PyEnum):
+    """Owner type for API keys and Git connections"""
+    HUMAN = "human"
+    NHI = "nhi"
 
 
 # ============================================================
@@ -2774,3 +2937,713 @@ class TownHallLegalContract(Base):
         Index("idx_townhall_contract_status", "status"),
         Index("idx_townhall_contract_expiry", "expiry_date"),
     )
+
+
+# ============================================================
+# IAM — EXPANDED ROLE ARCHITECTURE (TRN-IAM-002a)
+# ============================================================
+# Additive models for the hybrid RBAC + ABAC permission system.
+# Zero modifications to existing User, Permission, AuditLog models.
+# Reference: docs/IAM_RBAC_DEEP_DIVE.md v1.0.1
+# Migration: migrations/001_iam_core_schema.sql
+# Ticket: TRN-IAM-002a
+# Revert: b818845
+# ============================================================
+
+
+class IAMRole(Base):
+    """Expanded Level 0–6 role hierarchy.
+    
+    Level 0: Continuity Guardian (irrevocable, sole holder)
+    Level 1: Platform Admin, Security Admin, Compliance Officer
+    Level 2: Org Admin, Restricted Admin
+    Level 3: Developer, Power User, Analyst, Support Agent
+    Level 4: Standard User, Contributor, Trial User
+    Level 5: Guest (read-only, time-limited)
+    Level 6: Non-Human (AI Agent, Bot, Service Account, External AI)
+    """
+    __tablename__ = "iam_roles"
+
+    id = Column(String, primary_key=True, default=new_uuid)
+    name = Column(String(100), unique=True, nullable=False, index=True)
+    display_name = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    level = Column(Integer, nullable=False)
+    role_type = Column(
+        SQLEnum(IAMRoleType, name="iam_role_type_enum", create_constraint=True),
+        default=IAMRoleType.SYSTEM,
+        nullable=False,
+    )
+    is_assignable = Column(Boolean, default=True)
+    max_holders = Column(Integer, nullable=True)  # NULL = unlimited, 1 = sole holder
+    metadata_ = Column("metadata", JSON, default=dict)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+    updated_at = Column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
+
+    # Relationships
+    role_permissions = relationship("IAMRolePermission", back_populates="role", cascade="all, delete-orphan")
+    user_roles = relationship("IAMUserRole", back_populates="role", cascade="all, delete-orphan")
+
+    __table_args__ = (
+        CheckConstraint("level >= 0 AND level <= 6", name="ck_iam_role_level_range"),
+        Index("idx_iam_role_level", "level"),
+        Index("idx_iam_role_type", "role_type"),
+    )
+
+
+class IAMPermission(Base):
+    """Granular namespace:resource:action permission definitions.
+    
+    Examples:
+        admin-os:services:read
+        arcadia:marketplace:write
+        luminous:inference:execute
+        royal-bank:transactions:admin
+    """
+    __tablename__ = "iam_permissions"
+
+    id = Column(String, primary_key=True, default=new_uuid)
+    namespace = Column(String(100), nullable=False, index=True)
+    resource = Column(String(100), nullable=False)
+    action = Column(String(50), nullable=False)
+    description = Column(Text, nullable=True)
+    is_sensitive = Column(Boolean, default=False)
+    requires_mfa = Column(Boolean, default=False)
+    max_holders = Column(Integer, nullable=True)  # Select-few constraint
+    metadata_ = Column("metadata", JSON, default=dict)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+
+    # Relationships
+    role_permissions = relationship("IAMRolePermission", back_populates="permission", cascade="all, delete-orphan")
+    select_few = relationship("IAMSelectFew", back_populates="permission", cascade="all, delete-orphan")
+
+    __table_args__ = (
+        UniqueConstraint("namespace", "resource", "action", name="uq_iam_perm_nra"),
+        Index("idx_iam_perm_namespace_resource", "namespace", "resource"),
+    )
+
+
+class IAMRolePermission(Base):
+    """Role-Permission assignments with ALLOW/DENY effects and ABAC conditions.
+    
+    DENY overrides ALLOW (restriction profiles).
+    Conditions are ABAC attributes evaluated at runtime:
+        {"time_range": "09:00-17:00", "ip_allowlist": [...], "mfa_required": true}
+    """
+    __tablename__ = "iam_role_permissions"
+
+    id = Column(String, primary_key=True, default=new_uuid)
+    role_id = Column(String, ForeignKey("iam_roles.id", ondelete="CASCADE"), nullable=False, index=True)
+    permission_id = Column(String, ForeignKey("iam_permissions.id", ondelete="CASCADE"), nullable=False, index=True)
+    effect = Column(
+        SQLEnum(IAMPermissionEffect, name="iam_permission_effect_enum", create_constraint=True),
+        default=IAMPermissionEffect.ALLOW,
+        nullable=False,
+    )
+    conditions = Column(JSON, default=dict)  # ABAC conditions
+    granted_by = Column(String, nullable=True)
+    granted_at = Column(DateTime(timezone=True), default=utcnow)
+    expires_at = Column(DateTime(timezone=True), nullable=True)
+
+    # Relationships
+    role = relationship("IAMRole", back_populates="role_permissions")
+    permission = relationship("IAMPermission", back_populates="role_permissions")
+
+    __table_args__ = (
+        UniqueConstraint("role_id", "permission_id", name="uq_iam_role_perm"),
+        Index("idx_iam_rp_role", "role_id"),
+        Index("idx_iam_rp_perm", "permission_id"),
+    )
+
+
+class IAMUserRole(Base):
+    """Multi-role assignments per user.
+    
+    Users can hold multiple roles simultaneously.
+    is_primary determines default routing after login.
+    expires_at enables temporal and emergency roles.
+    """
+    __tablename__ = "iam_user_roles"
+
+    id = Column(String, primary_key=True, default=new_uuid)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    role_id = Column(String, ForeignKey("iam_roles.id", ondelete="CASCADE"), nullable=False, index=True)
+    organisation_id = Column(String, ForeignKey("organisations.id"), nullable=True)
+    is_active = Column(Boolean, default=True)
+    is_primary = Column(Boolean, default=False)
+    granted_by = Column(String, nullable=True)
+    granted_at = Column(DateTime(timezone=True), default=utcnow)
+    expires_at = Column(DateTime(timezone=True), nullable=True)
+    metadata_ = Column("metadata", JSON, default=dict)
+
+    # Relationships
+    role = relationship("IAMRole", back_populates="user_roles")
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "role_id", "organisation_id", name="uq_iam_user_role_org"),
+        Index("idx_iam_ur_user", "user_id"),
+        Index("idx_iam_ur_active", "user_id", "is_active"),
+    )
+
+
+class IAMRestrictionProfile(Base):
+    """Explicit DENY overrides for Restricted Admins.
+    
+    Evaluation order: Role ALLOW → Restriction DENY → Selective Elevation ALLOW
+    Only Level 0 or Level 1 can create restriction profiles.
+    """
+    __tablename__ = "iam_restriction_profiles"
+
+    id = Column(String, primary_key=True, default=new_uuid)
+    name = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    target_user_id = Column(String, ForeignKey("users.id"), nullable=True)
+    target_role_id = Column(String, ForeignKey("iam_roles.id"), nullable=True)
+    denied_permissions = Column(JSON, nullable=False, default=list)
+    reason = Column(Text, nullable=False)
+    enforced_by = Column(String, nullable=False)  # Must be Level 0 or 1
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+    expires_at = Column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        Index("idx_iam_restrict_user", "target_user_id"),
+        Index("idx_iam_restrict_role", "target_role_id"),
+    )
+
+
+class IAMSelectFew(Base):
+    """Named-individual permissions for sensitive operations.
+    
+    Sensitive permissions limited to explicitly named individuals.
+    Only Level 0 (Continuity Guardian) can approve select-few elevations.
+    """
+    __tablename__ = "iam_select_few"
+
+    id = Column(String, primary_key=True, default=new_uuid)
+    permission_id = Column(String, ForeignKey("iam_permissions.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    reason = Column(Text, nullable=False)
+    approved_by = Column(String, nullable=False)  # Must be Level 0
+    approved_at = Column(DateTime(timezone=True), default=utcnow)
+    expires_at = Column(DateTime(timezone=True), nullable=True)
+    is_active = Column(Boolean, default=True)
+
+    # Relationships
+    permission = relationship("IAMPermission", back_populates="select_few")
+
+    __table_args__ = (
+        UniqueConstraint("permission_id", "user_id", name="uq_iam_select_few"),
+        Index("idx_iam_sf_user", "user_id"),
+        Index("idx_iam_sf_perm", "permission_id"),
+    )
+
+
+# ============================================================
+# NON-HUMAN IDENTITY (NHI) MANAGEMENT — TRN-IAM-002a
+# ============================================================
+
+
+class NonHumanIdentity(Base):
+    """First-class identity for AI agents, bots, service accounts.
+    
+    Fluidic presence via WebSocket/SSE (replaces HTTP heartbeat polling).
+    JSONB state tracking for real-time agent monitoring.
+    AI tier classification determines access scope and billing.
+    """
+    __tablename__ = "non_human_identities"
+
+    id = Column(String(100), primary_key=True)  # nhi_{type}_{uuid}
+    type = Column(
+        SQLEnum(NHIType, name="nhi_type_enum", create_constraint=True),
+        nullable=False,
+    )
+    name = Column(String(200), nullable=False)
+    owner_id = Column(String(100), nullable=False, index=True)
+    parent_nhi_id = Column(String(100), ForeignKey("non_human_identities.id"), nullable=True)
+    spawn_depth = Column(Integer, default=0)
+
+    # AI Tier Classification
+    ai_tier = Column(
+        SQLEnum(AITier, name="ai_tier_enum", create_constraint=True),
+        nullable=True,
+    )
+
+    # Operational Priority (separate from AI tier)
+    operational_tier = Column(
+        SQLEnum(OperationalTier, name="operational_tier_enum", create_constraint=True),
+        default=OperationalTier.T2_IMPORTANT,
+    )
+
+    role_id = Column(String, ForeignKey("iam_roles.id"), nullable=True)
+    status = Column(
+        SQLEnum(NHIStatus, name="nhi_status_enum", create_constraint=True),
+        default=NHIStatus.HIBERNATING,
+    )
+
+    # Fluidic Presence (replaces requires_heartbeat)
+    presence_protocol = Column(
+        SQLEnum(PresenceProtocol, name="presence_protocol_enum", create_constraint=True),
+        default=PresenceProtocol.WEBSOCKET,
+    )
+    agent_state = Column(JSON, default=lambda: {
+        "current_task": None,
+        "last_event_ts": None,
+        "memory_usage_mb": 0,
+        "active_connections": 0,
+        "error_count": 0,
+    })
+
+    # Security Constraints
+    rate_limit = Column(JSON, default=lambda: {"requests_per_minute": 60, "tokens_per_hour": 10000})
+    token_budget = Column(JSON, default=lambda: {"daily_limit": 50000, "monthly_limit": 1000000, "current_usage": 0})
+    ip_allowlist = Column(JSON, default=list)
+    mandatory_restrictions = Column(JSON, default=list)
+
+    # Lifecycle
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+    last_active_at = Column(DateTime(timezone=True), nullable=True)
+    expires_at = Column(DateTime(timezone=True), nullable=True)
+    terminated_at = Column(DateTime(timezone=True), nullable=True)
+    terminated_reason = Column(Text, nullable=True)
+
+    # Relationships
+    spawned_children = relationship(
+        "NHISpawnRegistry",
+        foreign_keys="NHISpawnRegistry.parent_nhi_id",
+        back_populates="parent",
+    )
+
+    __table_args__ = (
+        CheckConstraint("spawn_depth >= 0 AND spawn_depth <= 3", name="ck_nhi_spawn_depth"),
+        Index("idx_nhi_type", "type"),
+        Index("idx_nhi_status", "status"),
+        Index("idx_nhi_owner", "owner_id"),
+        Index("idx_nhi_tier", "ai_tier"),
+        Index("idx_nhi_parent", "parent_nhi_id"),
+    )
+
+
+class NHISpawnRegistry(Base):
+    """Parent→Child bot spawning with permission inheritance.
+    
+    Children always inherit a SUBSET of parent permissions.
+    Mandatory restrictions cannot be removed by children.
+    Orphan fallback owner prevents zombie processes.
+    """
+    __tablename__ = "nhi_spawn_registry"
+
+    id = Column(String, primary_key=True, default=new_uuid)
+    parent_nhi_id = Column(String(100), ForeignKey("non_human_identities.id"), nullable=False, index=True)
+    child_nhi_id = Column(String(100), ForeignKey("non_human_identities.id"), nullable=False, index=True)
+    inherited_permissions = Column(JSON, nullable=False, default=list)
+    mandatory_restrictions = Column(JSON, nullable=False, default=list)
+    spawn_reason = Column(Text, nullable=False)
+    approved_by = Column(String(100), nullable=True)  # NULL = auto-approved within policy
+    spawned_at = Column(DateTime(timezone=True), default=utcnow)
+    max_lifetime_hours = Column(Integer, default=24)
+    status = Column(
+        SQLEnum(SpawnStatus, name="spawn_status_enum", create_constraint=True),
+        default=SpawnStatus.ACTIVE,
+    )
+    orphan_fallback_owner = Column(String(100), nullable=True)
+
+    # Relationships
+    parent = relationship("NonHumanIdentity", foreign_keys=[parent_nhi_id], back_populates="spawned_children")
+
+    __table_args__ = (
+        UniqueConstraint("parent_nhi_id", "child_nhi_id", name="uq_nhi_spawn_pair"),
+        Index("idx_spawn_parent", "parent_nhi_id"),
+        Index("idx_spawn_child", "child_nhi_id"),
+        Index("idx_spawn_status", "status"),
+    )
+
+
+# ============================================================
+# DEAD-LETTER QUEUE — TRN-IAM-002a
+# ============================================================
+
+
+class AgentTaskDLQ(Base):
+    """Dead-Letter Queue for orphaned agent tasks.
+    
+    Catches failed tasks for zero data loss guarantee.
+    Auto-retries up to max_retries, then escalates.
+    Failure points: abac_evaluation, api_timeout, token_budget_exceeded,
+                    parent_terminated, permission_denied, rate_limited
+    """
+    __tablename__ = "agent_task_dlq"
+
+    id = Column(String, primary_key=True, default=new_uuid)
+    nhi_id = Column(String(100), ForeignKey("non_human_identities.id"), nullable=True, index=True)
+    task_type = Column(String(100), nullable=False)
+    task_payload = Column(JSON, nullable=False)
+    failure_reason = Column(Text, nullable=False)
+    point_of_failure = Column(String(100), nullable=False)
+    original_principal_id = Column(String(100), nullable=True)
+    original_principal_type = Column(String(30), nullable=True)
+    auto_requeue = Column(Boolean, default=True)
+    retry_count = Column(Integer, default=0)
+    max_retries = Column(Integer, default=3)
+    status = Column(
+        SQLEnum(DLQStatus, name="dlq_status_enum", create_constraint=True),
+        default=DLQStatus.PENDING_RESCUE,
+    )
+    escalated_to = Column(String(100), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+    last_retry_at = Column(DateTime(timezone=True), nullable=True)
+    resolved_at = Column(DateTime(timezone=True), nullable=True)
+    resolution_notes = Column(Text, nullable=True)
+
+    __table_args__ = (
+        Index("idx_dlq_status", "status", "created_at"),
+        Index("idx_dlq_nhi", "nhi_id"),
+        Index("idx_dlq_rescue", "status", "retry_count"),
+    )
+
+
+# ============================================================
+# SUBSCRIPTION & SERVICE ACCESS — TRN-IAM-002a
+# ============================================================
+
+
+class SubscriptionTier(Base):
+    """Subscription tiers controlling service access and AI budgets.
+    
+    Tiers: free, starter, professional, enterprise, sovereign
+    Sovereign is £0 — reserved for Continuity Guardian (unlimited).
+    """
+    __tablename__ = "subscription_tiers"
+
+    id = Column(String, primary_key=True, default=new_uuid)
+    name = Column(String(50), unique=True, nullable=False, index=True)
+    display_name = Column(String(100), nullable=False)
+    description = Column(Text, nullable=True)
+    monthly_price_gbp = Column(Numeric(10, 2), default=0.00)
+    included_services = Column(JSON, default=list)
+    ai_tier_access = Column(JSON, default=lambda: {"tier_1": True, "tier_2": False, "tier_3": False})
+    token_budget = Column(JSON, default=lambda: {"tier_1_daily": 50000, "tier_2_daily": 0, "tier_3_daily": 0})
+    max_agents = Column(Integer, default=0)
+    max_api_keys = Column(Integer, default=1)
+    max_git_connections = Column(Integer, default=0)
+    features = Column(JSON, default=dict)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+
+    # Relationships
+    user_subscriptions = relationship("UserSubscription", back_populates="tier")
+
+
+class UserSubscription(Base):
+    """Per-user subscription with à la carte service selection.
+    
+    Users choose which services they want beyond tier defaults.
+    Addon features allow granular feature-level access control.
+    """
+    __tablename__ = "user_subscriptions"
+
+    id = Column(String, primary_key=True, default=new_uuid)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    tier_id = Column(String, ForeignKey("subscription_tiers.id"), nullable=False)
+    selected_services = Column(JSON, default=list)
+    addon_features = Column(JSON, default=list)
+    billing_status = Column(
+        SQLEnum(SubscriptionBillingStatus, name="sub_billing_status_enum", create_constraint=True),
+        default=SubscriptionBillingStatus.ACTIVE,
+    )
+    trial_ends_at = Column(DateTime(timezone=True), nullable=True)
+    current_period_start = Column(DateTime(timezone=True), default=utcnow)
+    current_period_end = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+    updated_at = Column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
+
+    # Relationships
+    tier = relationship("SubscriptionTier", back_populates="user_subscriptions")
+
+    __table_args__ = (
+        Index("idx_user_sub_user", "user_id"),
+        Index("idx_user_sub_status", "billing_status"),
+    )
+
+
+class PlatformService(Base):
+    """Registry of all platform services available for subscription.
+    
+    Services can be core (included in all tiers) or addon (à la carte).
+    min_subscription_tier gates access by subscription level.
+
+    2060 SEMANTIC MESH ROUTING READINESS
+    ────────────────────────────────────
+    The mesh_address and routing_protocol columns enable the transition from
+    static port-based service discovery to semantic mesh routing:
+
+      Phase 1 (2024-2026): Static ports — services at localhost:PORT
+      Phase 2 (2027-2035): mDNS/Consul — services at service-name.local
+      Phase 3 (2036-2060): Semantic mesh — services at agent.local with
+                           intent-based routing (e.g., "route to nearest
+                           AI inference node with GPU > 24GB")
+
+    The routing_protocol column accepts: 'static_port' | 'mdns' | 'consul' | 'semantic_mesh'
+    Default is 'static_port' for backward compatibility.
+
+    QUANTUM-SAFE MIGRATION PATH
+    ────────────────────────────
+    Service-to-service authentication will migrate through:
+      2024: HMAC-SHA512 shared secrets
+      2030: ML-KEM (NIST PQC) key encapsulation
+      2040: Hybrid classical+PQC with automatic negotiation
+      2060: Pure PQC with lattice-based signatures (SLH-DSA)
+    The service_auth_method column tracks the current auth protocol per service.
+    """
+    __tablename__ = "platform_services"
+
+    id = Column(String, primary_key=True, default=new_uuid)
+    name = Column(String(100), unique=True, nullable=False, index=True)
+    display_name = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    category = Column(String(50), nullable=True, index=True)
+    min_subscription_tier = Column(String(50), default="free")
+    is_addon = Column(Boolean, default=False)
+    addon_price_gbp = Column(Numeric(10, 2), default=0.00)
+    required_permissions = Column(JSON, default=list)
+    status = Column(
+        SQLEnum(ServiceStatus, name="service_status_enum", create_constraint=True),
+        default=ServiceStatus.ACTIVE,
+    )
+    metadata_ = Column("metadata", JSON, default=dict)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+
+    # ── 2060 Semantic Mesh Routing ──────────────────────────────
+    # These columns are nullable for backward compatibility.
+    # Populated by seed_iam.py and updated as services migrate.
+    mesh_address = Column(String(255), nullable=True)  # e.g., "infinity-one.agent.local"
+    routing_protocol = Column(String(50), default="static_port")  # static_port → mdns → consul → semantic_mesh
+    health_endpoint = Column(String(255), nullable=True)  # e.g., "/healthz" or "grpc://health"
+    service_auth_method = Column(String(50), default="hmac_sha512")  # hmac_sha512 → ml_kem → hybrid_pqc → slh_dsa
+
+    __table_args__ = (
+        Index("idx_platform_svc_category", "category"),
+        Index("idx_platform_svc_status", "status"),
+        Index("idx_platform_svc_mesh", "mesh_address"),
+    )
+
+
+# ============================================================
+# API & GIT CONNECTION PERMISSIONS — TRN-IAM-002a
+# ============================================================
+
+
+class ScopedAPIKey(Base):
+    """SHA-512 hashed API keys with mandatory expiry and scoping.
+    
+    Keys are scoped to specific namespace:resource:action patterns.
+    Auto-rotation enforced via rotation_interval_days.
+    No permanent keys allowed — expires_at is mandatory.
+    """
+    __tablename__ = "scoped_api_keys"
+
+    id = Column(String, primary_key=True, default=new_uuid)
+    key_hash = Column(String(128), unique=True, nullable=False, index=True)  # SHA-512
+    key_prefix = Column(String(12), nullable=False, index=True)  # e.g., 'trn_live_abc'
+    owner_id = Column(String(100), nullable=False, index=True)
+    owner_type = Column(
+        SQLEnum(OwnerType, name="owner_type_enum", create_constraint=True),
+        nullable=False,
+    )
+    name = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+
+    # Scoping
+    scopes = Column(JSON, nullable=False, default=list)
+    ip_allowlist = Column(JSON, default=list)
+    rate_limit = Column(JSON, default=lambda: {"requests_per_minute": 60})
+
+    # Lifecycle
+    status = Column(
+        SQLEnum(APIKeyStatus, name="api_key_status_enum", create_constraint=True),
+        default=APIKeyStatus.ACTIVE,
+    )
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+    expires_at = Column(DateTime(timezone=True), nullable=False)  # Mandatory expiry
+    last_used_at = Column(DateTime(timezone=True), nullable=True)
+    last_rotated_at = Column(DateTime(timezone=True), nullable=True)
+    rotation_interval_days = Column(Integer, default=90)
+    revoked_at = Column(DateTime(timezone=True), nullable=True)
+    revoked_reason = Column(Text, nullable=True)
+
+    __table_args__ = (
+        Index("idx_api_key_owner", "owner_id", "owner_type"),
+        Index("idx_api_key_active", "status", "expires_at"),
+    )
+
+
+class GitConnection(Base):
+    """Per-repo, per-branch, per-environment Git access control.
+    
+    Scoped to specific repositories, branches, and operations.
+    Webhook secrets are SHA-512 hashed.
+    """
+    __tablename__ = "git_connections"
+
+    id = Column(String, primary_key=True, default=new_uuid)
+    owner_id = Column(String(100), nullable=False, index=True)
+    owner_type = Column(
+        SQLEnum(OwnerType, name="owner_type_enum", create_constraint=True, create_type=False),
+        nullable=False,
+    )
+    provider = Column(
+        SQLEnum(GitProvider, name="git_provider_enum", create_constraint=True),
+        nullable=False,
+    )
+    repository_pattern = Column(String(500), nullable=False)
+
+    # Scoping
+    allowed_branches = Column(JSON, default=lambda: ["main", "develop"])
+    allowed_operations = Column(JSON, default=lambda: ["read"])
+    allowed_environments = Column(JSON, default=lambda: ["development"])
+
+    # Security
+    requires_review = Column(Boolean, default=True)
+    max_commits_per_day = Column(Integer, default=50)
+    webhook_secret_hash = Column(String(128), nullable=True)  # SHA-512
+
+    # Lifecycle
+    status = Column(
+        SQLEnum(GitConnectionStatus, name="git_conn_status_enum", create_constraint=True),
+        default=GitConnectionStatus.ACTIVE,
+    )
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+    expires_at = Column(DateTime(timezone=True), nullable=True)
+    last_used_at = Column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        Index("idx_git_conn_owner", "owner_id", "owner_type"),
+        Index("idx_git_conn_provider", "provider"),
+    )
+
+
+# ============================================================
+# QUANTUM-RESISTANT AUDIT & COMPLIANCE — TRN-IAM-002a
+# ============================================================
+
+
+class IAMAuditLog(Base):
+    """Quantum-resistant audit log with SHA-512 integrity hashes.
+    
+    Every permission evaluation, role change, and access decision is logged.
+    Evaluation chain captures the full RBAC→ABAC→Subscription trace.
+    Risk scoring enables anomaly detection.
+    CRA 10-year retention enforced.
+    """
+    __tablename__ = "iam_audit_log"
+
+    id = Column(String, primary_key=True, default=new_uuid)
+    timestamp = Column(DateTime(timezone=True), default=utcnow, index=True)
+    principal_id = Column(String(100), nullable=False, index=True)
+    principal_type = Column(
+        SQLEnum(IAMPrincipalType, name="iam_principal_type_enum", create_constraint=True),
+        nullable=False,
+    )
+    action = Column(String(200), nullable=False, index=True)
+    resource_type = Column(String(100), nullable=True)
+    resource_id = Column(String(200), nullable=True)
+    decision = Column(
+        SQLEnum(IAMAuditDecision, name="iam_audit_decision_enum", create_constraint=True),
+        nullable=False,
+    )
+    decision_reason = Column(Text, nullable=True)
+    evaluation_chain = Column(JSON, default=list)
+    ip_address = Column(String(45), nullable=True)  # IPv4/IPv6
+    user_agent = Column(Text, nullable=True)
+    session_id = Column(String(100), nullable=True)
+    organisation_id = Column(String, nullable=True)
+    risk_score = Column(Numeric(3, 2), default=0.00)
+    metadata_ = Column("metadata", JSON, default=dict)
+    sha512_hash = Column(String(128), nullable=False)  # Quantum-resistant integrity
+
+    __table_args__ = (
+        Index("idx_iam_audit_ts", "timestamp"),
+        Index("idx_iam_audit_principal", "principal_id", "principal_type"),
+        Index("idx_iam_audit_action", "action"),
+        Index("idx_iam_audit_decision", "decision"),
+        Index("idx_iam_audit_org", "organisation_id"),
+        Index("idx_iam_audit_risk", "risk_score"),
+    )
+
+
+class ComplianceEvidence(Base):
+    """TIGA compliance evidence with SHA-512 integrity and CRA retention.
+    
+    Maps to TIGA FF-CTRL-001 through FF-CTRL-040+ controls.
+    10-year retention minimum per Cyber Resilience Act.
+    """
+    __tablename__ = "compliance_evidence"
+
+    id = Column(String, primary_key=True, default=new_uuid)
+    control_id = Column(String(20), nullable=False, index=True)
+    control_name = Column(String(200), nullable=True)
+    type = Column(String(50), nullable=False)
+    description = Column(Text, nullable=True)
+    file_url = Column(Text, nullable=True)
+    sha512_hash = Column(String(128), nullable=True)  # Quantum-resistant
+    uploaded_by = Column(String, ForeignKey("users.id"), nullable=True)
+    verified_by = Column(String, ForeignKey("users.id"), nullable=True)
+    verification_status = Column(
+        SQLEnum(ComplianceVerificationStatus, name="compliance_verify_enum", create_constraint=True),
+        default=ComplianceVerificationStatus.PENDING,
+    )
+    uploaded_at = Column(DateTime(timezone=True), default=utcnow)
+    verified_at = Column(DateTime(timezone=True), nullable=True)
+    expires_at = Column(DateTime(timezone=True), nullable=True)
+    retention_until = Column(DateTime(timezone=True), nullable=True)
+    # Default set in application layer: NOW() + 10 years (CRA compliance)
+
+    __table_args__ = (
+        Index("idx_compliance_control", "control_id"),
+        Index("idx_compliance_status", "verification_status"),
+    )
+
+
+# ============================================================
+# APPLICATION-LEVEL RBAC — TRN-IAM-002a
+# ============================================================
+
+
+class AppPermissionNamespace(Base):
+    """Per-application permission namespaces.
+    
+    Each app (Arcadia, Admin OS, Royal Bank, etc.) gets its own
+    permission namespace with default and admin permission sets.
+    """
+    __tablename__ = "app_permission_namespaces"
+
+    id = Column(String, primary_key=True, default=new_uuid)
+    service_id = Column(String, ForeignKey("platform_services.id"), nullable=True)
+    namespace = Column(String(100), unique=True, nullable=False, index=True)
+    description = Column(Text, nullable=True)
+    default_permissions = Column(JSON, default=list)
+    admin_permissions = Column(JSON, default=list)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+
+
+# ============================================================
+# PLATFORM CONFIGURATION — TRN-IAM-002a
+# ============================================================
+
+
+class PlatformConfig(Base):
+    """Flexible JSONB configuration store.
+    
+    Avoids costly ALTER TABLE migrations on Neon free tier.
+    Sensitive configs require Level 0/1 to modify.
+    Versioned for audit trail.
+    """
+    __tablename__ = "platform_config"
+
+    id = Column(String, primary_key=True, default=new_uuid)
+    config_key = Column(String(200), unique=True, nullable=False, index=True)
+    config_value = Column(JSON, nullable=False)
+    description = Column(Text, nullable=True)
+    is_sensitive = Column(Boolean, default=False)
+    last_modified_by = Column(String, nullable=True)
+    last_modified_at = Column(DateTime(timezone=True), default=utcnow)
+    version = Column(Integer, default=1)
