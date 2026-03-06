@@ -3370,6 +3370,29 @@ class PlatformService(Base):
     
     Services can be core (included in all tiers) or addon (à la carte).
     min_subscription_tier gates access by subscription level.
+
+    2060 SEMANTIC MESH ROUTING READINESS
+    ────────────────────────────────────
+    The mesh_address and routing_protocol columns enable the transition from
+    static port-based service discovery to semantic mesh routing:
+
+      Phase 1 (2024-2026): Static ports — services at localhost:PORT
+      Phase 2 (2027-2035): mDNS/Consul — services at service-name.local
+      Phase 3 (2036-2060): Semantic mesh — services at agent.local with
+                           intent-based routing (e.g., "route to nearest
+                           AI inference node with GPU > 24GB")
+
+    The routing_protocol column accepts: 'static_port' | 'mdns' | 'consul' | 'semantic_mesh'
+    Default is 'static_port' for backward compatibility.
+
+    QUANTUM-SAFE MIGRATION PATH
+    ────────────────────────────
+    Service-to-service authentication will migrate through:
+      2024: HMAC-SHA512 shared secrets
+      2030: ML-KEM (NIST PQC) key encapsulation
+      2040: Hybrid classical+PQC with automatic negotiation
+      2060: Pure PQC with lattice-based signatures (SLH-DSA)
+    The service_auth_method column tracks the current auth protocol per service.
     """
     __tablename__ = "platform_services"
 
@@ -3389,9 +3412,18 @@ class PlatformService(Base):
     metadata_ = Column("metadata", JSON, default=dict)
     created_at = Column(DateTime(timezone=True), default=utcnow)
 
+    # ── 2060 Semantic Mesh Routing ──────────────────────────────
+    # These columns are nullable for backward compatibility.
+    # Populated by seed_iam.py and updated as services migrate.
+    mesh_address = Column(String(255), nullable=True)  # e.g., "infinity-one.agent.local"
+    routing_protocol = Column(String(50), default="static_port")  # static_port → mdns → consul → semantic_mesh
+    health_endpoint = Column(String(255), nullable=True)  # e.g., "/healthz" or "grpc://health"
+    service_auth_method = Column(String(50), default="hmac_sha512")  # hmac_sha512 → ml_kem → hybrid_pqc → slh_dsa
+
     __table_args__ = (
         Index("idx_platform_svc_category", "category"),
         Index("idx_platform_svc_status", "status"),
+        Index("idx_platform_svc_mesh", "mesh_address"),
     )
 
 
