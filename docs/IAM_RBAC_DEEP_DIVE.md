@@ -2,13 +2,17 @@
 ## Comprehensive Identity, Access Management & Permission Architecture
 ### Trancendos Ecosystem — Infinity Portal, Admin OS, Arcadia & All Services
 
-**Document Version:** 1.0  
+**Document Version:** 1.0.1  
 **Prepared by:** SuperNinja AI  
+**Reviewed by:** Andrew 'Drew' Porter — Continuity Guardian  
 **Repository:** Trancendos/infinity-portal  
-**Classification:** Security Architecture — Pre-Implementation Research  
+**Classification:** Security Architecture — Approved for Implementation  
 **Date:** 2025-03-07  
-**Status:** DRAFT — Awaiting Continuity Guardian Approval  
+**Status:** ✅ APPROVED — Enhancements Incorporated (SHA-512, Fluidic NHI, DLQ, Orphan Protocol)  
 **Companion Document:** `INFINITY_PORTAL_BLUEPRINT.md`  
+**Migration Script:** `migrations/001_iam_core_schema.sql`  
+**Revert Hash:** `782cb3a`  
+**Active Ticket:** TRN-IAM-001  
 
 ---
 
@@ -418,7 +422,8 @@ const AI_AGENT_TIER1: RoleDefinition = {
   constraints: {
     rate_limit: { requests_per_minute: 100 },
     data_scope: 'organisation',        // Cannot access cross-org data
-    requires_heartbeat: true,          // Must send heartbeat every 2 min
+    presence_protocol: 'websocket',    // Fluidic: WebSocket/SSE/webhook (replaces HTTP polling heartbeat)
+    agent_state_tracking: true,        // JSONB state: current_task, last_event_ts, memory_usage
     audit_all_actions: true,           // Every action is logged
   },
 };
@@ -1542,7 +1547,7 @@ interface AuditLogEntry {
   data_classification?: string;
   gdpr_relevant: boolean;
   retention_until: Date;               // CRA 10-year retention
-  sha256_hash: string;                 // Integrity verification
+  sha512_hash: string;                 // Quantum-resistant integrity verification (upgraded from SHA-256)
 }
 ```
 
@@ -1802,7 +1807,7 @@ CREATE TABLE iam_audit_log (
     data_classification VARCHAR(20),
     gdpr_relevant BOOLEAN DEFAULT FALSE,
     retention_until TIMESTAMPTZ,
-    sha256_hash VARCHAR(64)
+    sha512_hash VARCHAR(128)             -- Quantum-resistant (upgraded from SHA-256)
 );
 
 -- Indexes for performance
@@ -1814,6 +1819,150 @@ CREATE INDEX idx_nhi_status ON non_human_identities(status, type);
 CREATE INDEX idx_ai_usage_user ON ai_usage(user_id, timestamp DESC);
 CREATE INDEX idx_api_keys_hash ON scoped_api_keys(key_hash);
 ```
+
+---
+
+## 14B. CONTINUITY GUARDIAN REVIEW — APPROVED ENHANCEMENTS (v1.0.1)
+
+The following enhancements were identified during the Continuity Guardian's technical review of Draft 1.0 and are now incorporated into the canonical architecture.
+
+### 14B.1 Quantum-Resistant Hashing (SHA-512)
+
+**Rationale:** Standard SHA-256 is vulnerable to "Harvest Now, Decrypt Later" quantum attacks. To achieve true 2060 compliance, all integrity hashes must use SHA-512 minimum, with a migration path to CRYSTALS-Dilithium post-quantum signatures.
+
+**Changes Applied:**
+- `iam_audit_log.sha256_hash` → `sha512_hash VARCHAR(128)`
+- `compliance_evidence.sha256_hash` → `sha512_hash VARCHAR(128)`
+- `scoped_api_keys.key_hash` → `VARCHAR(128)` (SHA-512)
+- `git_connections.webhook_secret_hash` → `VARCHAR(128)` (SHA-512)
+- JWT signing algorithm upgraded from HS256 → HS512
+- All new tables use SHA-512 by default
+
+### 14B.2 Fluidic Agent State (Event-Driven Telemetry)
+
+**Problem:** The original 2-minute HTTP heartbeat polling across 22+ agents risks exceeding free-tier serverless compute limits (Cloudflare Workers, Koyeb). Constant polling is a 2025 legacy pattern.
+
+**Solution:** Replace HTTP polling with event-driven presence:
+
+```typescript
+// BEFORE (Legacy — HTTP Polling)
+constraints: {
+  requires_heartbeat: true,  // HTTP poll every 2 min — burns free-tier limits
+}
+
+// AFTER (Fluidic — Event-Driven)
+constraints: {
+  presence_protocol: 'websocket',  // or 'sse', 'webhook', 'mqtt'
+  agent_state: {
+    current_task: null,
+    last_event_ts: null,
+    memory_usage_mb: 0,
+    active_connections: 0,
+    error_count: 0,
+  },
+}
+```
+
+**Database Change:** `non_human_identities` table now uses:
+- `presence_protocol VARCHAR(50)` — WebSocket/SSE/webhook/MQTT
+- `agent_state JSONB` — Real-time state without polling overhead
+- Removed: `requires_heartbeat` boolean
+
+### 14B.3 Orphaned Bot Protocol
+
+**Problem:** If a Tier 1 agent spawns a bot for a 24-hour task and the parent agent terminates, the bot becomes orphaned — a zombie process draining tokens with no governance.
+
+**Solution:** The `nhi_spawn_registry` table now includes:
+
+```sql
+orphan_fallback_owner VARCHAR(100),
+-- Fallback owner if parent terminates (default: Continuity Guardian)
+```
+
+**Orphan Resolution Flow:**
+1. Parent agent terminates or enters `degraded` status
+2. System detects orphaned children via `parent_nhi_id` foreign key
+3. Children are reassigned to `orphan_fallback_owner` (default: Continuity Guardian)
+4. If no fallback owner is set, children are auto-terminated with `terminated_reason: 'parent_orphaned'`
+5. All orphaned tasks drop into the Dead-Letter Queue (see 14B.4)
+6. Audit log entry created: `action: 'nhi.orphan.reassign'`
+
+### 14B.4 Dead-Letter Queue (DLQ) for Agent Tasks
+
+**Problem:** When an agent loses its API connection mid-task, or a spawned bot fails a permission check, the task vanishes. Zero data loss is non-negotiable for TIGA compliance.
+
+**Solution:** New `agent_task_dlq` table:
+
+```sql
+CREATE TABLE agent_task_dlq (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    nhi_id VARCHAR(100) REFERENCES non_human_identities(id),
+    task_type VARCHAR(100) NOT NULL,
+    task_payload JSONB NOT NULL,
+    failure_reason TEXT NOT NULL,
+    point_of_failure VARCHAR(100) NOT NULL,
+    auto_requeue BOOLEAN DEFAULT TRUE,
+    retry_count INTEGER DEFAULT 0,
+    max_retries INTEGER DEFAULT 3,
+    status VARCHAR(20) DEFAULT 'pending_rescue',
+    escalated_to VARCHAR(100),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    last_retry_at TIMESTAMPTZ,
+    resolved_at TIMESTAMPTZ,
+    resolution_notes TEXT
+);
+```
+
+**DLQ Lifecycle:**
+1. Task fails at any point in the evaluation chain
+2. Task drops into DLQ with `status: 'pending_rescue'`
+3. System auto-retries up to `max_retries` (default: 3)
+4. If all retries fail → `status: 'escalated'`, `escalated_to: 'continuity_guardian'`
+5. If manually resolved → `status: 'rescued'` with `resolution_notes`
+6. If abandoned → `status: 'abandoned'` (requires Level 0/1 approval)
+
+**Failure Points Captured:**
+- `abac_evaluation` — ABAC condition check failed
+- `api_timeout` — External API did not respond
+- `token_budget_exceeded` — Daily/monthly token limit hit
+- `parent_terminated` — Parent agent went offline
+- `permission_denied` — RBAC check failed mid-execution
+- `rate_limited` — Rate limit exceeded
+- `subscription_expired` — User subscription lapsed during task
+
+### 14B.5 Admin OS Focus Mode (Cognitive Ease)
+
+**Problem:** Displaying 22 agents, 40+ FF controls, and real-time logs simultaneously violates the Empathy Mandate and induces cognitive overload — a critical failure per Trancendos design principles.
+
+**Solution:** Progressive disclosure UI pattern:
+
+```
+DEFAULT VIEW:  "Ecosystem Nominal" (single green indicator)
+                ↓ (anomaly detected OR user drills down)
+SUMMARY VIEW:  Agent health grid (22 tiles, colour-coded)
+                ↓ (click specific agent)
+DETAIL VIEW:   Individual agent logs, metrics, DLQ entries
+                ↓ (click specific control)
+CONTROL VIEW:  FF-CTRL detail with compliance evidence
+```
+
+This ensures the Admin OS respects cognitive ease by default and only surfaces complexity when needed.
+
+### 14B.6 Semantic Mesh Routing (2060 Future-Proofing)
+
+**Problem:** Static port mapping (3001, 3002... 3026) is a legacy infrastructure paradigm. By 2060, infrastructure will be entirely abstracted.
+
+**Solution:** The `platform_config` table includes:
+```sql
+('mesh.routing_mode', '"semantic"', 'Agent routing: semantic (2060) vs static_port (legacy)')
+```
+
+**Migration Path:**
+- **Phase 1 (Now):** Static ports for local development, semantic aliases registered in service registry
+- **Phase 2 (Post-MVP):** Dual-mode routing — static ports with semantic overlay
+- **Phase 3 (2060-Ready):** Pure semantic mesh — `cornelius.agent.local` instead of `localhost:3001`
+
+Agents are treated as nodes in a dynamic neural mesh that auto-discover each other without static port assignments.
 
 ---
 
@@ -1859,20 +2008,51 @@ CREATE INDEX idx_api_keys_hash ON scoped_api_keys(key_hash);
 | 13 | Biometric continuous authentication (behavioral) | Low | Very High |
 | 14 | Quantum-safe token signing (CRYSTALS-Dilithium) | Low | Very High |
 | 15 | Agent reputation scoring based on historical behavior | Medium | Medium |
+| 16 | AI Tier Budget Rollover — unused Tier 2/3 token budgets partially roll over to next billing cycle as loyalty retention | Medium | Medium |
+| 17 | Automated Schema Diffing — internal tool that validates Neon branch schemas against TIGA FF-CTRL-008 data classification before merge to main | High | Medium |
+| 18 | Agent Auto-Hibernation — cold storage protocol for Tier 1 agents idle >48hrs, wake dynamically via proxy request to preserve free-tier limits | High | Medium |
+| 19 | Zero-Knowledge Authentication (ZKA) — replace password/WebAuthn with cryptographic challenge-response (no credential hash transmitted or stored) | Low | Very High |
+| 20 | Predictive Mesh Scaling — train lightweight local model on DLQ failure metrics to predict agent rate-limit hits, auto-route before failure | Low | High |
+| 21 | Database-Level ABAC via Row-Level Security (RLS) — Postgres RLS tied to JWT active_role claim as zero-cost fortress wall | High | Medium |
+| 22 | Postgres Triggers for DLQ — auto-alert Sentinel AI agent via webhook when task enters pending_rescue status for self-healing retry | Medium | Low |
+| 23 | E2EE for DLQ Payloads — encrypt task_payload JSONB column using platform master key if payload contains PII (GDPR/TIGA compliance) | High | Medium |
 
 ---
 
 ## 17. SIGN-OFF
 
-### Approval Required Before Implementation
+### Continuity Guardian Review — v1.0.1
 
-This deep-dive requires approval from the Continuity Guardian before any code changes are made:
+**Status:** ✅ APPROVED with enhancements (see Section 14B)
 
-- [ ] Expanded role taxonomy is correct and complete
-- [ ] Developer role permissions are appropriate
-- [ ] AI 3-tier classification is accurate
-- [ ] Subscription tier structure is approved
-- [ ] Admin restriction model is approved
+**Approved by:** Andrew 'Drew' Porter — Continuity Guardian & Lead Architect
+**Review Date:** 2025-03-07
+**Ticket:** TRN-IAM-001 — IAM Core Role Hierarchy & Schema Migration
+
+**Approval Checklist:**
+- [x] Expanded role taxonomy is correct and complete
+- [x] Developer role permissions are appropriate
+- [x] AI 3-tier classification is accurate
+- [x] Subscription tier structure is approved
+- [x] Admin restriction model is approved
+- [x] SHA-512 quantum-resistant hashing approved
+- [x] Fluidic NHI state (WebSocket/SSE presence) approved
+- [x] Dead-Letter Queue for agent tasks approved
+- [x] Orphaned bot reassignment protocol approved
+- [x] Focus Mode UI for Admin OS approved
+- [x] Semantic mesh routing migration path approved
+
+**Enhancements Incorporated:**
+1. SHA-256 → SHA-512 across all integrity hashes
+2. HTTP heartbeat polling → Event-driven WebSocket/SSE presence
+3. Orphaned bot fallback owner + auto-terminate protocol
+4. Dead-Letter Queue with auto-retry and escalation
+5. Admin OS Focus Mode (progressive disclosure)
+6. Semantic mesh routing migration path (static → dual → pure semantic)
+
+**Revert Point:** `782cb3a` (pre-TRN-IAM-001)
+
+**Next Phase:** TRN-IAM-002 — Backend Auth Flow & Role Routing
 - [ ] Select-few permissions list is correct
 - [ ] Bot spawning rules are appropriate
 - [ ] API/Git connection permission model is approved
