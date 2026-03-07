@@ -1221,6 +1221,143 @@ async def seed_continuity_guardian(db):
         logger.info(f"     VALUES ('<user_id>', '{cg_role.id}', true, true);")
 
 
+
+
+# ============================================================
+# WAVE 6 STUDIO PERMISSIONS — Added Session 4
+# ============================================================
+# Studios: section7, style-and-shoot, fabulousa, tranceflow, tateking, the-digitalgrid
+# Ista Personas: Bert-Joen Kater, Madam Krystal, Baron Von Hilton,
+#                Junior Cesar, Benji & Sam, Tyler Towncroft
+# ============================================================
+
+STUDIO_SERVICES = [
+    {
+        "name": "section7",
+        "port": 3050,
+        "ista": "Bert-Joen Kater (Storyista)",
+        "permissions": [
+            "intelligence:read", "intelligence:write", "intelligence:ingest",
+            "lore:read", "lore:write", "lore:generate",
+            "market:read", "market:scan",
+            "narrative:read", "narrative:write",
+        ],
+        "iam_level": 3,
+    },
+    {
+        "name": "style-and-shoot",
+        "port": 3051,
+        "ista": "Madam Krystal (UX UIista)",
+        "permissions": [
+            "components:read", "components:write", "components:compile",
+            "design-system:read", "design-system:write",
+            "svg:generate", "svg:optimize",
+            "ber:read", "ber:write",
+        ],
+        "iam_level": 3,
+    },
+    {
+        "name": "fabulousa",
+        "port": 3052,
+        "ista": "Baron Von Hilton (Styleista)",
+        "permissions": [
+            "fabric:read", "fabric:write", "fabric:simulate",
+            "color:validate", "color:generate",
+            "couture:read", "couture:write", "couture:generate",
+            "fashion-line:read", "fashion-line:write",
+        ],
+        "iam_level": 3,
+    },
+    {
+        "name": "tranceflow",
+        "port": 3053,
+        "ista": "Junior Cesar (Gamingista)",
+        "permissions": [
+            "physics:read", "physics:simulate",
+            "avatar:read", "avatar:write", "avatar:animate",
+            "mesh:read", "mesh:write", "mesh:heal",
+            "spatial:read", "spatial:write",
+        ],
+        "iam_level": 3,
+    },
+    {
+        "name": "tateking",
+        "port": 3054,
+        "ista": "Benji & Sam (Movistas)",
+        "permissions": [
+            "timeline:read", "timeline:write", "timeline:render",
+            "lighting:read", "lighting:write",
+            "swarm:read", "swarm:simulate",
+            "production:read", "production:write",
+        ],
+        "iam_level": 3,
+    },
+    {
+        "name": "the-digitalgrid",
+        "port": 3055,
+        "ista": "Tyler Towncroft (DevOpsista)",
+        "permissions": [
+            "routing:read", "routing:write", "routing:deploy",
+            "quarantine:read", "quarantine:write", "quarantine:shunt",
+            "webhooks:read", "webhooks:write", "webhooks:heal",
+            "pipeline:read", "pipeline:write", "pipeline:execute",
+        ],
+        "iam_level": 2,  # DevOps needs higher access
+    },
+]
+
+async def seed_studio_permissions(db) -> None:
+    """Seed Wave 6 Studio service permissions and roles."""
+    logger.info("Seeding Wave 6 Studio permissions...")
+
+    for studio in STUDIO_SERVICES:
+        logger.info(f"  Processing {studio['name']} ({studio['ista']})...")
+
+        # Create service role
+        role_name = f"studio_{studio['name'].replace('-', '_')}"
+        existing_role = (await db.execute(
+            select(IAMRole).where(IAMRole.name == role_name)
+        )).scalar_one_or_none()
+
+        if not existing_role:
+            role = IAMRole(
+                name=role_name,
+                display_name=f"Studio: {studio['name']}",
+                description=f"Service role for {studio['name']} — {studio['ista']}",
+                level=studio["iam_level"],
+                is_service_role=True,
+                service_name=studio["name"],
+                service_port=studio["port"],
+            )
+            db.add(role)
+            await db.flush()
+            logger.info(f"    ✅ Created role: {role_name}")
+        else:
+            logger.info(f"    ℹ️  Role already exists: {role_name}")
+
+        # Seed permissions
+        for perm_str in studio["permissions"]:
+            resource, action = perm_str.split(":")
+            existing_perm = (await db.execute(
+                select(IAMPermission).where(
+                    IAMPermission.resource == resource,
+                    IAMPermission.action == action,
+                    IAMPermission.service == studio["name"],
+                )
+            )).scalar_one_or_none()
+
+            if not existing_perm:
+                perm = IAMPermission(
+                    resource=resource,
+                    action=action,
+                    service=studio["name"],
+                    description=f"{action} on {resource} in {studio['name']}",
+                )
+                db.add(perm)
+
+    await db.flush()
+    logger.info(f"  ✅ Wave 6 Studio permissions seeded ({len(STUDIO_SERVICES)} studios)")
+
 # ============================================================
 # ENTRY POINT
 # ============================================================

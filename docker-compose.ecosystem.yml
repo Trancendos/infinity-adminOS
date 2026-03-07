@@ -478,14 +478,14 @@ services:
       context: ../artifactory
       dockerfile: Dockerfile
     ports:
-      - "3041:3000"
+      - "3041:3041"
     environment:
       <<: *common-env
       SERVICE_NAME: artifactory
-      PORT: "3000"
-      MESH_ADDRESS: "artifactory:3000"
+      PORT: "3041"
+      MESH_ADDRESS: "artifactory:3041"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3041/health"]
       <<: *common-healthcheck
     networks:
       - trancendos-mesh
@@ -530,3 +530,9 @@ networks:
 # 3037  solarscene-ai       (Wave 4 — Operations/Workflow)
 # 3040  api-marketplace     (Wave 5 — API Discovery/Publishing)
 # 3041  artifactory         (Wave 5 — Artifact Registry/Storage)
+# 3050  section7            (Wave 6 — Intelligence, Narrative & Research)
+# 3051  style-and-shoot     (Wave 6 — UX/UI & Visual Engine)
+# 3052  fabulousa           (Wave 6 — Generative Fashion & Style Engine)
+# 3053  tranceflow          (Wave 6 — 3D Spatial & Avatar Engine)
+# 3054  tateking            (Wave 6 — Serverless Cinematic Rendering)
+# 3055  the-digitalgrid     (Wave 6 — Infrastructure & CI/CD Automation)
