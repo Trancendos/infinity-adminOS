@@ -24,6 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user, CurrentUser
 from database import get_db_session
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/tranquillity/taimra", tags=["tAimra Digital Twin"])
 logger = logging.getLogger("taimra")
@@ -178,12 +179,12 @@ class TimeSeriesPoint(BaseModel):
 # IN-MEMORY STATE (Production: PostgreSQL + TimescaleDB + Valkey)
 # ============================================================
 
-_digital_twins: Dict[str, Dict[str, Any]] = {}
-_biomarker_history: Dict[str, List[Dict[str, Any]]] = {}
-_intervention_history: Dict[str, List[Dict[str, Any]]] = {}
-_predictive_insights: Dict[str, List[Dict[str, Any]]] = {}
-_twin_preferences: Dict[str, Dict[str, Any]] = {}
-_alert_history: Dict[str, List[Dict[str, Any]]] = {}
+_digital_twins = store_factory("taimra", "digital_twins")
+_biomarker_history = list_store_factory("taimra", "biomarker_history")
+_intervention_history = list_store_factory("taimra", "intervention_history")
+_predictive_insights = list_store_factory("taimra", "predictive_insights")
+_twin_preferences = store_factory("taimra", "twin_preferences")
+_alert_history = list_store_factory("taimra", "alert_history")
 
 # ============================================================
 # KERNEL EVENT BUS INTEGRATION

@@ -17,6 +17,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query, Path
 from pydantic import BaseModel, Field
 
 from auth import get_current_user, CurrentUser
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/studio", tags=["The Studio — Creative Hub"])
 logger = logging.getLogger("studio")
@@ -67,10 +68,10 @@ class AssetCreate(BaseModel):
 
 # ── In-Memory State ──────────────────────────────────────────────
 
-_projects: Dict[str, Dict[str, Any]] = {}
-_briefs: Dict[str, Dict[str, Any]] = {}
-_assets: Dict[str, Dict[str, Any]] = {}
-_audit: List[Dict[str, Any]] = []
+_projects = store_factory("studio", "projects")
+_briefs = store_factory("studio", "briefs")
+_assets = store_factory("studio", "assets")
+_audit = audit_log_factory("studio", "audit")
 
 
 def _emit(action: str, detail: str, user_id: str):

@@ -23,6 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user, CurrentUser
 from database import get_db_session
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/tranquillity/savania", tags=["Savania AI Healer"])
 logger = logging.getLogger("savania")
@@ -164,12 +165,12 @@ class SavaniaPreferences(BaseModel):
 # IN-MEMORY STATE (Production: PostgreSQL + Valkey + Vector DB)
 # ============================================================
 
-_conversations: Dict[str, Dict[str, Any]] = {}
-_user_conversations: Dict[str, List[str]] = {}
-_healing_plans: Dict[str, List[Dict[str, Any]]] = {}
-_safeguarding_reports: Dict[str, List[Dict[str, Any]]] = {}
-_savania_preferences: Dict[str, Dict[str, Any]] = {}
-_crisis_state: Dict[str, Dict[str, Any]] = {}
+_conversations = store_factory("savania", "conversations")
+_user_conversations = list_store_factory("savania", "user_conversations")
+_healing_plans = list_store_factory("savania", "healing_plans")
+_safeguarding_reports = list_store_factory("savania", "safeguarding_reports")
+_savania_preferences = store_factory("savania", "savania_preferences")
+_crisis_state = store_factory("savania", "crisis_state")
 
 # ============================================================
 # KERNEL EVENT BUS INTEGRATION

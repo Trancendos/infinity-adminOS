@@ -22,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user, require_min_role, CurrentUser
 from database import get_db_session
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/the-dr", tags=['TheDr Self-Healing'])
 logger = logging.getLogger("the-dr")
@@ -58,8 +59,8 @@ class DiagnoseRequest(BaseModel):
 # IN-MEMORY STATE (production: Redis / Turso)
 # ============================================================
 
-_anomalies: Dict[str, Dict[str, Any]] = {}
-_healing_history: List[Dict[str, Any]] = []
+_anomalies = store_factory("the_dr", "anomalies")
+_healing_history = audit_log_factory("the_dr", "healing_history")
 _metrics: Dict[str, Any] = {
     "total_heals": 0,
     "successful_heals": 0,

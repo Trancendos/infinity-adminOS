@@ -18,14 +18,15 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from auth import get_current_user, CurrentUser
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/solarscene", tags=["SolarScene — Search & Discovery"])
 logger = logging.getLogger("solarscene")
 
 # ── In-Memory State ──────────────────────────────────────────
 
-_search_indices: Dict[str, dict] = {}
-_saved_searches: Dict[str, dict] = {}
+_search_indices = store_factory("solarscene", "search_indices")
+_saved_searches = store_factory("solarscene", "saved_searches")
 _search_history: List[dict] = []
 
 

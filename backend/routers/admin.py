@@ -19,6 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user, require_min_role, CurrentUser
 from database import get_db_session
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/admin", tags=['Platform Admin'])
 logger = logging.getLogger("admin")
@@ -104,8 +105,8 @@ _orgs_store: Dict[str, Dict[str, Any]] = {
     },
 }
 
-_audit_log: List[Dict[str, Any]] = []
-_config_history: List[Dict[str, Any]] = []
+_audit_log = audit_log_factory("admin", "audit_log")
+_config_history = audit_log_factory("admin", "config_history")
 
 
 def _log_audit(action: str, actor: str, details: Dict[str, Any]):

@@ -24,6 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user, require_min_role, CurrentUser, UserRole
 from database import get_db_session
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/chaos", tags=['The Chaos Party — Adversarial Validation'])
 
@@ -33,9 +34,9 @@ router = APIRouter(prefix="/api/v1/chaos", tags=['The Chaos Party — Adversaria
 # ============================================================
 
 # In-memory state
-_experiments: Dict[str, Dict[str, Any]] = {}
-_active_faults: Dict[str, Dict[str, Any]] = {}
-_experiment_results: Dict[str, List[Dict[str, Any]]] = {}
+_experiments = store_factory("chaos_party", "experiments")
+_active_faults = store_factory("chaos_party", "active_faults")
+_experiment_results = list_store_factory("chaos_party", "experiment_results")
 _healing_loop_state: Dict[str, Any] = {
     "status": "active",
     "faults_detected": 0,
@@ -43,7 +44,7 @@ _healing_loop_state: Dict[str, Any] = {
     "last_check": None,
     "healing_actions": [],
 }
-_scheduled_experiments: List[Dict[str, Any]] = []
+_scheduled_experiments = audit_log_factory("chaos_party", "scheduled_experiments")
 _resilience_scores: Dict[str, float] = {
     "ai_nexus": 100.0,
     "user_infinity": 100.0,

@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user, require_min_role, CurrentUser
 from database import get_db_session
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/icebox", tags=['The IceBox — Cold Storage'])
 logger = logging.getLogger("icebox")
@@ -55,9 +56,9 @@ class RetentionPolicyRequest(BaseModel):
 # IN-MEMORY STATE (production: R2 cold tier + Turso metadata)
 # ============================================================
 
-_archives: Dict[str, Dict[str, Any]] = {}
-_retention_policies: Dict[str, Dict[str, Any]] = {}
-_restore_jobs: List[Dict[str, Any]] = []
+_archives = store_factory("icebox", "archives")
+_retention_policies = store_factory("icebox", "retention_policies")
+_restore_jobs = audit_log_factory("icebox", "restore_jobs")
 _metrics: Dict[str, Any] = {
     "total_archived": 0,
     "total_restored": 0,

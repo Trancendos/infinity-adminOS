@@ -27,6 +27,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user, require_min_role, CurrentUser, UserRole
 from database import get_db_session
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/void", tags=['The Void — Quantum-Immune Secrets'])
 
@@ -36,9 +37,9 @@ router = APIRouter(prefix="/api/v1/void", tags=['The Void — Quantum-Immune Sec
 # ============================================================
 
 # In-memory vault (production: encrypted at-rest storage)
-_vault: Dict[str, Dict[str, Any]] = {}
-_access_log: List[Dict[str, Any]] = []
-_share_registry: Dict[str, Dict[str, Any]] = {}
+_vault = store_factory("the_void", "vault")
+_access_log = audit_log_factory("the_void", "access_log")
+_share_registry = store_factory("the_void", "share_registry")
 
 
 # ============================================================

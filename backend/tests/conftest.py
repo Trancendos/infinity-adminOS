@@ -9,11 +9,12 @@ import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
-# Use SQLite for tests
-TEST_DB_URL = "sqlite+aiosqlite:///./test.db"
+# Use in-memory SQLite for tests — no file contention
+TEST_DB_URL = "sqlite+aiosqlite://"
 os.environ["DATABASE_URL"] = TEST_DB_URL
 os.environ["JWT_SECRET_KEY"] = "test-secret-key-for-unit-tests-only-min-32-chars"
 os.environ["ENVIRONMENT"] = "test"
+os.environ["RATE_LIMIT_ENABLED"] = "false"
 
 from models import Base, User, Organisation, UserRole, OrgPlan, utcnow
 from models_phase20 import DomainDocument, DomainAuditEntry, DomainCounter  # Phase 20 tables
@@ -31,12 +32,15 @@ def event_loop():
 
 @pytest_asyncio.fixture(scope="function")
 async def db_engine():
-    engine = create_async_engine(TEST_DB_URL, echo=False)
+    engine = create_async_engine(
+        TEST_DB_URL,
+        echo=False,
+        connect_args={"check_same_thread": False},
+        poolclass=__import__("sqlalchemy.pool", fromlist=["StaticPool"]).StaticPool,
+    )
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield engine
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
     await engine.dispose()
 
 
@@ -50,6 +54,8 @@ async def db_session(db_engine):
 @pytest_asyncio.fixture(scope="function")
 async def client(db_engine):
     """HTTP test client with overridden DB dependency"""
+    import database as db_module
+
     session_factory = async_sessionmaker(db_engine, class_=AsyncSession, expire_on_commit=False)
 
     async def override_get_db():
@@ -57,10 +63,22 @@ async def client(db_engine):
             yield session
 
     app.dependency_overrides[get_db_session] = override_get_db
+
+    # Also patch the module-level engine/session_maker so that
+    # get_db_context() and any direct usage of database.async_session_maker
+    # uses the same test engine (with tables created).
+    original_engine = db_module.engine
+    original_session_maker = db_module.async_session_maker
+    db_module.engine = db_engine
+    db_module.async_session_maker = session_factory
+
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
+
     app.dependency_overrides.clear()
+    db_module.engine = original_engine
+    db_module.async_session_maker = original_session_maker
 
 
 @pytest_asyncio.fixture

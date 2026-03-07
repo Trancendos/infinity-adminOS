@@ -22,7 +22,7 @@ from database import init_db, close_db, get_db_session
 from telemetry import setup_telemetry
 from config import get_config
 from middleware_production import install_production_middleware, get_shutdown_manager
-from middleware_2060 import install_2060_middleware
+from middleware_compliance import install_compliance_middleware
 from zero_cost_guard import install_zero_cost_middleware, get_zero_cost_guard
 
 # Logging
@@ -140,7 +140,7 @@ install_production_middleware(app)
 # ============================================================
 # 2060 COMPLIANCE MIDDLEWARE (Data Residency, Consent, AI Audit)
 # ============================================================
-install_2060_middleware(app)
+install_compliance_middleware(app)
 
 # ── Zero-Cost Enforcement Middleware ──────────────────────────
 install_zero_cost_middleware(app)
@@ -282,6 +282,7 @@ from routers import arcadian_exchange, vrar3d
 
 # Luminous — Cognitive Core Application
 from routers import luminous
+from routers import attachments, accessibility
 
 # Ecosystem Branded Aliases — Lille SC, Lunascene, SolarScene
 from routers import lille_sc, lunascene, solarscene
@@ -414,6 +415,8 @@ app.include_router(vrar3d.router)            # VRAR3D — VR/AR immersion
 
 # --- Luminous (Cognitive Core) ---
 app.include_router(luminous.router)          # Luminous — Knowledge graph, sessions, insights
+app.include_router(attachments.router)       # Attachments — Universal file upload & management
+app.include_router(accessibility.router)     # Accessibility — Takeover mode & accessibility profiles
 
 # --- Ecosystem Branded Aliases (37/37 Full Match) ---
 app.include_router(lille_sc.router)          # Lille SC — Sync Centre (branded sync.py)
@@ -526,7 +529,7 @@ async def metrics_endpoint():
     event_stats = get_event_stats()
 
     # 2060 middleware stats
-    from middleware_2060 import get_compliance_middleware
+    from middleware_compliance import get_compliance_middleware
     compliance_mw = get_compliance_middleware()
     resource_meter = compliance_mw.get_resource_meter() if compliance_mw else {}
 
@@ -570,7 +573,7 @@ async def system_info():
             "RateLimitMiddleware",
             "RequestSizeLimitMiddleware",
             "GracefulShutdownMiddleware",
-            "Compliance2060Middleware",
+            "ComplianceMiddleware",
             "CorrelationIDMiddleware",
             "SecurityHeadersMiddleware",
         ],

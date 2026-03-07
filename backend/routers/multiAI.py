@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user, require_min_role, CurrentUser
 from database import get_db_session
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/multi-ai", tags=['Multi-AI Collaboration'])
 logger = logging.getLogger("multi-ai")
@@ -55,11 +56,11 @@ class ConsensusVote(BaseModel):
 # IN-MEMORY STATE (production: Redis / Kernel Event Bus)
 # ============================================================
 
-_messages: Dict[str, Dict[str, Any]] = {}
-_message_queues: Dict[str, List[str]] = {}  # agent_id → [message_ids]
-_collaborations: Dict[str, Dict[str, Any]] = {}
-_consensus_rounds: Dict[str, Dict[str, Any]] = {}
-_protocol_registry: Dict[str, Dict[str, Any]] = {}
+_messages = store_factory("multiAI", "messages")
+_message_queues = list_store_factory("multiAI", "message_queues")
+_collaborations = store_factory("multiAI", "collaborations")
+_consensus_rounds = store_factory("multiAI", "consensus_rounds")
+_protocol_registry = store_factory("multiAI", "protocol_registry")
 _metrics: Dict[str, int] = {
     "messages_sent": 0,
     "messages_delivered": 0,

@@ -127,6 +127,39 @@ class DomainStore:
         self._memory.clear()
         self._dirty_keys.clear()
 
+    def update(self, other=None, **kwargs):
+        """dict.update() — merge another dict/iterable into this store."""
+        if other:
+            if hasattr(other, "items"):
+                for key, value in other.items():
+                    self._memory[key] = value
+                    self._dirty_keys.add(key)
+            elif hasattr(other, "keys"):
+                for key in other.keys():
+                    self._memory[key] = other[key]
+                    self._dirty_keys.add(key)
+            else:
+                for key, value in other:
+                    self._memory[key] = value
+                    self._dirty_keys.add(key)
+        for key, value in kwargs.items():
+            self._memory[key] = value
+            self._dirty_keys.add(key)
+
+    def setdefault(self, key: str, default: Any = None) -> Any:
+        """dict.setdefault() — return value if key exists, else set default and return it."""
+        if key not in self._memory:
+            self._memory[key] = default
+            self._dirty_keys.add(key)
+        return self._memory[key]
+
+    def copy(self) -> Dict[str, Any]:
+        """Return a shallow copy of the in-memory data."""
+        return self._memory.copy()
+
+    def __repr__(self) -> str:
+        return f"DomainStore({self.domain!r}, {self.entity_type!r}, items={len(self._memory)})"
+
     # ── Async DB Operations ───────────────────────────────────
 
     async def db_create(
@@ -386,6 +419,16 @@ class DomainAuditLog:
 
     def __getitem__(self, index):
         return self._entries[index]
+
+    def __setitem__(self, index, value):
+        """Support slice assignment for trimming: log[:] = log[-500:]"""
+        self._entries[index] = value
+
+    def extend(self, items):
+        """Extend the log with multiple entries."""
+        self._entries.extend(items)
+        if len(self._entries) > self.max_memory:
+            self._entries = self._entries[-self.max_memory:]
 
     def __bool__(self) -> bool:
         return True

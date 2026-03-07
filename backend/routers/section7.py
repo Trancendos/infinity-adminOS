@@ -15,6 +15,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query, Path
 from pydantic import BaseModel, Field
 
 from auth import get_current_user, CurrentUser
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/section7", tags=["Section7 — Intelligence"])
 logger = logging.getLogger("section7")
@@ -46,10 +47,10 @@ class SurveillanceFeedCreate(BaseModel):
 
 # ── State ────────────────────────────────────────────────────────
 
-_reports: Dict[str, Dict[str, Any]] = {}
-_tasks: Dict[str, Dict[str, Any]] = {}
-_feeds: Dict[str, Dict[str, Any]] = {}
-_audit: List[Dict[str, Any]] = []
+_reports = store_factory("section7", "reports")
+_tasks = store_factory("section7", "tasks")
+_feeds = store_factory("section7", "feeds")
+_audit = audit_log_factory("section7", "audit")
 
 
 def _emit(action: str, detail: str, user_id: str):

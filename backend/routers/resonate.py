@@ -22,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user, CurrentUser
 from database import get_db_session
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/tranquillity/resonate", tags=["Resonate Sound Healing"])
 logger = logging.getLogger("resonate")
@@ -160,11 +161,11 @@ class SonicProfile(BaseModel):
 # IN-MEMORY STATE (Production: PostgreSQL + Valkey + Object Storage)
 # ============================================================
 
-_soundscape_library: Dict[str, Dict[str, Any]] = {}
-_user_sessions: Dict[str, List[Dict[str, Any]]] = {}
-_sonic_profiles: Dict[str, Dict[str, Any]] = {}
-_frequency_prescriptions: Dict[str, List[Dict[str, Any]]] = {}
-_custom_mixes: Dict[str, List[Dict[str, Any]]] = {}
+_soundscape_library = store_factory("resonate", "soundscape_library")
+_user_sessions = list_store_factory("resonate", "user_sessions")
+_sonic_profiles = store_factory("resonate", "sonic_profiles")
+_frequency_prescriptions = list_store_factory("resonate", "frequency_prescriptions")
+_custom_mixes = list_store_factory("resonate", "custom_mixes")
 
 # Seed soundscape library
 _SEED_SOUNDSCAPES = [

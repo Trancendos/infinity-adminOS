@@ -19,6 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user, require_min_role, CurrentUser
 from database import get_db_session
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/arcadia", tags=['Arcadia Front-End'])
 logger = logging.getLogger("arcadia")
@@ -67,11 +68,11 @@ class MarketplaceListingRequest(BaseModel):
 # IN-MEMORY STATE (production: Turso + R2 + Cloudflare Pages)
 # ============================================================
 
-_apps: Dict[str, Dict[str, Any]] = {}
-_deployments: List[Dict[str, Any]] = []
-_mailbox: List[Dict[str, Any]] = []
-_threads: Dict[str, Dict[str, Any]] = {}
-_marketplace: Dict[str, Dict[str, Any]] = {}
+_apps = store_factory("arcadia", "apps")
+_deployments = audit_log_factory("arcadia", "deployments")
+_mailbox = audit_log_factory("arcadia", "mailbox")
+_threads = store_factory("arcadia", "threads")
+_marketplace = store_factory("arcadia", "marketplace")
 
 # Seed a community thread
 _SEED_THREADS = {

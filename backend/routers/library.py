@@ -21,6 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user, require_min_role, CurrentUser
 from database import get_db_session
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/library", tags=['The Library'])
 logger = logging.getLogger("library")
@@ -50,9 +51,9 @@ class ExtractionRequest(BaseModel):
 # IN-MEMORY STATE (production: Turso / LibSQL + vector embeddings)
 # ============================================================
 
-_articles: Dict[str, Dict[str, Any]] = {}
-_topics: Dict[str, Dict[str, Any]] = {}
-_extractions: Dict[str, Dict[str, Any]] = {}
+_articles = store_factory("library", "articles")
+_topics = store_factory("library", "topics")
+_extractions = store_factory("library", "extractions")
 
 # Seed topic taxonomy
 _TOPIC_TREE = {

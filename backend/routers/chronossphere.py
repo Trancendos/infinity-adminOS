@@ -14,6 +14,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel, Field
 
 from auth import get_current_user, CurrentUser
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/chronossphere", tags=["ChronosSphere — Time Management"])
 logger = logging.getLogger("chronossphere")
@@ -52,10 +53,10 @@ class TemporalRule(BaseModel):
 
 # ── In-Memory State ──────────────────────────────────────────
 
-_schedules: Dict[str, Dict[str, Any]] = {}
-_deadlines: Dict[str, Dict[str, Any]] = {}
-_temporal_rules: Dict[str, Dict[str, Any]] = {}
-_timeline: List[Dict[str, Any]] = []
+_schedules = store_factory("chronossphere", "schedules")
+_deadlines = store_factory("chronossphere", "deadlines")
+_temporal_rules = store_factory("chronossphere", "temporal_rules")
+_timeline = audit_log_factory("chronossphere", "timeline")
 
 
 def _emit_chrono_event(action: str, detail: Dict[str, Any], user_id: str = "system"):

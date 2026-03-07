@@ -24,6 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user, CurrentUser
 from database import get_db_session
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/tranquillity", tags=['Tranquillity Realm'])
 logger = logging.getLogger("tranquillity")
@@ -106,9 +107,9 @@ class RealmPreferences(BaseModel):
 # IN-MEMORY STATE (production: Redis/PostgreSQL)
 # ============================================================
 
-_realm_sessions: Dict[str, Dict[str, Any]] = {}
-_user_preferences: Dict[str, Dict[str, Any]] = {}
-_wellbeing_snapshots: Dict[str, List[Dict[str, Any]]] = {}
+_realm_sessions = store_factory("tranquillity", "realm_sessions")
+_user_preferences = store_factory("tranquillity", "user_preferences")
+_wellbeing_snapshots = list_store_factory("tranquillity", "wellbeing_snapshots")
 _service_registry: Dict[str, Dict[str, Any]] = {
     "i_mind": {"status": "healthy", "version": "1.0.0", "port": 8010, "capabilities": ["exercises", "meditation", "assessment", "neurofeedback"]},
     "resonate": {"status": "healthy", "version": "1.0.0", "port": 8011, "capabilities": ["frequency", "soundscape", "biofeedback", "therapy"]},

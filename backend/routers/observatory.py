@@ -23,6 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user, require_min_role, CurrentUser, UserRole
 from database import get_db_session
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/observatory", tags=['The Observatory — Ground Truth'])
 
@@ -32,9 +33,9 @@ router = APIRouter(prefix="/api/v1/observatory", tags=['The Observatory — Grou
 # ============================================================
 
 # In-memory state (production: append-only DB + event store)
-_events: List[Dict[str, Any]] = []
-_knowledge_graph_nodes: Dict[str, Dict[str, Any]] = {}
-_knowledge_graph_edges: List[Dict[str, Any]] = []
+_events = audit_log_factory("observatory", "events")
+_knowledge_graph_nodes = store_factory("observatory", "knowledge_graph_nodes")
+_knowledge_graph_edges = audit_log_factory("observatory", "knowledge_graph_edges")
 _pattern_cache: Dict[str, Any] = {}
 
 

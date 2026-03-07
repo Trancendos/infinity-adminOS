@@ -16,6 +16,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query, Path
 from pydantic import BaseModel, Field
 
 from auth import get_current_user, CurrentUser
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/arcadian-exchange", tags=["Arcadian Exchange — Procurement"])
 logger = logging.getLogger("arcadian_exchange")
@@ -51,10 +52,10 @@ class ContractCreate(BaseModel):
 
 # ── State ────────────────────────────────────────────────────────
 
-_vendors: Dict[str, Dict[str, Any]] = {}
-_orders: Dict[str, Dict[str, Any]] = {}
-_contracts: Dict[str, Dict[str, Any]] = {}
-_audit: List[Dict[str, Any]] = []
+_vendors = store_factory("arcadian_exchange", "vendors")
+_orders = store_factory("arcadian_exchange", "orders")
+_contracts = store_factory("arcadian_exchange", "contracts")
+_audit = audit_log_factory("arcadian_exchange", "audit")
 
 
 def _emit(action: str, detail: str, user_id: str):

@@ -26,6 +26,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user, require_min_role, CurrentUser, UserRole
 from database import get_db_session
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/lighthouse", tags=['The Lighthouse — Post-Quantum Certificates'])
 
@@ -35,10 +36,10 @@ router = APIRouter(prefix="/api/v1/lighthouse", tags=['The Lighthouse — Post-Q
 # ============================================================
 
 # In-memory CA state (production: HSM-backed certificate store)
-_certificates: Dict[str, Dict[str, Any]] = {}
+_certificates = store_factory("lighthouse", "certificates")
 _revocation_list: List[str] = []
-_pqc_tokens: Dict[str, Dict[str, Any]] = {}
-_warp_tunnels: Dict[str, Dict[str, Any]] = {}
+_pqc_tokens = store_factory("lighthouse", "pqc_tokens")
+_warp_tunnels = store_factory("lighthouse", "warp_tunnels")
 
 
 # Supported post-quantum algorithms

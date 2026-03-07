@@ -17,6 +17,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query, Path
 from pydantic import BaseModel, Field
 
 from auth import get_current_user, CurrentUser
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/vrar3d", tags=["VRAR3D — VR/AR Immersion"])
 logger = logging.getLogger("vrar3d")
@@ -48,10 +49,10 @@ class SessionCreate(BaseModel):
 
 # ── State ────────────────────────────────────────────────────────
 
-_experiences: Dict[str, Dict[str, Any]] = {}
-_anchors: Dict[str, Dict[str, Any]] = {}
-_sessions: Dict[str, Dict[str, Any]] = {}
-_audit: List[Dict[str, Any]] = []
+_experiences = store_factory("vrar3d", "experiences")
+_anchors = store_factory("vrar3d", "anchors")
+_sessions = store_factory("vrar3d", "sessions")
+_audit = audit_log_factory("vrar3d", "audit")
 
 
 def _emit(action: str, detail: str, user_id: str):

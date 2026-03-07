@@ -23,6 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user, require_min_role, CurrentUser, UserRole
 from database import get_db_session
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/hive", tags=['The Hive — Data Transfer Mesh'])
 
@@ -40,9 +41,9 @@ router = APIRouter(prefix="/api/v1/hive", tags=['The Hive — Data Transfer Mesh
 
 
 # In-memory state (production: persist to DB + Kernel Event Bus)
-_transfers: Dict[str, Dict[str, Any]] = {}
-_registered_assets: Dict[str, Dict[str, Any]] = {}
-_transfer_log: List[Dict[str, Any]] = []
+_transfers = store_factory("hive", "transfers")
+_registered_assets = store_factory("hive", "registered_assets")
+_transfer_log = audit_log_factory("hive", "transfer_log")
 _data_lineage: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
 
 

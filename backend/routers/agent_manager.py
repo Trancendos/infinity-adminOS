@@ -13,6 +13,7 @@ from enum import Enum as PyEnum
 
 from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel, Field
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/agents", tags=["Agent Manager"])
 
@@ -74,7 +75,7 @@ class AgentSummonRequest(BaseModel):
 
 # ── In-Memory Registry (replace with DB in production) ──────
 
-_agent_registry: dict[str, dict] = {}
+_agent_registry = store_factory("agent_manager", "agent_registry")
 _command_queue: list[dict] = []
 _task_history: list[dict] = []
 

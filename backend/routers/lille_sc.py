@@ -18,14 +18,15 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from auth import get_current_user, CurrentUser
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/lille-sc", tags=["Lille SC — Sync Centre"])
 logger = logging.getLogger("lille_sc")
 
 # ── In-Memory State ──────────────────────────────────────────
 
-_sync_channels: Dict[str, dict] = {}
-_sync_events: Dict[str, dict] = {}
+_sync_channels = store_factory("lille_sc", "sync_channels")
+_sync_events = store_factory("lille_sc", "sync_events")
 _conflict_log: List[dict] = []
 
 

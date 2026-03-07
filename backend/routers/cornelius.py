@@ -22,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user, require_min_role, CurrentUser
 from database import get_db_session
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/cornelius", tags=['Cornelius Orchestrator'])
 logger = logging.getLogger("cornelius")
@@ -61,10 +62,10 @@ class ConsensusRequest(BaseModel):
 # IN-MEMORY STATE (production: Redis / Turso)
 # ============================================================
 
-_agents: Dict[str, Dict[str, Any]] = {}
-_tasks: Dict[str, Dict[str, Any]] = {}
-_consensus_rounds: Dict[str, Dict[str, Any]] = {}
-_orchestration_log: List[Dict[str, Any]] = []
+_agents = store_factory("cornelius", "agents")
+_tasks = store_factory("cornelius", "tasks")
+_consensus_rounds = store_factory("cornelius", "consensus_rounds")
+_orchestration_log = audit_log_factory("cornelius", "orchestration_log")
 
 # Pre-register core system agents
 _SYSTEM_AGENTS = {

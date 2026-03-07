@@ -23,6 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user, require_min_role, CurrentUser, UserRole
 from database import get_db_session
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/nexus", tags=['The Nexus — AI Swarm Intelligence'])
 
@@ -41,10 +42,10 @@ router = APIRouter(prefix="/api/v1/nexus", tags=['The Nexus — AI Swarm Intelli
 
 
 # In-memory state (production: persist to DB + Kernel Event Bus)
-_registered_agents: Dict[str, Dict[str, Any]] = {}
+_registered_agents = store_factory("nexus", "registered_agents")
 _pheromone_trails: Dict[str, Dict[str, float]] = defaultdict(lambda: defaultdict(float))
-_route_history: List[Dict[str, Any]] = []
-_broadcast_log: List[Dict[str, Any]] = []
+_route_history = audit_log_factory("nexus", "route_history")
+_broadcast_log = audit_log_factory("nexus", "broadcast_log")
 
 
 # ============================================================

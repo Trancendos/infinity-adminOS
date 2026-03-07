@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user, require_min_role, CurrentUser
 from database import get_db_session
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/search", tags=['Platform Search'])
 logger = logging.getLogger("search")
@@ -45,7 +46,7 @@ class IndexRequest(BaseModel):
 # IN-MEMORY STATE (production: Meilisearch / Typesense + Turso)
 # ============================================================
 
-_search_indices: Dict[str, List[Dict[str, Any]]] = {}
+_search_indices = list_store_factory("search", "search_indices")
 _search_stats: Dict[str, int] = {
     "total_queries": 0,
     "total_results_returned": 0,

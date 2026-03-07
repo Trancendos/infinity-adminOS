@@ -21,6 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user, require_min_role, CurrentUser
 from database import get_db_session
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/academy", tags=['The Academy'])
 logger = logging.getLogger("academy")
@@ -60,11 +61,11 @@ class ModuleCreateRequest(BaseModel):
 # IN-MEMORY STATE (production: Turso + vector DB + Redis)
 # ============================================================
 
-_learning_paths: Dict[str, Dict[str, Any]] = {}
-_rag_collections: Dict[str, List[Dict[str, Any]]] = {}
-_rag_index_stats: Dict[str, Dict[str, Any]] = {}
-_agent_contexts: Dict[str, Dict[str, Any]] = {}
-_modules: Dict[str, Dict[str, Any]] = {}
+_learning_paths = store_factory("academy", "learning_paths")
+_rag_collections = list_store_factory("academy", "rag_collections")
+_rag_index_stats = store_factory("academy", "rag_index_stats")
+_agent_contexts = store_factory("academy", "agent_contexts")
+_modules = store_factory("academy", "modules")
 
 # Seed learning paths
 _SEED_PATHS = {

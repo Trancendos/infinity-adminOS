@@ -19,15 +19,16 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from auth import get_current_user, CurrentUser
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/lunascene", tags=["Lunascene — The Artifactory"])
 logger = logging.getLogger("lunascene")
 
 # ── In-Memory State ──────────────────────────────────────────
 
-_vaults: Dict[str, dict] = {}
-_artifacts: Dict[str, dict] = {}
-_provenance_records: Dict[str, dict] = {}
+_vaults = store_factory("lunascene", "vaults")
+_artifacts = store_factory("lunascene", "artifacts")
+_provenance_records = store_factory("lunascene", "provenance_records")
 
 
 # ── Models ───────────────────────────────────────────────────

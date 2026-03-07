@@ -22,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user, require_min_role, CurrentUser
 from database import get_db_session
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/guardian", tags=['Guardian IAM'])
 logger = logging.getLogger("guardian")
@@ -69,12 +70,12 @@ class ContextDeclaration(BaseModel):
 # IN-MEMORY STATE (production: Redis + Turso)
 # ============================================================
 
-_agent_tokens: Dict[str, Dict[str, Any]] = {}
+_agent_tokens = store_factory("guardian", "agent_tokens")
 _revoked_tokens: set = set()
-_behavioral_baselines: Dict[str, Dict[str, Any]] = {}
-_sessions: Dict[str, Dict[str, Any]] = {}
-_context_declarations: Dict[str, Dict[str, Any]] = {}
-_audit_log: List[Dict[str, Any]] = []
+_behavioral_baselines = store_factory("guardian", "behavioral_baselines")
+_sessions = store_factory("guardian", "sessions")
+_context_declarations = store_factory("guardian", "context_declarations")
+_audit_log = audit_log_factory("guardian", "audit_log")
 
 # RBAC policy definitions
 _RBAC_POLICIES = {

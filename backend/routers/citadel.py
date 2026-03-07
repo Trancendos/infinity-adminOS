@@ -16,6 +16,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query, Path
 from pydantic import BaseModel, Field
 
 from auth import get_current_user, CurrentUser
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/citadel", tags=["The Citadel — Strategic Ops"])
 logger = logging.getLogger("citadel")
@@ -53,10 +54,10 @@ class FortressStatus(BaseModel):
 
 # ── In-Memory State ──────────────────────────────────────────
 
-_directives: Dict[str, Dict[str, Any]] = {}
-_initiatives: Dict[str, Dict[str, Any]] = {}
+_directives = store_factory("citadel", "directives")
+_initiatives = store_factory("citadel", "initiatives")
 _fortress_status = {"security_level": "green", "reason": "All systems nominal", "updated_at": datetime.now(timezone.utc).isoformat()}
-_audit_log: List[Dict[str, Any]] = []
+_audit_log = audit_log_factory("citadel", "audit_log")
 
 
 def _emit_citadel_event(action: str, detail: Dict[str, Any], user_id: str = "system"):

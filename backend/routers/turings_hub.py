@@ -26,6 +26,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query, Path, Body
 from pydantic import BaseModel, Field
 
 from auth import get_current_user, CurrentUser
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/turings-hub", tags=["Turing's Hub — AI Generator"])
 logger = logging.getLogger("turings-hub")
@@ -160,11 +161,11 @@ class SkillActivation(BaseModel):
 # IN-MEMORY STATE (production: Redis / Turso)
 # ════════════════════════════════════════════════════════════════
 
-_characters: Dict[str, Dict[str, Any]] = {}
-_travel_log: List[Dict[str, Any]] = []
-_summon_log: List[Dict[str, Any]] = []
-_skill_log: List[Dict[str, Any]] = []
-_evolution_log: List[Dict[str, Any]] = []
+_characters = store_factory("turings_hub", "characters")
+_travel_log = audit_log_factory("turings_hub", "travel_log")
+_summon_log = audit_log_factory("turings_hub", "summon_log")
+_skill_log = audit_log_factory("turings_hub", "skill_log")
+_evolution_log = audit_log_factory("turings_hub", "evolution_log")
 
 
 # ════════════════════════════════════════════════════════════════

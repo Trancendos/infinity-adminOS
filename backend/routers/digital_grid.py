@@ -15,6 +15,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query, Path
 from pydantic import BaseModel, Field
 
 from auth import get_current_user, CurrentUser
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/digital-grid", tags=["DigitalGrid — Spatial CI/CD"])
 logger = logging.getLogger("digital_grid")
@@ -44,10 +45,10 @@ class DeploymentGridCreate(BaseModel):
 
 # ── State ────────────────────────────────────────────────────────
 
-_nodes: Dict[str, Dict[str, Any]] = {}
-_builds: Dict[str, Dict[str, Any]] = {}
-_deployments: Dict[str, Dict[str, Any]] = {}
-_audit: List[Dict[str, Any]] = []
+_nodes = store_factory("digital_grid", "nodes")
+_builds = store_factory("digital_grid", "builds")
+_deployments = store_factory("digital_grid", "deployments")
+_audit = audit_log_factory("digital_grid", "audit")
 
 
 def _emit(action: str, detail: str, user_id: str):

@@ -14,6 +14,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query, Path
 from pydantic import BaseModel, Field
 
 from auth import get_current_user, CurrentUser
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/style-and-shoot", tags=["Style&Shoot — 2D UI/UX"])
 logger = logging.getLogger("style_and_shoot")
@@ -44,10 +45,10 @@ class StyleGuideCreate(BaseModel):
 
 # ── State ────────────────────────────────────────────────────────
 
-_design_systems: Dict[str, Dict[str, Any]] = {}
-_components: Dict[str, Dict[str, Any]] = {}
-_style_guides: Dict[str, Dict[str, Any]] = {}
-_audit: List[Dict[str, Any]] = []
+_design_systems = store_factory("style_and_shoot", "design_systems")
+_components = store_factory("style_and_shoot", "components")
+_style_guides = store_factory("style_and_shoot", "style_guides")
+_audit = audit_log_factory("style_and_shoot", "audit")
 
 
 def _emit(action: str, detail: str, user_id: str):

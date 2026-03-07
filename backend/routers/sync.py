@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user, require_min_role, CurrentUser
 from database import get_db_session
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/sync", tags=['Data Sync'])
 logger = logging.getLogger("sync")
@@ -51,10 +52,10 @@ class ReplicationConfig(BaseModel):
 # IN-MEMORY STATE (production: Turso replication + Redis streams)
 # ============================================================
 
-_sync_jobs: Dict[str, Dict[str, Any]] = {}
-_conflicts: Dict[str, Dict[str, Any]] = {}
-_replication_configs: Dict[str, Dict[str, Any]] = {}
-_sync_log: List[Dict[str, Any]] = []
+_sync_jobs = store_factory("sync", "sync_jobs")
+_conflicts = store_factory("sync", "conflicts")
+_replication_configs = store_factory("sync", "replication_configs")
+_sync_log = audit_log_factory("sync", "sync_log")
 _metrics: Dict[str, Any] = {
     "total_syncs": 0,
     "successful_syncs": 0,

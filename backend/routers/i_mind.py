@@ -22,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user, CurrentUser
 from database import get_db_session
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/tranquillity/i-mind", tags=["i-Mind Cognitive Wellness"])
 logger = logging.getLogger("i_mind")
@@ -173,12 +174,12 @@ class StreakInfo(BaseModel):
 # IN-MEMORY STATE (Production: PostgreSQL + Valkey)
 # ============================================================
 
-_exercise_library: Dict[str, Dict[str, Any]] = {}
-_user_sessions: Dict[str, List[Dict[str, Any]]] = {}
-_cognitive_profiles: Dict[str, Dict[str, Any]] = {}
-_journal_entries: Dict[str, List[Dict[str, Any]]] = {}
-_meditation_library: Dict[str, Dict[str, Any]] = {}
-_assessment_results: Dict[str, List[Dict[str, Any]]] = {}
+_exercise_library = store_factory("i_mind", "exercise_library")
+_user_sessions = list_store_factory("i_mind", "user_sessions")
+_cognitive_profiles = store_factory("i_mind", "cognitive_profiles")
+_journal_entries = list_store_factory("i_mind", "journal_entries")
+_meditation_library = store_factory("i_mind", "meditation_library")
+_assessment_results = list_store_factory("i_mind", "assessment_results")
 
 # Seed exercise library
 _SEED_EXERCISES = [

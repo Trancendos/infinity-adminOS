@@ -21,6 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user, require_min_role, CurrentUser
 from database import get_db_session
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/treasury", tags=['Treasury — Royal Bank of Arcadia'])
 logger = logging.getLogger("treasury")
@@ -156,8 +157,8 @@ _revenue_streams: Dict[str, Dict[str, Any]] = {
     },
 }
 
-_payments: List[Dict[str, Any]] = []
-_optimisation_history: List[Dict[str, Any]] = []
+_payments = audit_log_factory("treasury", "payments")
+_optimisation_history = audit_log_factory("treasury", "optimisation_history")
 
 
 def _total_costs() -> float:

@@ -14,6 +14,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query, Path
 from pydantic import BaseModel, Field
 
 from auth import get_current_user, CurrentUser
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/tranceflow", tags=["TranceFlow — 3D Spatial"])
 logger = logging.getLogger("tranceflow")
@@ -44,10 +45,10 @@ class RenderJobCreate(BaseModel):
 
 # ── State ────────────────────────────────────────────────────────
 
-_scenes: Dict[str, Dict[str, Any]] = {}
-_materials: Dict[str, Dict[str, Any]] = {}
-_render_jobs: Dict[str, Dict[str, Any]] = {}
-_audit: List[Dict[str, Any]] = []
+_scenes = store_factory("tranceflow", "scenes")
+_materials = store_factory("tranceflow", "materials")
+_render_jobs = store_factory("tranceflow", "render_jobs")
+_audit = audit_log_factory("tranceflow", "audit")
 
 
 def _emit(action: str, detail: str, user_id: str):

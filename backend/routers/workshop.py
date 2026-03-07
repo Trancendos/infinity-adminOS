@@ -19,6 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth import get_current_user, require_min_role, CurrentUser
 from database import get_db_session
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/workshop", tags=['The Workshop'])
 logger = logging.getLogger("workshop")
@@ -58,11 +59,11 @@ class PipelineRunRequest(BaseModel):
 # IN-MEMORY STATE (production: GitHub API + Turso)
 # ============================================================
 
-_repos: Dict[str, Dict[str, Any]] = {}
-_pull_requests: Dict[str, List[Dict[str, Any]]] = {}
-_pipelines: Dict[str, Dict[str, Any]] = {}
-_pipeline_runs: List[Dict[str, Any]] = []
-_security_audits: Dict[str, Dict[str, Any]] = {}
+_repos = store_factory("workshop", "repos")
+_pull_requests = list_store_factory("workshop", "pull_requests")
+_pipelines = store_factory("workshop", "pipelines")
+_pipeline_runs = audit_log_factory("workshop", "pipeline_runs")
+_security_audits = store_factory("workshop", "security_audits")
 
 # Seed repos matching the Trancendos GitHub org
 _SEED_REPOS = {

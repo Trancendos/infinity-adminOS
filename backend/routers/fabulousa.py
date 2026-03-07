@@ -14,6 +14,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query, Path
 from pydantic import BaseModel, Field
 
 from auth import get_current_user, CurrentUser
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/fabulousa", tags=["Fabulousa — Fashion & Lifestyle"])
 logger = logging.getLogger("fabulousa")
@@ -47,10 +48,10 @@ class CampaignCreate(BaseModel):
 
 # ── State ────────────────────────────────────────────────────────
 
-_collections: Dict[str, Dict[str, Any]] = {}
-_lookbooks: Dict[str, Dict[str, Any]] = {}
-_campaigns: Dict[str, Dict[str, Any]] = {}
-_audit: List[Dict[str, Any]] = []
+_collections = store_factory("fabulousa", "collections")
+_lookbooks = store_factory("fabulousa", "lookbooks")
+_campaigns = store_factory("fabulousa", "campaigns")
+_audit = audit_log_factory("fabulousa", "audit")
 
 
 def _emit(action: str, detail: str, user_id: str):

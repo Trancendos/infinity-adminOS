@@ -14,6 +14,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from pydantic import BaseModel, Field
 
 from auth import get_current_user, CurrentUser
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/think-tank", tags=["Think Tank — R&D Centre"])
 logger = logging.getLogger("think-tank")
@@ -51,9 +52,9 @@ class InnovationProposal(BaseModel):
 
 # ── In-Memory State ──────────────────────────────────────────
 
-_projects: Dict[str, Dict[str, Any]] = {}
-_experiments: Dict[str, Dict[str, Any]] = {}
-_proposals: Dict[str, Dict[str, Any]] = {}
+_projects = store_factory("think_tank", "projects")
+_experiments = store_factory("think_tank", "experiments")
+_proposals = store_factory("think_tank", "proposals")
 
 
 def _emit_tank_event(action: str, detail: Dict[str, Any], user_id: str = "system"):

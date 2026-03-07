@@ -18,6 +18,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query, Path
 from pydantic import BaseModel, Field
 
 from auth import get_current_user, CurrentUser
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/devocity", tags=["DevOcity — DevOps Operations"])
 logger = logging.getLogger("devocity")
@@ -76,10 +77,10 @@ class HealthCheckResult(BaseModel):
 
 # ── In-Memory State ──────────────────────────────────────────────
 
-_pipelines: Dict[str, Dict[str, Any]] = {}
-_deployments: Dict[str, Dict[str, Any]] = {}
-_environments: Dict[str, Dict[str, Any]] = {}
-_audit_log: List[Dict[str, Any]] = []
+_pipelines = store_factory("devocity", "pipelines")
+_deployments = store_factory("devocity", "deployments")
+_environments = store_factory("devocity", "environments")
+_audit_log = audit_log_factory("devocity", "audit_log")
 
 
 # ── Event Helpers ────────────────────────────────────────────────
