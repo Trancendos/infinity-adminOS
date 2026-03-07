@@ -147,18 +147,48 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          # Create KV namespaces if they don't exist yet; ignore errors if already present
-          RATE_LIMIT_ID=$(wrangler kv namespace create "RATE_LIMIT" 2>/dev/null | grep -oP '(?<=id = ")[^"]+' || echo "")
-          CACHE_ID=$(wrangler kv namespace create "CACHE" 2>/dev/null | grep -oP '(?<=id = ")[^"]+' || echo "")
+          # Helper: get existing KV namespace ID by title
+          get_kv_id() {
+            local title="$1"
+            wrangler kv namespace list 2>/dev/null \
+              | grep -A1 "&quot;title&quot;: &quot;${title}&quot;" \
+              | grep '"id"' \
+              | grep -oP '(?<="id": ")[^"]+' \
+              || echo ""
+          }
 
+          # Try to create; if it already exists, look it up
+          echo "Setting up RATE_LIMIT KV namespace..."
+          RATE_LIMIT_ID=$(wrangler kv namespace create "RATE_LIMIT" 2>&1 | grep -oP '(?<=id = ")[^"]+' || true)
+          if [ -z "$RATE_LIMIT_ID" ]; then
+            RATE_LIMIT_ID=$(get_kv_id "RATE_LIMIT")
+          fi
+
+          echo "Setting up CACHE KV namespace..."
+          CACHE_ID=$(wrangler kv namespace create "CACHE" 2>&1 | grep -oP '(?<=id = ")[^"]+' || true)
+          if [ -z "$CACHE_ID" ]; then
+            CACHE_ID=$(get_kv_id "CACHE")
+          fi
+
+          echo "RATE_LIMIT KV ID: ${RATE_LIMIT_ID:-NOT_FOUND}"
+          echo "CACHE KV ID:      ${CACHE_ID:-NOT_FOUND}"
+
+          # Inject real IDs into wrangler.toml (replace all placeholder occurrences)
           if [ -n "$RATE_LIMIT_ID" ]; then
-            echo "Created RATE_LIMIT KV: $RATE_LIMIT_ID"
-            sed -i "s/placeholder-rate-limit-id/$RATE_LIMIT_ID/g" wrangler.toml
+            sed -i "s/placeholder-rate-limit-id/${RATE_LIMIT_ID}/g" wrangler.toml
+            echo "✅ RATE_LIMIT KV injected"
+          else
+            echo "⚠️  Could not resolve RATE_LIMIT KV ID — using placeholder"
           fi
           if [ -n "$CACHE_ID" ]; then
-            echo "Created CACHE KV: $CACHE_ID"
-            sed -i "s/placeholder-cache-id/$CACHE_ID/g" wrangler.toml
+            sed -i "s/placeholder-cache-id/${CACHE_ID}/g" wrangler.toml
+            echo "✅ CACHE KV injected"
+          else
+            echo "⚠️  Could not resolve CACHE KV ID — using placeholder"
           fi
+
+          echo "--- Final wrangler.toml KV section ---"
+          grep -A2 "kv_namespaces" wrangler.toml || true
 
       - name: Deploy API Gateway
         working-directory: workers/api-gateway

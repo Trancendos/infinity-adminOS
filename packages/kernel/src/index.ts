@@ -382,8 +382,9 @@ export class InfinityPortalService {
 
 export default InfinityKernel;
 
-// Entry point for direct execution
-if (typeof require !== 'undefined' && require.main === module) {
+// Entry point for direct execution (Node.js only)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+if (typeof (globalThis as any).require !== 'undefined' && (globalThis as any).require.main === (globalThis as any).module) {
   const kernel = getKernel();
   kernel.start().then(() => {
     console.log('[Infinity OS] Kernel status:', kernel.getStatus());

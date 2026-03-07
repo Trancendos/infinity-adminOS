@@ -103,6 +103,8 @@ export interface AuthContextValue {
   getAccessToken: () => string | null;
   /** IAM context — null until IAM data is loaded */
   iam: IAMContext;
+  /** Unlock the session from the lock screen (re-authenticates with stored credentials) */
+  unlock?: (data: { password: string }) => Promise<void>;
 }
 
 /** Backend user shape (extended with IAM fields) */

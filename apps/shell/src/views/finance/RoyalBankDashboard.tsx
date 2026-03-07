@@ -544,7 +544,7 @@ const RoyalBankDashboard: React.FC = () => {
               </div>
               <p className="text-xs text-slate-500 mt-4">
                 Research runs automatically every 6 hours. All findings are stored and available for review.
-                Actions requiring spend > $0 are automatically queued for human approval.
+                Actions requiring spend &gt; $0 are automatically queued for human approval.
               </p>
             </div>
           </div>

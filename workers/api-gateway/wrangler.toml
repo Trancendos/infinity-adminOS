@@ -10,12 +10,17 @@ main = "src/index.ts"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
-# Production environment
+# ── Production environment ─────────────────────────────────
+# NOTE: Custom domain route (api.infinity-portal.com) requires
+# the domain to be proxied by Cloudflare. Until then the worker
+# is available at:
+#   https://infinity-api-gateway.<account>.workers.dev
 [env.production]
 name = "infinity-api-gateway"
-routes = [
-  { pattern = "api.infinity-portal.com/*", zone_name = "infinity-portal.com" }
-]
+# Uncomment once infinity-portal.com is proxied by Cloudflare:
+# routes = [
+#   { pattern = "api.infinity-portal.com/*", zone_name = "infinity-portal.com" }
+# ]
 
 [env.production.vars]
 ENVIRONMENT = "production"
@@ -23,7 +28,15 @@ BACKEND_ORIGIN = "https://infinity-backend.fly.dev"
 RATE_LIMIT_RPM = "120"
 CACHE_TTL = "60"
 
-# Staging environment
+[[env.production.kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "placeholder-rate-limit-id"
+
+[[env.production.kv_namespaces]]
+binding = "CACHE"
+id = "placeholder-cache-id"
+
+# ── Staging environment ────────────────────────────────────
 [env.staging]
 name = "infinity-api-gateway-staging"
 
@@ -33,11 +46,10 @@ BACKEND_ORIGIN = "https://infinity-backend-staging.fly.dev"
 RATE_LIMIT_RPM = "300"
 CACHE_TTL = "30"
 
-# KV Namespaces for rate limiting & caching
-[[kv_namespaces]]
+[[env.staging.kv_namespaces]]
 binding = "RATE_LIMIT"
 id = "placeholder-rate-limit-id"
 
-[[kv_namespaces]]
+[[env.staging.kv_namespaces]]
 binding = "CACHE"
 id = "placeholder-cache-id"
