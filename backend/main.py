@@ -233,6 +233,11 @@ from routers import (
     library, academy, workshop, treasury, arcadia,
 )
 
+# Tranquillity Realm — Cross-Lane Wellbeing Services
+from routers import (
+    tranquillity, i_mind, resonate, taimra, savania,
+)
+
 app.include_router(auth.router)
 app.include_router(ai.router)
 app.include_router(compliance.router)
@@ -329,6 +334,13 @@ app.include_router(arcadia.router)
 app.include_router(admin.router)
 app.include_router(search.router)
 app.include_router(sync.router)
+
+# --- Tranquillity Realm (Cross-Lane Wellbeing) ---
+app.include_router(tranquillity.router)   # Gateway orchestrator
+app.include_router(i_mind.router)         # Lane 2 — Cognitive wellness
+app.include_router(resonate.router)       # Lane 2 — Sound & frequency healing
+app.include_router(taimra.router)         # Lane 3 — Digital twin analytics
+app.include_router(savania.router)        # Lane 1 — AI healer & defender
 
 
 # ============================================================

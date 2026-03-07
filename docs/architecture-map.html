@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trancendos Ecosystem — Architecture Map</title>
+  <link rel="stylesheet" href="architecture-map.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>🌐 Trancendos Ecosystem — Architecture Map</h1>
+    <p class="subtitle">Infinity Portal + Tranquillity Realm · Phase 16 Snapshot · 2026-03-07</p>
+    <div class="stats-bar">
+      <div class="stat-item"><div class="stat-value">56</div><div class="stat-label">Routers</div></div>
+      <div class="stat-item"><div class="stat-value">329</div><div class="stat-label">Tests</div></div>
+      <div class="stat-item"><div class="stat-value">60%</div><div class="stat-label">Coverage</div></div>
+      <div class="stat-item"><div class="stat-value">45.6K</div><div class="stat-label">Python LOC</div></div>
+      <div class="stat-item"><div class="stat-value">137</div><div class="stat-label">Commits</div></div>
+      <div class="stat-item"><div class="stat-value">0</div><div class="stat-label">TODOs</div></div>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot green"></div> Built &amp; Tested (329 tests passing)</div>
+    <div class="legend-item"><div class="legend-dot gold"></div> Stub / Partial (router exists, needs deepening)</div>
+    <div class="legend-item"><div class="legend-dot red"></div> Not Yet Integrated (external repos)</div>
+    <div class="legend-item"><div class="legend-dot purple"></div> External Repo (separate codebase)</div>
+  </div>
+
+  <!-- Hub -->
+  <div class="hub">
+    <div class="hub-hexagon">
+      <h2>♾️ INFINITY PORTAL</h2>
+      <span class="hub-sub">FastAPI · Python 3.12 · 56 Routers · Three-Lane Mesh</span>
+    </div>
+  </div>
+
+  <div class="connector"><div class="connector-line"></div></div>
+
+  <!-- Three-Lane Mesh -->
+  <div class="three-lane-mesh">
+
+    <!-- Lane 1: AI / Nexus -->
+    <div class="lane lane-ai">
+      <div class="lane-header">🤖 Lane 1 — AI / Nexus</div>
+
+      <div class="service-card">
+        <div class="status-dot green"></div>
+        <div class="svc-icon">🎭</div>
+        <div class="svc-info">
+          <div class="svc-name">Cornelius</div>
+          <div class="svc-desc">AI Orchestrator — task routing, intent analysis, agent registry</div>
+        </div>
+        <div class="svc-tests">7 tests</div>
+      </div>
+
+      <div class="service-card">
+        <div class="status-dot green"></div>
+        <div class="svc-icon">🧠</div>
+        <div class="svc-info">
+          <div class="svc-name">MultiAI</div>
+          <div class="svc-desc">Multi-agent messaging, collaboration, protocol management</div>
+        </div>
+        <div class="svc-tests">6 tests</div>
+      </div>
+
+      <div class="service-card">
+        <div class="status-dot green"></div>
+        <div class="svc-icon">🩺</div>
+        <div class="svc-info">
+          <div class="svc-name">The Dr</div>
+          <div class="svc-desc">Self-healing engine — diagnostics, code analysis, auto-repair</div>
+        </div>
+        <div class="svc-tests">7 tests</div>
+      </div>
+
+      <div class="service-card">
+        <div class="status-dot green"></div>
+        <div class="svc-icon">📚</div>
+        <div class="svc-info">
+          <div class="svc-name">Library</div>
+          <div class="svc-desc">Knowledge base, article generation, topic extraction</div>
+        </div>
+        <div class="svc-tests">7 tests</div>
+      </div>
+
+      <div class="service-card">
+        <div class="status-dot green"></div>
+        <div class="svc-icon">🛡️</div>
+        <div class="svc-info">
+          <div class="svc-name">Norman / Cryptex</div>
+          <div class="svc-desc">Security scanning, vulnerability detection, Dependabot integration</div>
+        </div>
+        <div class="svc-tests">10 tests</div>
+      </div>
+
+      <div class="service-card">
+        <div class="status-dot green"></div>
+        <div class="svc-icon">🔮</div>
+        <div class="svc-info">
+          <div class="svc-name">Nexus</div>
+          <div class="svc-desc">AI gateway, model routing, inference management</div>
+        </div>
+      </div>
+
+      <div class="service-card">
+        <div class="status-dot green"></div>
+        <div class="svc-icon">🤖</div>
+        <div class="svc-info">
+          <div class="svc-name">AI Router</div>
+          <div class="svc-desc">LLM provider fallback chain, prompt management</div>
+        </div>
+        <div class="svc-tests">6 tests</div>
+      </div>
+
+      <div class="service-card">
+        <div class="status-dot green"></div>
+        <div class="svc-icon">🧬</div>
+        <div class="svc-info">
+          <div class="svc-name">Adaptive Engine</div>
+          <div class="svc-desc">ML-driven adaptation, user behavior learning</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lane 2: User / Infinity -->
+    <div class="lane lane-user">
+      <div class="lane-header">👤 Lane 2 — User / Infinity</div>
+
+      <div class="service-card">
+        <div class="status-dot green"></div>
+        <div class="svc-icon">🏛️</div>
+        <div class="svc-info">
+          <div class="svc-name">Arcadia</div>
+          <div class="svc-desc">Generative frontend, apps, mailbox, threads, marketplace</div>
+        </div>
+        <div class="svc-tests">9 tests</div>
+      </div>
+
+      <div class="service-card">
+        <div class="status-dot green"></div>
+        <div class="svc-icon">🎓</div>
+        <div class="svc-info">
+          <div class="svc-name">Academy</div>
+          <div class="svc-desc">Learning paths, RAG queries, agent context, modules</div>
+        </div>
+        <div class="svc-tests">8 tests</div>
+      </div>
+
+      <div class="service-card">
+        <div class="status-dot green"></div>
+        <div class="svc-icon">🔧</div>
+        <div class="svc-info">
+          <div class="svc-name">Workshop</div>
+          <div class="svc-desc">Code repos, reviews, CI/CD pipelines, security audits</div>
+        </div>
+        <div class="svc-tests">7 tests</div>
+      </div>
+
+      <div class="service-card">
+        <div class="status-dot green"></div>
+        <div class="svc-icon">🏛️</div>
+        <div class="svc-info">
+          <div class="svc-name">TownHall</div>
+          <div class="svc-desc">Community governance, voting, announcements, roles</div>
+        </div>
+      </div>
+
+      <div class="service-card">
+        <div class="status-dot green"></div>
+        <div class="svc-icon">⚙️</div>
+        <div class="svc-info">
+          <div class="svc-name">Admin</div>
+          <div class="svc-desc">Platform config, user management, org management, audit</div>
+        </div>
+        <div class="svc-tests">8 tests</div>
+      </div>
+
+      <div class="service-card">
+        <div class="status-dot green"></div>
+        <div class="svc-icon">📋</div>
+        <div class="svc-info">
+          <div class="svc-name">Kanban</div>
+          <div class="svc-desc">Project boards, tickets, sprints, complexity tracking</div>
+        </div>
+        <div class="svc-tests">7 tests</div>
+      </div>
+
+      <div class="service-card">
+        <div class="status-dot green"></div>
+        <div class="svc-icon">🔔</div>
+        <div class="svc-info">
+          <div class="svc-name">Notifications</div>
+          <div class="svc-desc">Push, email, in-app notifications, preferences</div>
+        </div>
+        <div class="svc-tests">11 tests</div>
+      </div>
+
+      <div class="service-card">
+        <div class="status-dot green"></div>
+        <div class="svc-icon">👥</div>
+        <div class="svc-info">
+          <div class="svc-name">Users / Orgs</div>
+          <div class="svc-desc">Profile management, organisations, federation</div>
+        </div>
+        <div class="svc-tests">14 tests</div>
+      </div>
+    </div>
+
+    <!-- Lane 3: Data / Hive -->
+    <div class="lane lane-data">
+      <div class="lane-header">💾 Lane 3 — Data / Hive</div>
+
+      <div class="service-card">
+        <div class="status-dot green"></div>
+        <div class="svc-icon">🐝</div>
+        <div class="svc-info">
+          <div class="svc-name">Hive</div>
+          <div class="svc-desc">Data mesh hub, cross-service data routing</div>
+        </div>
+      </div>
+
+      <div class="service-card">
+        <div class="status-dot green"></div>
+        <div class="svc-icon">🧊</div>
+        <div class="svc-info">
+          <div class="svc-name">Icebox</div>
+          <div class="svc-desc">Cold storage, archival, retention policies, restore</div>
+        </div>
+        <div class="svc-tests">8 tests</div>
+      </div>
+
+      <div class="service-card">
+        <div class="status-dot green"></div>
+        <div class="svc-icon">🔄</div>
+        <div class="svc-info">
+          <div class="svc-name">Sync</div>
+          <div class="svc-desc">Data replication, conflict resolution, topology</div>
+        </div>
+        <div class="svc-tests">6 tests</div>
+      </div>
+
+      <div class="service-card">
+        <div class="status-dot green"></div>
+        <div class="svc-icon">🔍</div>
+        <div class="svc-info">
+          <div class="svc-name">Search</div>
+          <div class="svc-desc">Full-text search, indexing, suggestions, stats</div>
+        </div>
+        <div class="svc-tests">6 tests</div>
+      </div>
+
+      <div class="service-card">
+        <div class="status-dot green"></div>
+        <div class="svc-icon">📄</div>
+        <div class="svc-info">
+          <div class="svc-name">Documents</div>
+          <div class="svc-desc">Document management, versioning, collaboration</div>
+        </div>
+        <div class="svc-tests">10 tests</div>
+      </div>
+
+      <div class="service-card">
+        <div class="status-dot green"></div>
+        <div class="svc-icon">📦</div>
+        <div class="svc-info">
+          <div class="svc-name">Assets</div>
+          <div class="svc-desc">File storage, media management, CDN integration</div>
+        </div>
+        <div class="svc-tests">8 tests</div>
+      </div>
+
+      <div class="service-card">
+        <div class="status-dot green"></div>
+        <div class="svc-icon">📊</div>
+        <div class="svc-info">
+          <div class="svc-name">Observability</div>
+          <div class="svc-desc">Metrics, tracing, health dashboards, alerting</div>
+        </div>
+        <div class="svc-tests">10 tests</div>
+      </div>
+
+      <div class="service-card">
+        <div class="status-dot green"></div>
+        <div class="svc-icon">📜</div>
+        <div class="svc-info">
+          <div class="svc-name">Version History</div>
+          <div class="svc-desc">Audit trail, change tracking, rollback</div>
+        </div>
+        <div class="svc-tests">11 tests</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cross-Lane Services -->
+  <div class="cross-lane-bar">
+    <div class="cross-lane-label">⚡ Cross-Lane Services (spanning all three lanes)</div>
+
+    <div class="service-card">
+      <div class="status-dot green"></div>
+      <div class="svc-icon">🛡️</div>
+      <div class="svc-info">
+        <div class="svc-name">Guardian</div>
+        <div class="svc-desc">Zero-trust auth, RBAC, token issuance, behavioral checks</div>
+      </div>
+      <div class="svc-tests">7 tests</div>
+    </div>
+
+    <div class="service-card">
+      <div class="status-dot green"></div>
+      <div class="svc-icon">💰</div>
+      <div class="svc-info">
+        <div class="svc-name">Treasury</div>
+        <div class="svc-desc">Cost tracking, forecasting, revenue, zero-cost optimization</div>
+      </div>
+      <div class="svc-tests">9 tests</div>
+    </div>
+
+    <div class="service-card">
+      <div class="status-dot green"></div>
+      <div class="svc-icon">📡</div>
+      <div class="svc-info">
+        <div class="svc-name">Kernel Event Bus</div>
+        <div class="svc-desc">Async pub/sub, topic routing, dead-letter queue, metrics</div>
+      </div>
+      <div class="svc-tests">10 tests</div>
+    </div>
+  </div>
+
+  <!-- Additional Routers -->
+  <div class="additional-routers">
+    <h4>Additional Platform Routers (all built &amp; tested)</h4>
+    <div class="router-pills">
+      <div class="router-pill">🔐 Auth (14 tests)</div>
+      <div class="router-pill">✅ Compliance (15 tests)</div>
+      <div class="router-pill">📋 Compliance Frameworks (12 tests)</div>
+      <div class="router-pill">💻 Codegen (12 tests)</div>
+      <div class="router-pill">🏗️ Build (4 tests)</div>
+      <div class="router-pill">🏪 AppStore (11 tests)</div>
+      <div class="router-pill">📂 Files (7 tests)</div>
+      <div class="router-pill">🔗 Integrations (9 tests)</div>
+      <div class="router-pill">🎫 ITSM (9 tests)</div>
+      <div class="router-pill">📖 KB (10 tests)</div>
+      <div class="router-pill">🌐 Federation (6 tests)</div>
+      <div class="router-pill">📦 Repositories (6 tests)</div>
+      <div class="router-pill">🌊 WebSocket (6 tests)</div>
+      <div class="router-pill">🔒 RBAC</div>
+      <div class="router-pill">🚪 Gates</div>
+      <div class="router-pill">💳 Billing</div>
+      <div class="router-pill">🔥 Chaos Party</div>
+      <div class="router-pill">🔭 Observatory</div>
+      <div class="router-pill">🏠 Lighthouse</div>
+      <div class="router-pill">🕳️ The Void</div>
+      <div class="router-pill">⚡ Workflows</div>
+      <div class="router-pill">🤖 Agent Manager</div>
+      <div class="router-pill">🧠 Agent Memory</div>
+      <div class="router-pill">🔧 Self-Healing</div>
+      <div class="router-pill">🔒 Security</div>
+      <div class="router-pill">🎨 Artifacts</div>
+      <div class="router-pill">⚠️ Errors</div>
+      <div class="router-pill">📦 Deps</div>
+    </div>
+  </div>
+
+  <!-- Tranquillity Realm -->
+  <div class="tranquillity-realm">
+    <div class="realm-header">
+      <h3>🌿 Tranquillity Realm — Wellbeing Centre</h3>
+      <p class="realm-sub">Mental health &amp; fitness · 4 external repos · Savania AI orchestrator · Pending integration into Infinity Portal</p>
+    </div>
+
+    <div class="realm-grid">
+      <div class="realm-card">
+        <span class="realm-icon">🧠</span>
+        <div class="realm-name">i-Mind</div>
+        <div class="realm-desc">Cognitive wellness, brain training, neurofeedback, mindfulness, breathing exercises</div>
+        <div class="realm-status external">📦 External Repo</div>
+      </div>
+
+      <div class="realm-card">
+        <span class="realm-icon">🎵</span>
+        <div class="realm-name">Resonate</div>
+        <div class="realm-desc">Sound healing, binaural beats, frequency therapy, biofeedback, empathy engine</div>
+        <div class="realm-status external">📦 External Repo</div>
+      </div>
+
+      <div class="realm-card">
+        <span class="realm-icon">🥽</span>
+        <div class="realm-name">AR/VR Platform</div>
+        <div class="realm-desc">WebXR immersive therapy, procedural landscapes, spatial audio, breathing landscapes</div>
+        <div class="realm-status external">📦 External Repo</div>
+      </div>
+
+      <div class="realm-card">
+        <span class="realm-icon">🪞</span>
+        <div class="realm-name">tAimra Digital Twin</div>
+        <div class="realm-desc">Mental health digital twin, BPL engine, consent engine, audit ledger, safety adapters</div>
+        <div class="realm-status external">📦 External Repo</div>
+      </div>
+
+      <div class="realm-card">
+        <span class="realm-icon">🌳</span>
+        <div class="realm-name">Savania AI</div>
+        <div class="realm-desc">Druid Healer &amp; Defender — multi-agent orchestrator with Healer, Defender, Shepherd agents</div>
+        <div class="realm-status not-integrated">🔴 Not Integrated</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Infrastructure Layer -->
+  <div class="infra-layer">
+    <div class="infra-label">🏗️ Infrastructure Layer</div>
+    <div class="infra-grid">
+      <div class="infra-item"><span class="infra-icon">🐘</span> PostgreSQL 16</div>
+      <div class="infra-item"><span class="infra-icon">⚡</span> Valkey 8 (Redis)</div>
+      <div class="infra-item"><span class="infra-icon">🌐</span> LibSQL / Turso</div>
+      <div class="infra-item"><span class="infra-icon">📦</span> MinIO (S3)</div>
+      <div class="infra-item"><span class="infra-icon">🐳</span> Docker Compose</div>
+      <div class="infra-item"><span class="infra-icon">📧</span> Mailpit</div>
+      <div class="infra-item"><span class="infra-icon">🔐</span> JWT / RBAC</div>
+      <div class="infra-item"><span class="infra-icon">📡</span> Kernel Event Bus</div>
+      <div class="infra-item"><span class="infra-icon">🧪</span> pytest (329 tests)</div>
+    </div>
+  </div>
+
+  <!-- What Remains -->
+  <div class="remaining-section">
+    <h3>🗺️ What Remains — Integration Roadmap</h3>
+    <div class="remaining-grid">
+      <div class="remaining-card priority-high">
+        <h4>🌿 Tranquillity Integration</h4>
+        <p>Create i-Mind, Resonate, tAimra, Savania AI routers inside Infinity Portal. Wire into Three-Lane Mesh with Kernel Event Bus. Smart, adaptive, 2060-ready microservices.</p>
+        <span class="priority-badge high">HIGH — Phase 16 (Current)</span>
+      </div>
+      <div class="remaining-card priority-high">
+        <h4>🔄 Alembic Migrations</h4>
+        <p>Generate PostgreSQL schema from models.py. Production-ready database migration pipeline with rollback support.</p>
+        <span class="priority-badge high">HIGH — Phase 17</span>
+      </div>
+      <div class="remaining-card priority-high">
+        <h4>📡 Redis Event Bus Persistence</h4>
+        <p>Replace in-memory Kernel Event Bus queue with Valkey Streams for durability, replay, and cross-instance pub/sub.</p>
+        <span class="priority-badge high">HIGH — Phase 17</span>
+      </div>
+      <div class="remaining-card priority-medium">
+        <h4>🚀 CI/CD Pipeline</h4>
+        <p>GitHub Actions: lint → test → build → deploy. Automated quality gates, coverage thresholds, Docker image publishing.</p>
+        <span class="priority-badge medium">MEDIUM — Phase 18</span>
+      </div>
+      <div class="remaining-card priority-medium">
+        <h4>🧪 Coverage Target 80%</h4>
+        <p>Add tests for remaining 41 untested modules. Currently at 60% (329 tests). Target: 500+ tests at 80% coverage.</p>
+        <span class="priority-badge medium">MEDIUM — Phase 18</span>
+      </div>
+      <div class="remaining-card priority-medium">
+        <h4>🌐 Turso Cloud Integration</h4>
+        <p>Connect LibSQL to Turso cloud for edge replication. Offline-first sync for Tranquillity mobile experiences.</p>
+        <span class="priority-badge medium">MEDIUM — Phase 19</span>
+      </div>
+      <div class="remaining-card priority-low">
+        <h4>☸️ Kubernetes Manifests</h4>
+        <p>Helm charts for production deployment. K3s-ready manifests for self-hosted environments.</p>
+        <span class="priority-badge low">LOW — Phase 20</span>
+      </div>
+      <div class="remaining-card priority-low">
+        <h4>🌍 The Missing Realm</h4>
+        <p>One more section to be generated — name conflict to be resolved. Parked until naming is clarified by Drew.</p>
+        <span class="priority-badge low">LOW — Parked</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>Trancendos Ecosystem · Continuity Guardian: Drew · Lead Architect: Andrew 'Drew' Porter</p>
+    <p>Generated by SuperNinja AI · Phase 16 · Session 6 · 2026-03-07</p>
+  </div>
+
+</div>
+</body>
+</html>
