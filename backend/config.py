@@ -82,6 +82,28 @@ class InfinityConfig(BaseModel):
     zero_cost_mode: bool = Field(default=True)
     future_proof_level: str = Field(default="2060", pattern="^(2030|2040|2050|2060)$")
 
+    # ── Zero-Cost Provider Preferences ────────────────────────
+    # Priority: local → free → freemium → paid (never by default)
+    llm_provider_priority: str = Field(
+        default="ollama,groq,huggingface,openai,anthropic",
+        description="Comma-separated LLM provider priority (local-first)"
+    )
+    storage_provider_priority: str = Field(
+        default="local_filesystem,minio_s3",
+        description="Comma-separated storage provider priority"
+    )
+    cache_provider_priority: str = Field(
+        default="in_memory,valkey_redis",
+        description="Comma-separated cache provider priority"
+    )
+    search_provider_priority: str = Field(
+        default="in_memory,meilisearch,typesense",
+        description="Comma-separated search provider priority"
+    )
+    cost_daily_limit_usd: float = Field(default=0.0, ge=0.0)
+    cost_monthly_limit_usd: float = Field(default=0.0, ge=0.0)
+    cost_alert_threshold_pct: float = Field(default=80.0, ge=0.0, le=100.0)
+
     # ── Kernel Event Bus ─────────────────────────────────────
     event_bus_backend: str = Field(default="memory", pattern="^(memory|redis|nats)$")
     event_bus_redis_url: Optional[str] = None

@@ -16,6 +16,7 @@ os.environ["JWT_SECRET_KEY"] = "test-secret-key-for-unit-tests-only-min-32-chars
 os.environ["ENVIRONMENT"] = "test"
 
 from models import Base, User, Organisation, UserRole, OrgPlan, utcnow
+from models_phase20 import DomainDocument, DomainAuditEntry, DomainCounter  # Phase 20 tables
 from auth import AuthService
 from database import get_db_session
 from main import app

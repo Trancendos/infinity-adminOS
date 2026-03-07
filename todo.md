@@ -1,43 +1,36 @@
-# Phase 19 — Production Readiness Sprint (2060 Future-Forward)
+# Phase 20 — Zero-Cost Multi-Provider Production Hardening
 
-## A. Naming Alignment (3 Partial Matches → Full Match) [Quick Wins]
-- [x] A1. Create `lille_sc.py` router aliasing `sync.py` with Lille SC branding
-- [x] A2. Create `lunascene.py` router aliasing `artifacts.py` with Lunascene branding
-- [x] A3. Create `solarscene.py` router aliasing `search.py` with SolarScene branding
-- [x] A4. Wire new branded routers into main.py (79 routers total)
-- [x] A5. Update ECOSYSTEM_MATCH.md → 37/37 full match (100%)
+## A. Multi-Provider Abstraction Layer (No Vendor Lock-In)
+- [x] A1. Create `providers/llm_provider.py` — unified LLM interface with Ollama/local-first, Groq/HF free tier fallback, OpenAI/Anthropic optional
+- [ ] A2. Create `providers/storage_provider.py` — unified storage interface (local filesystem → MinIO/S3-compatible → any S3)
+- [ ] A3. Create `providers/cache_provider.py` — unified cache (in-memory → Valkey/Redis → KeyDB)
+- [ ] A4. Create `providers/search_provider.py` — unified search (in-memory → Meilisearch/Typesense → any engine)
+- [x] A5. Create `providers/__init__.py` — provider registry with health checks and auto-failover
 
-## B. Production Middleware & Hardening
-- [x] B1. Add rate limiting middleware (token bucket per IP/path) to main.py
-- [x] B2. Add request size limiting middleware (configurable max MB)
-- [x] B3. Add structured logging middleware (per-request structured log entries)
-- [x] B4. Add graceful shutdown handler with connection draining (30s timeout)
-- [x] B5. Create production config module (config.py) with env validation + production readiness checks
+## B. Database Persistence — Migrate 22 In-Memory Routers
+- [ ] B1. Create `models_phase20.py` — SQLAlchemy models for 22 in-memory routers (governance, studio, infra, branded)
+- [ ] B2. Create Alembic migration for new tables
+- [ ] B3. Create `crud_helpers.py` — generic async CRUD helper (DRY pattern for all routers)
+- [ ] B4. Migrate governance routers (citadel, think_tank, chronossphere, devocity) to DB
+- [ ] B5. Migrate studio routers (studio, section7, style_and_shoot, digital_grid, tranceflow, tateking, fabulousa) to DB
+- [ ] B6. Migrate remaining routers (arcadian_exchange, vrar3d, luminous, turings_hub, adaptive_engine, agent_manager, self_healing, vulnerability) to DB
+- [ ] B7. Migrate branded routers (lille_sc, lunascene, solarscene) to DB
 
-## C. 2060 Compliance Integration Layer
-- [x] C1. Create `middleware_2060.py` — request-level 2060 compliance middleware (data residency headers, consent verification, AI audit trail)
-- [x] C2. Create `event_bridge.py` — bridge between routers and KernelEventBus for cross-lane event propagation
-- [x] C3. Wire 2060 middleware into main.py (8 middleware layers total)
+## C. Zero-Cost Infrastructure Enforcement
+- [ ] C1. Create `zero_cost_guard.py` — runtime cost tracking, budget alerts, auto-throttle when approaching limits
+- [ ] C2. Update config.py with zero-cost provider preferences (local-first, free-tier-second, paid-last)
+- [ ] C3. Add cost-awareness headers to all AI responses (X-Cost-Estimate, X-Provider-Tier)
 
-## D. Health & Readiness Probes (K8s-Ready)
-- [x] D1. Enhance /health endpoint with deep checks (DB, event bus, 2060 compliance, shutdown state)
-- [x] D2. Add /ready endpoint for Kubernetes readiness probe
-- [x] D3. Add /metrics endpoint stub for Prometheus scraping (event bus + resource meter)
-- [x] D4. Add /api/v1/system/info endpoint with ecosystem stats (837 routes)
+## D. Multi-Database Support (No PostgreSQL Lock-In)
+- [ ] D1. Update `database.py` to support SQLite (dev), PostgreSQL (prod), LibSQL/Turso (edge) via single config
+- [ ] D2. Ensure all models use dialect-agnostic types (no PostgreSQL-only features without fallback)
 
-## E. Production Docker & Deployment
-- [x] E1. Create multi-stage Dockerfile.production with security hardening (tini, non-root, minimal image)
-- [x] E2. Update docker-compose.yml with production profile (resource limits, 2060 env vars)
-- [x] E3. Create .env.production.template with all required vars documented
-- [x] E4. Add Kubernetes manifests (deployment, service, ingress, HPA, configmap, PVCs)
+## E. Tests & Validation
+- [ ] E1. Create `test_providers.py` — provider abstraction tests
+- [ ] E2. Create `test_zero_cost.py` — zero-cost guard tests
+- [ ] E3. Run full test suite — target 0 failures
 
-## F. Test Suite Hardening
-- [x] F1. Create test_production_readiness.py — 30 tests (middleware, health, config, branded routers)
-- [x] F2. Create test_2060_compliance.py — 12 tests (residency, consent, AI audit, event bridge, standard)
-- [x] F3. Run full test suite — 664 passed, 0 failed, 67% coverage (471s)
-
-## G. Documentation & Commit
-- [x] G1. Create PRODUCTION_READINESS.md — deployment guide
-- [x] G2. Update ECOSYSTEM_MATCH.md with final 37/37 status
-- [x] G3. Create PROJECT_PULSE_SESSION10.md
-- [x] G4. Commit and push all changes → d578ecc
+## F. Documentation & Commit
+- [ ] F1. Create ZERO_COST_ARCHITECTURE.md — provider matrix, cost model, failover strategy
+- [ ] F2. Create PROJECT_PULSE_SESSION11.md
+- [ ] F3. Commit and push

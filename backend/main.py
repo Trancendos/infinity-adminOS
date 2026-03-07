@@ -23,6 +23,7 @@ from telemetry import setup_telemetry
 from config import get_config
 from middleware_production import install_production_middleware, get_shutdown_manager
 from middleware_2060 import install_2060_middleware
+from zero_cost_guard import install_zero_cost_middleware, get_zero_cost_guard
 
 # Logging
 logging.basicConfig(
@@ -140,6 +141,9 @@ install_production_middleware(app)
 # 2060 COMPLIANCE MIDDLEWARE (Data Residency, Consent, AI Audit)
 # ============================================================
 install_2060_middleware(app)
+
+# ── Zero-Cost Enforcement Middleware ──────────────────────────
+install_zero_cost_middleware(app)
 
 # ============================================================
 # MIDDLEWARE: Correlation IDs + Timing
@@ -597,6 +601,23 @@ async def system_info():
     }
 
 
+@app.get("/api/v1/system/costs")
+async def system_costs():
+    """Zero-cost infrastructure dashboard — real-time cost tracking."""
+    guard = get_zero_cost_guard()
+    stats = guard.get_stats()
+    return {
+        "zero_cost_compliant": stats["mode"] == "zero-cost" or stats["totals"]["lifetime_usd"] == 0,
+        **stats,
+        "provider_priorities": {
+            "llm": get_config().llm_provider_priority.split(","),
+            "storage": get_config().storage_provider_priority.split(","),
+            "cache": get_config().cache_provider_priority.split(","),
+            "search": get_config().search_provider_priority.split(","),
+        },
+    }
+
+
 @app.get("/")
 async def root():
     config = get_config()
@@ -610,6 +631,7 @@ async def root():
         "ready": "/ready",
         "metrics": "/metrics",
         "system": "/api/v1/system/info",
+        "costs": "/api/v1/system/costs",
         "status": "operational",
     }
 

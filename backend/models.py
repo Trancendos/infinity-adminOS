@@ -15,8 +15,35 @@ from sqlalchemy import (
     UniqueConstraint, CheckConstraint,
 )
 from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy import TypeDecorator
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
-UUID = PG_UUID  # Alias used by TownHall models
+
+# Dialect-agnostic UUID: uses native PG UUID on PostgreSQL, String(36) elsewhere
+class DialectUUID(TypeDecorator):
+    """UUID type that works across PostgreSQL, SQLite, and LibSQL."""
+    impl = String
+    cache_ok = True
+
+    def __init__(self, as_uuid=True):
+        super().__init__(length=36)
+        self.as_uuid = as_uuid
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == "postgresql":
+            return dialect.type_descriptor(PG_UUID(as_uuid=True))
+        return dialect.type_descriptor(String(36))
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            return str(value)
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            return str(value)
+        return value
+
+UUID = DialectUUID  # Alias used by TownHall models — now dialect-agnostic
 
 Base = declarative_base()
 
