@@ -21,5 +21,5 @@
 - [x] D3. Backend healthy on :8000, frontend builds clean
 
 ## E. Finalize
-- [ ] E1. Commit & push all changes
+- [x] E1. Commit & push all changes — eb9f94f
 - [ ] E2. Create PROJECT_PULSE_SESSION15.md
