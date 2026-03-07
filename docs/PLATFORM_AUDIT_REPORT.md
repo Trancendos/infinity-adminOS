@@ -184,7 +184,7 @@ However, the platform is currently at approximately **35-40% production readines
 
 **Gaps:**
 - 🔴 Zero test files
-- ⚠️ No actual Prometheus/Grafana integration configured
+- ⚠️ The Observatory exists but not yet wired to all services (Prometheus/Grafana configs exist as legacy placeholders)
 - ⚠️ Metrics are simulated, not real
 
 ### 3.5 SENTINEL-AI (Watchdog)
@@ -362,7 +362,7 @@ Each dimension scored 0-10:
 | **Security** | 6/10 | RBAC, vulnerability scanning, compliance framework, but not hardened |
 | **Governance** | 9/10 | TIGA v2.0 is exceptional — OPA policies, Magna Carta, 11-gate pipeline |
 | **Documentation** | 8/10 | Extensive docs, runbooks, strategic analysis, studio specs |
-| **Observability** | 5/10 | Prometheus/Grafana configs exist, but not wired to real services |
+| **Observability** | 5/10 | The Observatory built (analytics engine, metrics, alerts, trends) — needs wiring to all 31 services |
 | **OVERALL** | **6.3/10** | **Strong foundation, needs hardening for production** |
 
 ### 5.3 Microservices Scorecard (Average across 26 services)
@@ -423,7 +423,7 @@ Each dimension scored 0-10:
 | H4 | No health check standardization | Unreliable monitoring | LOW |
 | H5 | Frontend has zero tests | UI regression risk | HIGH |
 | H6 | models.py is 3,649 lines | Maintenance nightmare | MEDIUM |
-| H7 | No real Prometheus/Grafana | Blind to production issues | MEDIUM |
+| H7 | The Observatory not wired to all services | Blind to production issues until connected | MEDIUM |
 | H8 | No real alerting (PagerDuty/Slack) | Incident response failure | LOW |
 
 ### 6.3 📋 MEDIUM (Should fix before GA)
@@ -441,197 +441,314 @@ Each dimension scored 0-10:
 
 ## 7. PLATFORM SUPPORT MECHANISMS
 
-Based on research and analysis of the ecosystem's architecture, here are the recommended mechanisms to support the whole platform and services:
+The Trancendos ecosystem already has purpose-built services for every platform support function. This section maps each critical platform capability to its existing ecosystem service, identifies what's already implemented, and outlines what needs wiring to bring each service to production readiness.
 
-### 7.1 Service Mesh & Communication Layer
+### 7.1 Service Mesh & Inter-Service Communication
 
-**Problem:** Services are isolated — no inter-service communication exists.
+The ecosystem has **three dedicated mesh layers** — one for AI agents, one for users, and one for data/files:
 
-**Recommended Solution: Lightweight Event-Driven Architecture**
+| Mesh Layer | Service | Port | Status | LOC |
+|------------|---------|------|--------|-----|
+| **AI Service Mesh** | **The Nexus** | 3029 | Integration Hub built — webhook routing, event bus, message queue, stream, file sync | 227+ |
+| **User Service Mesh** | **Infinity One** | Package | Universal Account Hub — IAM, RBAC, profile management, MFA, WebAuthn, SCIM | 1,216 |
+| **Data/Files Mesh** | **The Hive** | 3027 | Swarm Intelligence — scans GitHub/GitLab/Vercel/Notion, harvests docs, detects modules | 346+ |
+
+**Architecture (Already Built):**
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    NATS / Redis Streams                  │
-│              (Lightweight Message Broker)                │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
-│  │Guardian AI│  │Oracle AI │  │Sentinel  │  ... x 31   │
-│  │  :3001   │  │  :3002   │  │  :3004   │             │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘             │
-│       │              │              │                    │
-│       └──────────────┼──────────────┘                    │
-│                      │                                   │
-│              ┌───────┴───────┐                           │
-│              │  API Gateway  │                           │
-│              │  (Kong/Traefik)│                          │
-│              └───────┬───────┘                           │
-│                      │                                   │
-│              ┌───────┴───────┐                           │
-│              │Infinity Portal│                           │
-│              │   Backend     │                           │
-│              └───────────────┘                           │
-└─────────────────────────────────────────────────────────┘
++---------------------------------------------------------------------+
+|                    THE NEXUS (AI Service Mesh :3029)                 |
+|  Integration Hub -- webhooks, event routing, service-to-service     |
+|  Types: webhook | api | event_bus | message_queue | stream         |
++---------------------------------------------------------------------+
+|                                                                     |
+|  +----------+  +----------+  +----------+  +----------+            |
+|  |Guardian  |  |Oracle    |  |Sentinel  |  |Prometheus|  ...x31    |
+|  |AI :3001  |  |AI :3002  |  |AI :3004  |  |AI :3003  |            |
+|  +----+-----+  +----+-----+  +----+-----+  +----+-----+            |
+|       +--------------+--------------+-----------+                   |
+|                      |              |                                |
+|  +-------------------+--------------+---------------------------+   |
+|  |         KERNEL -- Event Bus + Service Discovery              |   |
+|  |  Pub/Sub | Request/Reply | Dead Letter Queue | Replay        |   |
+|  |  Auto-Registration | TTL Health | Weighted Routing            |   |
+|  |  Version-Aware Discovery | Dependency Graph                  |   |
+|  +-------------------+--------------------------------------+---+   |
+|                      |                                              |
+|  +-------------------+--------------------------------------+       |
+|  |              API MARKETPLACE (Gateway :3033)              |       |
+|  |  Route Config | Auth | Rate Limiting | Circuit Breaker   |       |
+|  |  Request Transform | CORS | Response Aggregation         |       |
+|  +----------------------------------------------------------+       |
++---------------------------------------------------------------------+
 ```
 
-**Why NATS/Redis Streams over Kafka:**
-- Zero-cost on free tiers (aligns with Economic Charter)
-- Sub-millisecond latency
-- Lightweight — no JVM overhead
-- Built-in pub/sub, request/reply, and streaming
-- Perfect for the 31-service ecosystem scale
+**What's Built:**
+- The Nexus: Full integration hub with webhook routing, event bus, message queue, stream, and file sync integration types
+- Kernel Event Bus: Pub/sub messaging, event sourcing, dead letter queue, event replay, ordered delivery
+- Kernel Service Discovery: Auto-registration, TTL-based health, dependency graph, weighted routing, version-aware discovery
+- Kernel API Gateway: Route config, auth, rate limiting, circuit breaker, request transformation, CORS, caching
 
-**Implementation Priority:** CRITICAL — This is the nervous system the platform needs.
+**What Needs Wiring:**
+- Connect The Nexus integration hub to Kernel event bus for real message passing between all 31 services
+- Wire Infinity One session/auth tokens into The Nexus for user-context-aware routing
+- Connect The Hive estate scanning to The Nexus for automated discovery of new integrations
 
 ### 7.2 Database Strategy
-
-**Problem:** No production database exists anywhere.
-
-**Recommended Solution: Tiered Database Architecture**
 
 | Tier | Technology | Use Case | Cost |
 |------|-----------|----------|------|
 | **Primary** | Neon PostgreSQL (serverless) | Infinity Portal backend, IAM, ITSM | Free tier: 0.5GB |
+| **Edge** | Edge Database (Cloudflare D1 / Turso LibSQL) | Low-latency reads, edge workers, offline-first | Free tier available |
 | **Cache** | Upstash Redis (serverless) | Session cache, rate limiting, pub/sub | Free tier: 10K commands/day |
 | **Search** | Typesense (self-hosted) | Knowledge base, document search | Free (self-hosted) |
-| **Time-Series** | QuestDB or TimescaleDB | Metrics, analytics, observability | Free tier available |
 | **Vector** | Qdrant (self-hosted) | AI embeddings, semantic search | Free (self-hosted) |
 
-**Why Neon PostgreSQL:**
-- Serverless — scales to zero (zero-cost alignment)
-- Branching — database branches for dev/staging/prod
-- Compatible with existing SQLAlchemy models
-- Free tier: 0.5GB storage, 100 hours compute/month
+**Edge Database Strategy:**
+- Cloudflare D1 (SQLite at the edge) for read-heavy, low-latency operations
+- Turso/LibSQL as alternative — embedded replicas at every edge location
+- Neon PostgreSQL remains the source of truth; edge DB syncs from it
+- Zero-cost alignment: both D1 and Turso have generous free tiers
+- Already have Cloudflare tunnel infrastructure — D1 integrates natively
 
-### 7.3 Deployment Infrastructure
+### 7.3 Deployment Infrastructure — Cloudflare Management Console
 
-**Problem:** Platform has never been deployed.
+**Existing Infrastructure:**
+- Cloudflare Tunnel config already exists at `infrastructure/cloudflare/tunnel.yml`
+- Subdomain routing configured for: `infinity-os.${DOMAIN}`, `identity.${DOMAIN}`, `filesystem.${DOMAIN}`, `grafana.${DOMAIN}`, `vault.${DOMAIN}`, `langfuse.${DOMAIN}`
+- Zero-trust ingress — no open inbound ports required
 
-**Recommended Solution: Progressive Deployment Strategy**
+**Cloudflare Management Console (To Be Built in Infinity Admin OS):**
+An easy-to-use management interface for setting up trancendos.com and all subdomains:
 
-**Phase 1 — MVP (Single Node):**
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Domain Setup** | One-click trancendos.com configuration | To Build |
+| **Subdomain Manager** | Visual subdomain to service mapping | To Build |
+| **Tunnel Dashboard** | Cloudflare tunnel status, health, metrics | To Build |
+| **DNS Manager** | DNS record management (A, CNAME, TXT, MX) | To Build |
+| **SSL/TLS Config** | Certificate management, HSTS, min TLS version | To Build |
+| **Access Policies** | Cloudflare Access rules per subdomain | To Build |
+| **Worker Deployment** | Deploy/manage Cloudflare Workers from UI | To Build |
+| **Edge DB Console** | D1 database management, migrations, queries | To Build |
+
+**Deployment Architecture:**
 ```
-Google Cloud Run (Serverless)
-├── infinity-portal-backend  (FastAPI)
-├── infinity-portal-frontend (Static/CDN)
-├── guardian-ai              (Express)
-├── prometheus-ai            (Express)
-└── sentinel-ai              (Express)
-```
-- Cost: $0 (Cloud Run free tier: 2M requests/month)
-- Scale-to-zero alignment with Economic Charter
-
-**Phase 2 — Growth (Multi-Service):**
-```
-GKE Autopilot / K3s on GCE
-├── Core services (5)
-├── Wave 2 services (4)
-├── Wave 3 services (8)
-└── NATS message broker
-```
-- Cost: ~$50-100/month with committed use discounts
-
-**Phase 3 — Production (Full Ecosystem):**
-```
-GKE + Cloud Run + Edge (Cloudflare Workers)
-├── All 31 services
-├── Wave 6 Studios (edge-compute)
-├── Full observability stack
-└── Multi-region failover
-```
-
-### 7.4 Testing Framework
-
-**Problem:** 26 microservices have zero tests.
-
-**Recommended Solution: Test Pyramid Strategy**
-
-```
-                    ┌─────────┐
-                    │  E2E    │  ← Playwright (5-10 critical flows)
-                   ┌┴─────────┴┐
-                   │Integration │  ← Supertest + TestContainers (per service)
-                  ┌┴───────────┴┐
-                  │  Unit Tests  │  ← Vitest/Jest (per module)
-                 ┌┴─────────────┴┐
-                 │ Contract Tests │  ← Pact (inter-service contracts)
-                └─────────────────┘
+trancendos.com (Cloudflare DNS + Tunnel)
+|-- infinity-os.trancendos.com     -> Infinity OS Shell (React PWA :5173)
+|-- api.trancendos.com             -> API Marketplace Gateway (:3033)
+|-- identity.trancendos.com        -> Infinity One IAM (CF Worker :8787)
+|-- nexus.trancendos.com           -> The Nexus AI Mesh (:3029)
+|-- hive.trancendos.com            -> The Hive Data Mesh (:3027)
+|-- observatory.trancendos.com     -> The Observatory (:3028)
+|-- void.trancendos.com            -> The Void Secrets (restricted)
+|-- grid.trancendos.com            -> The DigitalGrid CI/CD (:3032)
+|-- chaos.trancendos.com           -> Chaos Party Testing (:3031)
+|-- marketplace.trancendos.com     -> API Marketplace (:3033)
+|-- studio-*.trancendos.com        -> Studio services (6 studios)
++-- admin.trancendos.com           -> Cloudflare Management Console
 ```
 
-**Quick Win — Shared Test Template:**
-Create a `@trancendos/test-utils` package with:
-- Standard Express app test harness
-- Mock event bus
-- Mock database
-- Health check test (every service gets this for free)
-- Resilience layer tests (circuit breaker, rate limiter)
+### 7.4 Testing Framework — Chaos Party
 
-**Target:** 80% coverage on core services, 60% on studios.
+**Existing Service:** `Chaos Party` — Adversarial Validation and Chaos Engineering platform.
 
-### 7.5 Observability Stack
+| Component | Location | Status |
+|-----------|----------|--------|
+| **Chaos Party Router** | `backend/routers/chaos_party.py` | Stub — endpoints defined, implementation TODO |
+| **Chaos Party Frontend** | Infinity Admin OS | Panel exists |
 
-**Problem:** Monitoring configs exist but nothing is live.
+**Chaos Party Capabilities (To Wire):**
 
-**Recommended Solution: Zero-Cost Observability**
-
-| Layer | Tool | Cost | Purpose |
-|-------|------|------|---------|
-| **Metrics** | Prometheus + Grafana Cloud | Free (10K series) | Service metrics, SLOs |
-| **Logging** | Grafana Loki | Free (50GB/month) | Centralized logs |
-| **Tracing** | Grafana Tempo | Free (50GB/month) | Distributed tracing |
-| **Alerting** | Grafana OnCall | Free (basic) | Incident management |
-| **Uptime** | Grafana Synthetic Monitoring | Free (10K checks) | External health checks |
-
-**Why Grafana Cloud Free Tier:**
-- All-in-one observability (metrics, logs, traces, alerts)
-- Free tier is generous for a startup
-- Already have Prometheus configs and Grafana dashboards
-- Zero-cost alignment
-
-### 7.6 CI/CD Standardization
-
-**Problem:** Only 5 repos have CI/CD; 27 have none.
-
-**Recommended Solution: Shared Workflow Templates**
-
-Create `.github/workflows/` templates in infinity-portal that all repos inherit:
-
-```yaml
-# .github/workflows/microservice-ci.yml (reusable)
-jobs:
-  lint:        # ESLint + Prettier
-  test:        # Vitest/Jest
-  build:       # TypeScript compile
-  docker:      # Build + push image
-  tiga-gate:   # OPA policy validation
-  deploy-dev:  # Auto-deploy to dev on PR merge
-  deploy-prod: # Manual approval for production
+```
++-------------------------------------------------------------+
+|                    CHAOS PARTY                               |
+|            Adversarial Testing & Validation                  |
++-------------------------------------------------------------+
+|                                                              |
+|  +-----------------+  +-----------------+                    |
+|  | Chaos Experiments|  | Load Testing    |                   |
+|  | - Fault injection|  | - Stress tests  |                   |
+|  | - Network chaos  |  | - Spike tests   |                   |
+|  | - Latency inject |  | - Soak tests    |                   |
+|  | - Kill services  |  | - Capacity plan |                   |
+|  +--------+--------+  +--------+--------+                    |
+|           |                     |                            |
+|  +--------+---------------------+--------+                   |
+|  |         Test Orchestrator             |                   |
+|  |  Unit | Integration | Contract | E2E  |                   |
+|  |  @trancendos/test-utils shared pkg    |                   |
+|  +--------+------------------------------+                   |
+|           |                                                  |
+|  +--------+------------------------------+                   |
+|  |         Results -> The Observatory    |                   |
+|  |  All test results logged & tracked    |                   |
+|  +---------------------------------------+                   |
+|                                                              |
++-------------------------------------------------------------+
 ```
 
-### 7.7 Secrets & Configuration Management
+**What Needs Implementation:**
+- Flesh out Chaos Party router endpoints (currently TODO stubs)
+- Wire test results to The Observatory for logging
+- Create `@trancendos/test-utils` shared package for standardised test harnesses
+- Add chaos experiment templates (fault injection, network chaos, latency injection)
+- Target: 80% coverage on core services, 60% on studios
 
-**Problem:** No production secrets management.
+### 7.5 Observability — The Observatory
 
-**Recommended Solution:**
+**Existing Service:** `The Observatory` — System-wide analytics, monitoring, and logging.
 
-| Environment | Tool | Details |
-|-------------|------|---------|
-| **Development** | `.env` files | Already in place |
-| **CI/CD** | GitHub Secrets | Per-repo and org-level |
-| **Production** | Google Secret Manager | Free tier: 6 active versions |
-| **Rotation** | GitHub Actions cron | Automated key rotation |
+| Component | Location | LOC | Status |
+|-----------|----------|-----|--------|
+| **Analytics Engine** | `the-observatory/src/analytics/analytics-engine.ts` | 423 | Built — metrics, alerts, trends |
+| **Kernel Observability** | `kernel/src/observability/` | -- | Built — integrated into OS |
 
-### 7.8 API Gateway & Service Discovery
+**The Observatory handles ALL observability:**
 
-**Problem:** No centralized API routing or service discovery.
+| Function | The Observatory Capability | External Tool Needed? |
+|----------|---------------------------|----------------------|
+| **Metrics** | MetricType: counter, gauge, histogram, summary | No |
+| **Alerting** | AlertSeverity: info, warning, error, critical | No |
+| **Trend Analysis** | TrendDirection: up, down, stable, volatile | No |
+| **Logging** | All actions, activities, changes logged | No |
+| **Tracing** | Distributed tracing via Kernel event correlation | No |
+| **Dashboards** | Real-time analytics dashboards in Infinity OS | No |
 
-**Recommended Solution:**
+**Data Flow:**
+```
+Every Service -> The Observatory (logs everything)
+                    |
+                    |-- Metrics (counters, gauges, histograms)
+                    |-- Alerts (info -> critical severity)
+                    |-- Trend Analysis (up/down/stable/volatile)
+                    |-- Audit Trail (who did what, when)
+                    +-- Compliance Reports (TIGA gate validation)
+                    
+Sensitive Data -> The Void (secrets, PII, security compliance)
+                    |
+                    |-- Quantum-safe encryption (ML-KEM-1024)
+                    |-- Shamir's 5-of-9 secret sharding
+                    |-- Zero-Knowledge Proof verification
+                    +-- RBAC + ABAC + MFA + Break-Glass access
+```
 
-**Option A (Simple — MVP):** Nginx reverse proxy (already have config)
-**Option B (Growth):** Traefik with Docker labels (auto-discovery)
-**Option C (Production):** Kong Gateway (free OSS version)
+**What Needs Wiring:**
+- Connect all 31 services to emit events to The Observatory via Kernel event bus
+- Wire Chaos Party test results into Observatory dashboards
+- Connect The DigitalGrid CI/CD pipeline events to Observatory for deployment tracking
+- Ensure all sensitive data routes to The Void instead of Observatory
 
-The kernel package already has `service-discovery.ts` and `api-gateway.ts` — these need to be wired to real infrastructure.
+### 7.6 CI/CD — The DigitalGrid
+
+**Existing Service:** `The DigitalGrid` — CI/CD platform with spatial routing, quarantine engine, and webhook matrix.
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| **Spatial Router** | `routing/spatial-router.ts` | Intelligent deployment routing |
+| **Quarantine Engine** | `quarantine/quarantine-engine.ts` | Failed deployment isolation |
+| **Webhook Matrix** | `webhooks/webhook-matrix.ts` | GitHub/GitLab webhook processing |
+| **Resilience Layer** | `middleware/resilience-layer.ts` | Circuit breaker, retry, rate limiting |
+| **API Server** | `api/server.ts` | DigitalGrid API endpoints |
+| **Ista Config** | `config/ista-config.ts` | Tyler Towncroft persona integration |
+
+**The DigitalGrid Pipeline:**
+```
+GitHub Push -> Webhook Matrix -> Spatial Router -> Build/Test -> Deploy
+                                    |                          |
+                                    |-- Quarantine (failures)  |
+                                    |                          |
+                                    +-- Observatory (logging) <-+
+```
+
+**What Needs Wiring:**
+- Connect GitHub webhook events to The DigitalGrid webhook matrix
+- Wire DigitalGrid deployment events to The Observatory
+- Connect quarantine engine to Chaos Party for automated re-testing
+- Create shared GitHub Actions workflow templates that trigger DigitalGrid pipeline
+- Wire TIGA gate validation into DigitalGrid as deployment gates
+
+### 7.7 Secrets & Security — The Void + Lighthouse
+
+**Existing Services:**
+
+| Service | Purpose | LOC | Capabilities |
+|---------|---------|-----|-------------|
+| **The Void** | Secrets store, PII vault, security compliance | 1,670 | ML-KEM-1024, Shamir's 5-of-9, ZKP, AES-256-GCM, ChaCha20 |
+| **Lighthouse** | Cryptographic token management | 1,043 | ML-DSA-65, threat detection, warp tunnel, icebox |
+| **Infinity One** | IAM, RBAC, authentication | 1,216 | MFA, WebAuthn, SCIM, OAuth, OIDC |
+
+**Security Architecture (Already Built):**
+
+| Layer | Service | What It Handles |
+|-------|---------|----------------|
+| **Secrets** | The Void | API keys, tokens, credentials, encryption keys |
+| **PII** | The Void | Personal information, compliance data |
+| **Tokens** | Lighthouse | Entity tokenisation, ML-DSA-65 signatures, threat detection |
+| **Identity** | Infinity One | User auth, RBAC, MFA, session management |
+| **Access** | The Void + Infinity One | RBAC + ABAC + MFA + Break-Glass + Rate Limiting |
+| **Audit** | The Observatory | All access attempts logged and tracked |
+
+**NO external secrets management needed.** The Void is a quantum-safe vault with:
+- ML-KEM-1024 master key encryption
+- Shamir's 5-of-9 secret sharding (need 5 of 9 shards to reconstruct)
+- Zero-Knowledge Proof Engine (Groth16/STARKs)
+- AES-256-GCM / ChaCha20 encryption
+- RBAC + ABAC + MFA + Break-Glass + Rate Limiting
+
+### 7.8 API Gateway — API Marketplace + Kernel Gateway
+
+**Existing Services:**
+
+| Service | Location | LOC | Capabilities |
+|---------|----------|-----|-------------|
+| **API Marketplace** | `api-marketplace/src/core/marketplace-engine.ts` | 659 | API listing, consumer management, reviews, rate limiting, circuit breaker |
+| **Kernel API Gateway** | `kernel/src/microservices/api-gateway.ts` | -- | Route config, auth, rate limiting, circuit breaker, caching, CORS |
+
+**API Marketplace handles:**
+- API listing and discovery (internal and external APIs)
+- Consumer registration and key management
+- Rate limiting per consumer/API
+- Circuit breaker per route
+- Request transformation and response aggregation
+- Telemetry collection via built-in TelemetryCollector
+
+**Kernel API Gateway handles:**
+- Centralised routing with path patterns
+- Authentication enforcement per route
+- Role-based access per endpoint
+- Circuit breaker integration
+- Response caching with TTL
+- Request transformation (header injection, prefix stripping)
+
+**NO external API gateway needed (no Kong, no Traefik).** The ecosystem has its own.
+
+### 7.9 Ecosystem Service Map — Complete Reference
+
+| Platform Function | Ecosystem Service | External Tool? |
+|-------------------|-------------------|---------------|
+| AI Service Mesh | **The Nexus** (:3029) | No |
+| User Service Mesh / IAM | **Infinity One** (package) | No |
+| Data/Files Mesh | **The Hive** (:3027) | No |
+| Observability & Logging | **The Observatory** (:3028) | No |
+| Secrets & PII Vault | **The Void** (package) | No |
+| Token Management | **Lighthouse** (package) | No |
+| CI/CD Pipeline | **The DigitalGrid** (:3032) | No |
+| Testing & Chaos Engineering | **Chaos Party** (router) | No |
+| API Gateway | **API Marketplace** (:3033) + **Kernel Gateway** | No |
+| Service Discovery | **Kernel Service Discovery** | No |
+| Event Bus / Messaging | **Kernel Event Bus** | No |
+| Resilience (Circuit Breaker, Retry, Rate Limit) | **Kernel Resilience Layer** | No |
+| Health Checks | **Kernel Health Check** | No |
+| Auto-Scaling | **Kernel Auto-Scaler** | No |
+| Disaster Recovery | **Kernel Disaster Recovery** | No |
+| Cache Management | **Kernel Cache Manager** | No |
+| Deployment / DNS / SSL | **Cloudflare Management Console** (Infinity Admin OS) | No |
+| Database (Primary) | Neon PostgreSQL | Yes (external, free tier) |
+| Database (Edge) | Cloudflare D1 / Turso LibSQL | Yes (external, free tier) |
+| Database (Cache) | Upstash Redis | Yes (external, free tier) |
+
+> **Only databases require external services** — and those align with the zero-cost Economic Charter via free tiers. Every other platform function is handled by purpose-built ecosystem services.
 
 ---
 
@@ -639,52 +756,53 @@ The kernel package already has `service-discovery.ts` and `api-gateway.ts` — t
 
 ### 8.1 Immediate Actions (This Session / Next Session)
 
-| # | Action | Priority | Effort |
-|---|--------|----------|--------|
-| 1 | Merge 14 feature branches to main | CRITICAL | LOW |
-| 2 | Create 7 missing GitHub repos (studios + artifactory) | HIGH | LOW |
-| 3 | Fix Dependabot critical vulnerability | HIGH | LOW |
-| 4 | Decompose models.py into domain modules | MEDIUM | MEDIUM |
+| # | Action | Priority | Effort | Ecosystem Service |
+|---|--------|----------|--------|-------------------|
+| 1 | Merge 14 feature branches to main | CRITICAL | LOW | Git/GitHub |
+| 2 | Create 7 missing GitHub repos (studios + artifactory) | HIGH | LOW | Git/GitHub |
+| 3 | Fix Dependabot critical vulnerabilities | HIGH | LOW | The DigitalGrid |
+| 4 | Build Cloudflare Management Console | HIGH | MEDIUM | Infinity Admin OS |
+| 5 | Decompose models.py into domain modules | MEDIUM | MEDIUM | Infinity Portal |
 
-### 8.2 Sprint 1: Foundation Hardening (1-2 weeks)
+### 8.2 Sprint 1: Foundation Wiring (1-2 weeks)
 
-| # | Action | Deliverable |
-|---|--------|-------------|
-| 1 | Set up Neon PostgreSQL | Production database with Alembic migrations |
-| 2 | Set up Upstash Redis | Session cache, rate limiting, pub/sub |
-| 3 | Create shared test template | `@trancendos/test-utils` package |
-| 4 | Add unit tests to infinity-portal backend | 80% coverage on auth, kanban, gates |
-| 5 | Deploy infinity-portal to Cloud Run | First live deployment |
+| # | Action | Deliverable | Ecosystem Service |
+|---|--------|-------------|-------------------|
+| 1 | Wire Kernel Event Bus to all services | Real pub/sub between 31 services | Kernel -> The Nexus |
+| 2 | Connect all services to The Observatory | Centralised logging & metrics | The Observatory |
+| 3 | Wire The Void for all secret storage | No .env files in production | The Void |
+| 4 | Set up Neon PostgreSQL + Edge DB | Production database with migrations | Database layer |
+| 5 | Flesh out Chaos Party endpoints | Working test orchestrator | Chaos Party |
 
-### 8.3 Sprint 2: Service Communication (1-2 weeks)
+### 8.3 Sprint 2: Service Communication & Deployment (1-2 weeks)
 
-| # | Action | Deliverable |
-|---|--------|-------------|
-| 1 | Set up NATS/Redis Streams | Message broker for inter-service comms |
-| 2 | Wire event bus in kernel package | Real pub/sub between services |
-| 3 | Deploy core 4 services (Guardian, Oracle, Prometheus, Sentinel) | Live microservices |
-| 4 | Set up Grafana Cloud | Metrics, logs, traces, alerts |
-| 5 | Add health check tests to all services | Baseline test coverage |
+| # | Action | Deliverable | Ecosystem Service |
+|---|--------|-------------|-------------------|
+| 1 | Wire The Nexus to Kernel Event Bus | AI agents communicate via mesh | The Nexus + Kernel |
+| 2 | Wire The Hive estate scanning | Auto-discovery of repos/docs | The Hive |
+| 3 | Connect DigitalGrid to GitHub webhooks | Automated CI/CD pipeline | The DigitalGrid |
+| 4 | Deploy via Cloudflare Management Console | trancendos.com live with subdomains | Cloudflare Console |
+| 5 | Wire Lighthouse token management | All entities tokenised | Lighthouse |
 
 ### 8.4 Sprint 3: Platform Maturity (2-3 weeks)
 
-| # | Action | Deliverable |
-|---|--------|-------------|
-| 1 | Deploy Wave 2-3 services | 12 additional live services |
-| 2 | Wire TIGA gate validation to real deployments | Governance-as-code in production |
-| 3 | Add integration tests | Service contract validation |
-| 4 | Set up API gateway (Traefik) | Centralized routing |
-| 5 | Frontend testing with Playwright | E2E test suite |
+| # | Action | Deliverable | Ecosystem Service |
+|---|--------|-------------|-------------------|
+| 1 | Deploy all 31 services via DigitalGrid | Full ecosystem live | The DigitalGrid |
+| 2 | Wire TIGA gate validation to DigitalGrid | Governance-as-code in CI/CD | TIGA + DigitalGrid |
+| 3 | Chaos Party full test suite | 80% coverage core, 60% studios | Chaos Party |
+| 4 | Observatory dashboards for all services | Real-time platform health | The Observatory |
+| 5 | API Marketplace public catalogue | External API consumption ready | API Marketplace |
 
-### 8.5 Sprint 4: Production Readiness (2-3 weeks)
+### 8.5 Sprint 4: Production Hardening (2-3 weeks)
 
-| # | Action | Deliverable |
-|---|--------|-------------|
-| 1 | Deploy full 31-service ecosystem | Complete platform live |
-| 2 | Load testing with k6 | Capacity planning |
-| 3 | Blue/green deployment setup | Zero-downtime updates |
-| 4 | Backup/restore procedures | Data protection |
-| 5 | Security penetration testing | Vulnerability assessment |
+| # | Action | Deliverable | Ecosystem Service |
+|---|--------|-------------|-------------------|
+| 1 | Chaos Party load testing | Capacity planning via chaos experiments | Chaos Party |
+| 2 | DigitalGrid blue/green deployments | Zero-downtime updates | The DigitalGrid |
+| 3 | The Void backup/restore procedures | Quantum-safe data protection | The Void |
+| 4 | Lighthouse threat detection live | Real-time security monitoring | Lighthouse |
+| 5 | Observatory compliance reporting | TIGA audit trail complete | The Observatory |
 
 ---
 
