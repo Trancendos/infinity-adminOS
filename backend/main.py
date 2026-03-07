@@ -238,6 +238,9 @@ from routers import (
     tranquillity, i_mind, resonate, taimra, savania,
 )
 
+# Turing's Hub — AI Character Registry & Generator
+from routers import turings_hub
+
 app.include_router(auth.router)
 app.include_router(ai.router)
 app.include_router(compliance.router)
@@ -341,6 +344,9 @@ app.include_router(i_mind.router)         # Lane 2 — Cognitive wellness
 app.include_router(resonate.router)       # Lane 2 — Sound & frequency healing
 app.include_router(taimra.router)         # Lane 3 — Digital twin analytics
 app.include_router(savania.router)        # Lane 1 — AI healer & defender
+
+# --- Turing's Hub (Governance — AI Character Registry) ---
+app.include_router(turings_hub.router)   # AI Generator — all characters originate here
 
 
 # ============================================================
