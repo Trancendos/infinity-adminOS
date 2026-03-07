@@ -491,6 +491,132 @@ services:
       - trancendos-mesh
     restart: unless-stopped
 
+
+  # ════════════════════════════════════════════════
+  # Wave 6 — Creative Intelligence Studios
+  # ════════════════════════════════════════════════
+
+  section7:
+    build:
+      context: ./wave6-studios/section7
+      dockerfile: Dockerfile
+    ports:
+      - "3050:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: section7
+      PORT: "3000"
+      MESH_ADDRESS: "section7:3000"
+      STUDIO_ROLE: "intelligence-narrative-research"
+      ISTA_PERSONA: "bert-joen-kater"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  style-and-shoot:
+    build:
+      context: ./wave6-studios/style-and-shoot
+      dockerfile: Dockerfile
+    ports:
+      - "3051:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: style-and-shoot
+      PORT: "3000"
+      MESH_ADDRESS: "style-and-shoot:3000"
+      STUDIO_ROLE: "ux-ui-visual-engine"
+      ISTA_PERSONA: "madam-krystal"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  fabulousa:
+    build:
+      context: ./wave6-studios/fabulousa
+      dockerfile: Dockerfile
+    ports:
+      - "3052:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: fabulousa
+      PORT: "3000"
+      MESH_ADDRESS: "fabulousa:3000"
+      STUDIO_ROLE: "generative-fashion-style"
+      ISTA_PERSONA: "baron-von-hilton"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  tranceflow:
+    build:
+      context: ./wave6-studios/tranceflow
+      dockerfile: Dockerfile
+    ports:
+      - "3053:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: tranceflow
+      PORT: "3000"
+      MESH_ADDRESS: "tranceflow:3000"
+      STUDIO_ROLE: "3d-spatial-avatar"
+      ISTA_PERSONA: "junior-cesar"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  tateking:
+    build:
+      context: ./wave6-studios/tateking
+      dockerfile: Dockerfile
+    ports:
+      - "3054:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: tateking
+      PORT: "3000"
+      MESH_ADDRESS: "tateking:3000"
+      STUDIO_ROLE: "cinematic-rendering"
+      ISTA_PERSONA: "benji-and-sam"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  the-digitalgrid:
+    build:
+      context: ./wave6-studios/the-digitalgrid
+      dockerfile: Dockerfile
+    ports:
+      - "3055:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: the-digitalgrid
+      PORT: "3000"
+      MESH_ADDRESS: "the-digitalgrid:3000"
+      STUDIO_ROLE: "infrastructure-cicd"
+      ISTA_PERSONA: "tyler-towncroft"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+
 # ──────────────────────────────────────────────
 # Network: Trancendos Service Mesh
 # ──────────────────────────────────────────────
