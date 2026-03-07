@@ -1,33 +1,27 @@
-# Phase 23 — Cloudflare Deployment & Live Platform
+# Phase 24 — Advanced UI/UX, Cloudflare Automation & CI/CD
 
-## A. Strategy Assessment
-- [x] A1. Audit current architecture (FastAPI + PostgreSQL + Valkey + Workers)
-- [x] A2. Identify Cloudflare deployment targets
+## A. CI/CD Pipeline (GitHub Actions)
+- [ ] A1. Create comprehensive CI workflow (lint, typecheck, test backend, test frontend)
+- [ ] A2. Create automated Cloudflare deploy workflow with staging/production
+- [ ] A3. Verify workflows are valid
 
-## B. Get Backend Running Locally First
-- [x] B1. Install Python dependencies (fixed pytest version conflict)
-- [x] B2. Configure database (SQLite for dev)
-- [x] B3. Database auto-initialized on startup
-- [x] B4. Start the FastAPI backend on port 8000
-- [x] B5. Verify health endpoint works ✅
+## B. Advanced UI/UX — Design System Enhancement
+- [ ] B1. Upgrade globals.css with advanced animations, glassmorphism, micro-interactions
+- [ ] B2. Overhaul Login view — premium Figma-grade design with animations
+- [ ] B3. Overhaul Desktop view — advanced window management, dock-style taskbar
+- [ ] B4. Overhaul Taskbar — macOS/Figma-grade dock with hover effects
+- [ ] B5. Create advanced LoadingScreen with branded animation
 
-## C. Get Frontend Shell Running
-- [x] C1. Install Node.js dependencies (pnpm monorepo, fixed @trancendos refs)
-- [x] C2. Created vite.config.ts, tsconfig, tailwind, postcss, index.html
-- [x] C3. Created @infinity-os/ui package stub, fixed exports
-- [x] C4. Start the Vite dev server on port 5173 ✅
+## C. Frontend-Backend Integration
+- [ ] C1. Wire AuthProvider to real backend API endpoints
+- [ ] C2. Wire BackendProvider API base URL configuration
+- [ ] C3. Verify frontend connects to live backend
 
-## D. Expose & Share Running Platform
-- [x] D1. Expose backend API — https://00bzz.app.super.myninja.ai
-- [x] D2. Expose frontend — https://00c00.app.super.myninja.ai
-- [ ] D3. Share live URLs with Drew
+## D. Build & Verify
+- [ ] D1. Verify frontend builds cleanly (npx vite build)
+- [ ] D2. Verify backend still passes all 875 tests
+- [ ] D3. Restart services and verify live URLs
 
-## E. Cloudflare Deployment Config
-- [ ] E1. Create wrangler.toml for Cloudflare Pages (frontend)
-- [ ] E2. Update deploy-cloudflare workflow for full stack
-- [ ] E3. Document Cloudflare setup steps for Drew's account
-- [ ] E4. Commit & push
-
-## F. Finalize
-- [ ] F1. PROJECT_PULSE_SESSION14_PART2.md
-- [ ] F2. Git commit & push
+## E. Finalize
+- [ ] E1. Commit & push all changes
+- [ ] E2. PROJECT_PULSE
