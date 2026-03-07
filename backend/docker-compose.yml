@@ -259,6 +259,74 @@ services:
       - infinity-net
 
 # ─────────────────────────────────────────────────────────────
+  # Production API — Hardened multi-stage build
+  # Usage: docker compose --profile production up -d
+  # ─────────────────────────────────────────────────────────────
+  api-production:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      ENVIRONMENT: production
+      DATABASE_URL: postgresql+asyncpg://infinity:${DB_PASSWORD}@db:5432/infinity_os
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      LOG_LEVEL: ${LOG_LEVEL:-WARNING}
+      WORKERS: ${WORKERS:-4}
+      PORT: 8000
+      # Rate Limiting
+      RATE_LIMIT_ENABLED: "true"
+      RATE_LIMIT_DEFAULT: "100/minute"
+      MAX_REQUEST_SIZE_MB: "50"
+      # 2060 Standard
+      DATA_RESIDENCY_DEFAULT: ${DATA_RESIDENCY_DEFAULT:-eu}
+      CONSENT_REQUIRED: "true"
+      AI_AUDIT_ENABLED: "true"
+      ZERO_COST_MODE: "true"
+      FUTURE_PROOF_LEVEL: "2060"
+      # Event Bus
+      EVENT_BUS_BACKEND: ${EVENT_BUS_BACKEND:-redis}
+      EVENT_BUS_REDIS_URL: redis://redis:6379/1
+      # Observability
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      OTEL_SERVICE_NAME: infinity-os-api
+      # LLM
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      # C2PA
+      C2PA_ENABLED: ${C2PA_ENABLED:-false}
+      C2PA_CERT_PATH: ${C2PA_CERT_PATH:-}
+      # CORS (production domains only)
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://app.infinity-os.dev}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - filedata:/data/files
+      - repodata:/data/repos
+      - builddata:/data/builds
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
+        reservations:
+          cpus: "0.5"
+          memory: 512M
+    profiles:
+      - production
+    networks:
+      - infinity-net
+
+# ─────────────────────────────────────────────────────────────
 # Named volumes
 # ─────────────────────────────────────────────────────────────
 volumes:

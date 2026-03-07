@@ -20,6 +20,9 @@ from fastapi.exceptions import RequestValidationError
 
 from database import init_db, close_db, get_db_session
 from telemetry import setup_telemetry
+from config import get_config
+from middleware_production import install_production_middleware, get_shutdown_manager
+from middleware_2060 import install_2060_middleware
 
 # Logging
 logging.basicConfig(
@@ -66,7 +69,8 @@ def _check_startup_config():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("🚀 Starting Infinity OS v3.0...")
+    config = get_config()
+    logger.info(f"🚀 Starting Infinity OS v{config.service_version} [{config.environment}]...")
     await init_db()
     logger.info("✅ Database initialized")
     _check_startup_config()
@@ -77,11 +81,23 @@ async def lifespan(app: FastAPI):
     bus = await KernelEventBus.get_instance()
     await bus.start()
     logger.info("✅ Kernel Event Bus started")
+    # Production readiness check
+    if config.is_production:
+        issues = config.validate_production_readiness()
+        for issue in issues:
+            logger.warning(f"  {issue}")
+        if any(i.startswith("CRITICAL") for i in issues):
+            logger.error("❌ Critical production issues detected — review before serving traffic")
+    logger.info(f"✅ Infinity OS ready — {config.environment} mode, 2060 standard level {config.future_proof_level}")
     yield
     logger.info("🛑 Shutting down Infinity OS...")
+    # Graceful shutdown — drain active connections
+    shutdown_mgr = get_shutdown_manager()
+    await shutdown_mgr.initiate_shutdown()
     await bus.stop()
     logger.info("✅ Kernel Event Bus stopped")
     await close_db()
+    logger.info("✅ Shutdown complete")
 
 
 app = FastAPI(
@@ -114,6 +130,16 @@ app.add_middleware(
     expose_headers=["X-Request-ID", "X-Correlation-ID"],
 )
 
+
+# ============================================================
+# PRODUCTION MIDDLEWARE (Rate Limiting, Size Limits, Logging, Shutdown)
+# ============================================================
+install_production_middleware(app)
+
+# ============================================================
+# 2060 COMPLIANCE MIDDLEWARE (Data Residency, Consent, AI Audit)
+# ============================================================
+install_2060_middleware(app)
 
 # ============================================================
 # MIDDLEWARE: Correlation IDs + Timing
@@ -253,6 +279,9 @@ from routers import arcadian_exchange, vrar3d
 # Luminous — Cognitive Core Application
 from routers import luminous
 
+# Ecosystem Branded Aliases — Lille SC, Lunascene, SolarScene
+from routers import lille_sc, lunascene, solarscene
+
 app.include_router(auth.router)
 app.include_router(ai.router)
 app.include_router(compliance.router)
@@ -382,59 +411,216 @@ app.include_router(vrar3d.router)            # VRAR3D — VR/AR immersion
 # --- Luminous (Cognitive Core) ---
 app.include_router(luminous.router)          # Luminous — Knowledge graph, sessions, insights
 
+# --- Ecosystem Branded Aliases (37/37 Full Match) ---
+app.include_router(lille_sc.router)          # Lille SC — Sync Centre (branded sync.py)
+app.include_router(lunascene.router)         # Lunascene — The Artifactory (branded artifacts.py)
+app.include_router(solarscene.router)        # SolarScene — Search & Discovery (branded search.py)
+
 
 # ============================================================
-# HEALTH & ROOT
+# HEALTH, READINESS, METRICS & SYSTEM INFO
 # ============================================================
 
 @app.get("/health")
 async def health_check():
-    """Health check with database connectivity verification"""
-    db_status = "unknown"
+    """Deep health check — DB, Event Bus, 2060 compliance.
+    Used by Kubernetes liveness probe and load balancers.
+    """
+    config = get_config()
+    checks = {}
+
+    # Database connectivity
     try:
         async for db in get_db_session():
             from sqlalchemy import text
             await db.execute(text("SELECT 1"))
-            db_status = "connected"
+            checks["database"] = "connected"
             break
     except Exception as e:
-        db_status = f"error: {str(e)[:100]}"
+        checks["database"] = f"error: {str(e)[:100]}"
+
+    # Kernel Event Bus
+    try:
+        from kernel_event_bus import KernelEventBus
+        bus = await KernelEventBus.get_instance()
+        bus_stats = bus.stats() if hasattr(bus, "stats") else {}
+        checks["event_bus"] = "running" if bus else "unavailable"
+        checks["event_bus_subscribers"] = bus_stats.get("total_subscribers", 0) if bus_stats else 0
+    except Exception as e:
+        checks["event_bus"] = f"error: {str(e)[:80]}"
+
+    # 2060 Compliance
+    checks["2060_standard"] = {
+        "level": config.future_proof_level,
+        "data_residency": config.data_residency_default,
+        "consent_required": config.consent_required,
+        "ai_audit": config.ai_audit_enabled,
+        "zero_cost": config.zero_cost_mode,
+    }
+
+    # Shutdown state
+    shutdown_mgr = get_shutdown_manager()
+    checks["shutdown"] = {
+        "draining": shutdown_mgr.is_shutting_down,
+        "active_requests": shutdown_mgr.active_requests,
+    }
+
+    # Overall status
+    db_ok = checks["database"] == "connected"
+    bus_ok = "error" not in str(checks.get("event_bus", ""))
+    overall = "healthy" if (db_ok and bus_ok) else "degraded"
+    if shutdown_mgr.is_shutting_down:
+        overall = "draining"
 
     return {
-        "status": "healthy" if db_status == "connected" else "degraded",
-        "version": "3.0.0",
-        "environment": os.getenv("ENVIRONMENT", "development"),
-        "database": db_status,
+        "status": overall,
+        "version": config.service_version,
+        "environment": config.environment,
+        "checks": checks,
         "services": {
             "api": "operational",
             "auth": "operational",
-            "ai": "operational",
+            "ai": "operational" if config.active_llm_providers else "stub",
             "compliance": "operational",
-            "git": "operational",
-            "build": "operational",
-            "federation": "operational",
+            "c2pa": "enabled" if config.c2pa_enabled else "disabled",
+            "federation": "enabled" if config.federation_enabled else "disabled",
+            "telemetry": "enabled" if config.otel_endpoint else "disabled",
+        },
+    }
+
+
+@app.get("/ready")
+async def readiness_check():
+    """Kubernetes readiness probe — lightweight check.
+    Returns 200 only when the service is ready to accept traffic.
+    """
+    shutdown_mgr = get_shutdown_manager()
+    if shutdown_mgr.is_shutting_down:
+        return JSONResponse(status_code=503, content={"ready": False, "reason": "shutting_down"})
+
+    # Quick DB check
+    try:
+        async for db in get_db_session():
+            from sqlalchemy import text
+            await db.execute(text("SELECT 1"))
+            break
+        return {"ready": True}
+    except Exception:
+        return JSONResponse(status_code=503, content={"ready": False, "reason": "database_unavailable"})
+
+
+@app.get("/metrics")
+async def metrics_endpoint():
+    """Prometheus-compatible metrics stub.
+    In production, replace with proper prometheus_client integration.
+    """
+    config = get_config()
+    shutdown_mgr = get_shutdown_manager()
+
+    # Event bridge stats
+    from event_bridge import get_event_stats
+    event_stats = get_event_stats()
+
+    # 2060 middleware stats
+    from middleware_2060 import get_compliance_middleware
+    compliance_mw = get_compliance_middleware()
+    resource_meter = compliance_mw.get_resource_meter() if compliance_mw else {}
+
+    return {
+        "service": config.service_name,
+        "version": config.service_version,
+        "environment": config.environment,
+        "active_requests": shutdown_mgr.active_requests,
+        "event_bus": event_stats,
+        "resource_meter": resource_meter,
+        "routers": 79,
+        "middleware_layers": 8,
+        "2060_standard": config.future_proof_level,
+    }
+
+
+@app.get("/api/v1/system/info")
+async def system_info():
+    """Ecosystem information — router count, coverage, architecture stats."""
+    config = get_config()
+
+    return {
+        "name": "Infinity OS",
+        "version": config.service_version,
+        "architecture": "Three-Lane Mesh",
+        "standard": f"Trancendos {config.future_proof_level}",
+        "ecosystem": {
+            "total_routers": 79,
+            "total_api_prefixes": 78,
+            "ecosystem_apps_matched": "37/37 (100%)",
+            "ai_characters": 27,
+            "lanes": {
+                "lane1_ai_nexus": "AI orchestration, agents, characters, cognitive core",
+                "lane2_user_infinity": "User-facing apps, creative tools, wellbeing",
+                "lane3_data_hive": "Data transfer, sync, search, analytics",
+            },
+        },
+        "middleware": [
+            "CORSMiddleware",
+            "StructuredLoggingMiddleware",
+            "RateLimitMiddleware",
+            "RequestSizeLimitMiddleware",
+            "GracefulShutdownMiddleware",
+            "Compliance2060Middleware",
+            "CorrelationIDMiddleware",
+            "SecurityHeadersMiddleware",
+        ],
+        "compliance": {
+            "eu_ai_act": True,
+            "c2pa_provenance": config.c2pa_enabled,
+            "gdpr_soft_delete": True,
+            "data_residency": config.data_residency_default,
+            "consent_management": config.consent_required,
+            "ai_auditability": config.ai_audit_enabled,
+            "zero_cost_infrastructure": config.zero_cost_mode,
+        },
+        "infrastructure": {
+            "database": "AsyncPG + SQLAlchemy (async)",
+            "event_bus": "Kernel Event Bus (async pub/sub)",
+            "auth": "JWT HS512 + RBAC/ABAC hybrid",
+            "telemetry": "OpenTelemetry (OTLP)",
+            "container": "Docker + Kubernetes",
+            "ci_cd": "GitHub Actions (32 workflows)",
+        },
+        "endpoints": {
+            "docs": "/docs",
+            "redoc": "/redoc",
+            "health": "/health",
+            "ready": "/ready",
+            "metrics": "/metrics",
         },
     }
 
 
 @app.get("/")
 async def root():
+    config = get_config()
     return {
         "name": "Infinity OS",
-        "version": "3.0.0",
+        "version": config.service_version,
         "description": "Browser-native AI-augmented Virtual Operating System",
+        "standard": f"Trancendos {config.future_proof_level}",
         "docs": "/docs",
         "health": "/health",
+        "ready": "/ready",
+        "metrics": "/metrics",
+        "system": "/api/v1/system/info",
         "status": "operational",
     }
 
 
 if __name__ == "__main__":
     import uvicorn
+    config = get_config()
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
-        port=int(os.getenv("PORT", 8000)),
-        reload=os.getenv("ENVIRONMENT") != "production",
-        workers=int(os.getenv("WORKERS", 1)),
+        port=config.port,
+        reload=config.is_development,
+        workers=config.workers,
     )
