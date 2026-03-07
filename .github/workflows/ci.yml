@@ -164,13 +164,17 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Install dependencies
-        working-directory: apps/shell
-        run: npm ci
+      - name: Install pnpm
+        run: npm install -g pnpm@8
 
-      - name: Install Playwright browsers
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Install Playwright
         working-directory: apps/shell
-        run: npx playwright install --with-deps chromium
+        run: |
+          pnpm add -D @playwright/test
+          npx playwright install --with-deps chromium
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4

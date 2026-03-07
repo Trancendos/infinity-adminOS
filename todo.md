@@ -31,7 +31,7 @@
 - [x] E3. Create `.env.production.example` with all required secrets
 
 ## F. Build, Verify & Ship
-- [ ] F1. Verify frontend builds cleanly
-- [ ] F2. Verify backend passes all tests
-- [ ] F3. Commit & push
-- [ ] F4. Create PROJECT_PULSE_SESSION16.md
+- [x] F1. Verify frontend builds cleanly (3.28s)
+- [x] F2. Verify backend passes all tests (875 passed, 0 failed)
+- [x] F3. Commit & push (1969325 + 9e0a9d3)
+- [x] F4. Create PROJECT_PULSE_SESSION16.md
