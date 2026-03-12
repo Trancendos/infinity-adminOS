@@ -267,22 +267,29 @@ jobs:
           if [ "$ENV" = "staging" ]; then DB_NAME="infinity-os-db-staging"; fi
 
           echo "Creating D1 database: $DB_NAME"
-          CREATE_OUT=$(wrangler d1 create "$DB_NAME" 2>&1 || true)
-          echo "$CREATE_OUT"
+          wrangler d1 create "$DB_NAME" 2>&1 || true
 
-          D1_ID=$(echo "$CREATE_OUT" | grep -oP '(?<=database_id = ")[^"]+' || echo "")
-          if [ -z "$D1_ID" ]; then
-            echo "DB may already exist — listing..."
-            LIST_OUT=$(wrangler d1 list 2>&1 || true)
-            echo "$LIST_OUT"
-            D1_ID=$(echo "$LIST_OUT" | grep "$DB_NAME" | grep -oP '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' | head -1 || echo "")
+          echo "Listing D1 databases (JSON) to extract ID..."
+          wrangler d1 list --json > /tmp/d1_list.json 2>&1 || true
+          cat /tmp/d1_list.json
+
+          # Extract UUID using jq from JSON output
+          D1_ID=$(jq -r ".[] | select(.name == "$DB_NAME") | .uuid" /tmp/d1_list.json 2>/dev/null || echo "")
+
+          # Fallback: try .id field
+          if [ -z "$D1_ID" ] || [ "$D1_ID" = "null" ]; then
+            D1_ID=$(jq -r ".[] | select(.name == "$DB_NAME") | .id" /tmp/d1_list.json 2>/dev/null || echo "")
           fi
 
           echo "D1 ID: ${D1_ID:-NOT_FOUND}"
-          if [ -n "$D1_ID" ]; then
+          if [ -n "$D1_ID" ] && [ "$D1_ID" != "null" ]; then
             sed -i "s/placeholder-d1-id/${D1_ID}/g" wrangler.toml
             sed -i "s/placeholder-d1-staging-id/${D1_ID}/g" wrangler.toml
-            echo "✅ D1 ID injected"
+            echo "✅ D1 ID injected: $D1_ID"
+            cat wrangler.toml | grep database_id
+          else
+            echo "❌ Failed to get D1 ID — aborting"
+            exit 1
           fi
           set -e
 
@@ -309,17 +316,31 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set +e
-          CREATE_OUT=$(wrangler kv namespace create "SESSIONS" 2>&1 || true)
-          echo "$CREATE_OUT"
-          KV_ID=$(echo "$CREATE_OUT" | grep -oP '(?<=id = ")[^"]+' || echo "")
-          if [ -z "$KV_ID" ]; then
-            LIST_OUT=$(wrangler kv namespace list 2>&1 || true)
-            KV_ID=$(echo "$LIST_OUT" | grep -B1 '"SESSIONS"' | grep -oP '(?<="id": ")[^"]+' || echo "")
+          # Try to create (will fail if exists — that's ok)
+          wrangler kv namespace create "SESSIONS" 2>&1 || true
+
+          # List all KV namespaces as JSON
+          echo "Listing KV namespaces (JSON)..."
+          wrangler kv namespace list 2>/dev/null > /tmp/kv_list.json || true
+          cat /tmp/kv_list.json
+
+          # Extract ID for SESSIONS namespace 
+          # wrangler kv namespace create "SESSIONS" creates title "infinity-auth-api-SESSIONS"
+          # Try exact match first, then partial
+          KV_ID=$(jq -r '.[] | select(.title == "infinity-auth-api-SESSIONS") | .id' /tmp/kv_list.json 2>/dev/null | head -1 || echo "")
+          if [ -z "$KV_ID" ] || [ "$KV_ID" = "null" ]; then
+            KV_ID=$(jq -r '.[] | select(.title | test("SESSIONS")) | .id' /tmp/kv_list.json 2>/dev/null | head -1 || echo "")
           fi
-          if [ -n "$KV_ID" ]; then
+
+          echo "Sessions KV ID: ${KV_ID:-NOT_FOUND}"
+          if [ -n "$KV_ID" ] && [ "$KV_ID" != "null" ]; then
             sed -i "s/placeholder-sessions-kv-id/${KV_ID}/g" wrangler.toml
             sed -i "s/placeholder-sessions-kv-staging-id/${KV_ID}/g" wrangler.toml
             echo "✅ Sessions KV injected: $KV_ID"
+            cat wrangler.toml | grep "id ="
+          else
+            echo "⚠️  Could not find Sessions KV ID — checking raw output..."
+            cat /tmp/kv_list.json
           fi
           set -e
 
@@ -337,6 +358,17 @@ jobs:
           fi
           echo "$SECRET" | wrangler secret put SECRET_KEY --env "$ENV" 2>&1 || true
           echo "✅ SECRET_KEY configured"
+
+      - name: Verify wrangler.toml IDs before deploy
+        working-directory: workers/auth-api
+        run: |
+          echo "=== wrangler.toml (checking IDs are injected) ==="
+          cat wrangler.toml
+          if grep -q "placeholder" wrangler.toml; then
+            echo "ERROR: Placeholder IDs still present - ID injection failed"
+            exit 1
+          fi
+          echo "All IDs are properly set"
 
       - name: Deploy Auth API Worker
         working-directory: workers/auth-api
