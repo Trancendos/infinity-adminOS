@@ -1,0 +1,41 @@
+# ============================================================
+# Infinity OS — WebSocket API Worker (Durable Objects)
+# ============================================================
+
+name = "infinity-ws-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Durable Object class binding
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "Room"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["Room"]
+
+[env.production]
+name = "infinity-ws-api"
+
+[env.production.vars]
+ENVIRONMENT = "production"
+ALLOWED_ORIGINS = "https://infinity-portal.pages.dev,https://infinity-portal.com"
+AUTH_API_URL = "https://infinity-auth-api.luminous-aimastermind.workers.dev"
+
+[[env.production.durable_objects.bindings]]
+name = "ROOMS"
+class_name = "Room"
+
+[env.staging]
+name = "infinity-ws-api-staging"
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+ALLOWED_ORIGINS = "https://infinity-portal.pages.dev,http://localhost:5173"
+AUTH_API_URL = "https://infinity-auth-api-staging.luminous-aimastermind.workers.dev"
+
+[[env.staging.durable_objects.bindings]]
+name = "ROOMS"
+class_name = "Room"

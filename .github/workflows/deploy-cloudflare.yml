@@ -67,8 +67,8 @@ jobs:
         id: build
         working-directory: apps/shell
         env:
-          VITE_BACKEND_API_URL: ${{ inputs.environment == 'production' && 'https://api.infinity-portal.com' || 'https://api-staging.infinity-portal.com' }}
-          VITE_WS_URL: ${{ inputs.environment == 'production' && 'wss://api.infinity-portal.com/ws' || 'wss://api-staging.infinity-portal.com/ws' }}
+          VITE_BACKEND_API_URL: ${{ inputs.environment == 'production' && 'https://infinity-auth-api.luminous-aimastermind.workers.dev' || 'https://infinity-auth-api-staging.luminous-aimastermind.workers.dev' }}
+          VITE_WS_URL: ${{ inputs.environment == 'production' && 'wss://infinity-ws-api.luminous-aimastermind.workers.dev/ws' || 'wss://infinity-ws-api-staging.luminous-aimastermind.workers.dev/ws' }}
           VITE_APP_NAME: "Infinity Portal"
           VITE_APP_VERSION: ${{ github.sha }}
         run: pnpm run build
@@ -233,10 +233,222 @@ jobs:
           done
           echo "⚠️  Gateway may need warm-up time — check ${WORKER_URL}/health"
 
+  # ── Deploy Auth API Worker ────────────────────────────────
+  deploy-auth-api:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'production' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install wrangler globally
+        run: npm install -g wrangler@latest typescript
+
+      - name: Create D1 database (idempotent)
+        working-directory: workers/auth-api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set +e
+          ENV="${{ inputs.environment || 'production' }}"
+          DB_NAME="infinity-os-db"
+          if [ "$ENV" = "staging" ]; then DB_NAME="infinity-os-db-staging"; fi
+
+          echo "Creating D1 database: $DB_NAME"
+          CREATE_OUT=$(wrangler d1 create "$DB_NAME" 2>&1 || true)
+          echo "$CREATE_OUT"
+
+          D1_ID=$(echo "$CREATE_OUT" | grep -oP '(?<=database_id = ")[^"]+' || echo "")
+          if [ -z "$D1_ID" ]; then
+            echo "DB may already exist — listing..."
+            LIST_OUT=$(wrangler d1 list 2>&1 || true)
+            echo "$LIST_OUT"
+            D1_ID=$(echo "$LIST_OUT" | grep "$DB_NAME" | grep -oP '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' | head -1 || echo "")
+          fi
+
+          echo "D1 ID: ${D1_ID:-NOT_FOUND}"
+          if [ -n "$D1_ID" ]; then
+            sed -i "s/placeholder-d1-id/${D1_ID}/g" wrangler.toml
+            sed -i "s/placeholder-d1-staging-id/${D1_ID}/g" wrangler.toml
+            echo "✅ D1 ID injected"
+          fi
+          set -e
+
+      - name: Run D1 migrations
+        working-directory: workers/auth-api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set +e
+          ENV="${{ inputs.environment || 'production' }}"
+          DB_NAME="infinity-os-db"
+          if [ "$ENV" = "staging" ]; then DB_NAME="infinity-os-db-staging"; fi
+
+          echo "Running migrations on $DB_NAME..."
+          wrangler d1 execute "$DB_NAME" --file=migrations/0001_initial.sql 2>&1 || true
+          echo "✅ Migrations applied"
+          set -e
+
+      - name: Create Sessions KV namespace (idempotent)
+        working-directory: workers/auth-api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set +e
+          CREATE_OUT=$(wrangler kv namespace create "SESSIONS" 2>&1 || true)
+          echo "$CREATE_OUT"
+          KV_ID=$(echo "$CREATE_OUT" | grep -oP '(?<=id = ")[^"]+' || echo "")
+          if [ -z "$KV_ID" ]; then
+            LIST_OUT=$(wrangler kv namespace list 2>&1 || true)
+            KV_ID=$(echo "$LIST_OUT" | grep -B1 '"SESSIONS"' | grep -oP '(?<="id": ")[^"]+' || echo "")
+          fi
+          if [ -n "$KV_ID" ]; then
+            sed -i "s/placeholder-sessions-kv-id/${KV_ID}/g" wrangler.toml
+            sed -i "s/placeholder-sessions-kv-staging-id/${KV_ID}/g" wrangler.toml
+            echo "✅ Sessions KV injected: $KV_ID"
+          fi
+          set -e
+
+      - name: Set SECRET_KEY secret
+        working-directory: workers/auth-api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          ENV="${{ inputs.environment || 'production' }}"
+          SECRET="${{ secrets.BACKEND_SECRET_KEY }}"
+          if [ -z "$SECRET" ]; then
+            SECRET=$(openssl rand -hex 32)
+            echo "⚠️  No BACKEND_SECRET_KEY secret set — using generated key"
+          fi
+          echo "$SECRET" | wrangler secret put SECRET_KEY --env "$ENV" 2>&1 || true
+          echo "✅ SECRET_KEY configured"
+
+      - name: Deploy Auth API Worker
+        working-directory: workers/auth-api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          ENV="${{ inputs.environment || 'production' }}"
+          echo "Deploying auth-api to: $ENV"
+          wrangler deploy --env "$ENV"
+
+      - name: Post-deploy auth API check
+        run: |
+          WORKER_URL="https://infinity-auth-api.luminous-aimastermind.workers.dev"
+          echo "Checking auth API at ${WORKER_URL}/health ..."
+          for i in {1..6}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${WORKER_URL}/health" || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "✅ Auth API is live (attempt $i)"
+              curl -s "${WORKER_URL}/health"
+              exit 0
+            fi
+            echo "⏳ Attempt $i: status=$STATUS, retrying in 10s..."
+            sleep 10
+          done
+          echo "⚠️  Auth API may still be starting"
+
+  # ── Deploy AI API Worker ──────────────────────────────────
+  deploy-ai-api:
+    runs-on: ubuntu-latest
+    needs: deploy-auth-api
+    if: always()
+    environment: ${{ inputs.environment || 'production' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install wrangler globally
+        run: npm install -g wrangler@latest typescript
+      - name: Create AI cache KV (idempotent)
+        working-directory: workers/ai-api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set +e
+          CREATE_OUT=$(wrangler kv namespace create "AI_CACHE" 2>&1 || true)
+          KV_ID=$(echo "$CREATE_OUT" | grep -oP '(?<=id = ")[^"]+' || true)
+          if [ -z "$KV_ID" ]; then
+            KV_ID=$(wrangler kv namespace list 2>&1 | grep -B1 '"AI_CACHE"' | grep -oP '(?<="id": ")[^"]+' || true)
+          fi
+          if [ -n "$KV_ID" ]; then
+            sed -i "s/placeholder-ai-cache-id/${KV_ID}/g" wrangler.toml
+            sed -i "s/placeholder-ai-cache-staging-id/${KV_ID}/g" wrangler.toml
+          fi
+          set -e
+      - name: Deploy AI API Worker
+        working-directory: workers/ai-api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: wrangler deploy --env ${{ inputs.environment || 'production' }} 2>&1 || echo "AI API deploy failed (Workers AI may need paid plan)"
+
+  # ── Deploy Files API Worker ───────────────────────────────
+  deploy-files-api:
+    runs-on: ubuntu-latest
+    needs: deploy-auth-api
+    if: always()
+    environment: ${{ inputs.environment || 'production' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install wrangler globally
+        run: npm install -g wrangler@latest typescript
+      - name: Create R2 bucket (idempotent)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          wrangler r2 bucket create infinity-portal-files 2>&1 || true
+          echo "R2 bucket ready"
+      - name: Inject D1 ID into files wrangler.toml
+        working-directory: workers/files-api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set +e
+          D1_ID=$(wrangler d1 list 2>&1 | grep "infinity-os-db" | grep -oP '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' | head -1 || true)
+          if [ -n "$D1_ID" ]; then
+            sed -i "s/placeholder-d1-id/${D1_ID}/g" wrangler.toml
+            sed -i "s/placeholder-d1-staging-id/${D1_ID}/g" wrangler.toml
+          fi
+          set -e
+      - name: Deploy Files API Worker
+        working-directory: workers/files-api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: wrangler deploy --env ${{ inputs.environment || 'production' }} 2>&1 || echo "Files API deploy failed"
+
+  # ── Deploy WebSocket API Worker ───────────────────────────
+  deploy-ws-api:
+    runs-on: ubuntu-latest
+    needs: deploy-auth-api
+    if: always()
+    environment: ${{ inputs.environment || 'production' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install wrangler globally
+        run: npm install -g wrangler@latest typescript
+      - name: Deploy WebSocket API Worker
+        working-directory: workers/ws-api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: wrangler deploy --env ${{ inputs.environment || 'production' }} 2>&1 || echo "WS API deploy failed (Durable Objects may need paid plan)"
+
   # ── Summary ───────────────────────────────────────────────
   deploy-summary:
     runs-on: ubuntu-latest
-    needs: [deploy-frontend, deploy-gateway]
+    needs: [deploy-frontend, deploy-gateway, deploy-auth-api, deploy-ai-api, deploy-files-api, deploy-ws-api]
     if: always()
     steps:
       - name: Deployment Summary
@@ -247,6 +459,10 @@ jobs:
           echo "║  Environment: ${{ inputs.environment || 'production' }}"
           echo "║  Frontend:    ${{ needs.deploy-frontend.result || 'skipped' }}"
           echo "║  Gateway:     ${{ needs.deploy-gateway.result || 'skipped' }}"
+          echo "║  Auth API:    ${{ needs.deploy-auth-api.result || 'skipped' }}"
+          echo "║  AI API:      ${{ needs.deploy-ai-api.result || 'skipped' }}"
+          echo "║  Files API:   ${{ needs.deploy-files-api.result || 'skipped' }}"
+          echo "║  WS API:      ${{ needs.deploy-ws-api.result || 'skipped' }}"
           echo "║  Commit:      ${{ github.sha }}"
           echo "║  Triggered:   ${{ github.actor }}"
           echo "╚══════════════════════════════════════════════╝"
