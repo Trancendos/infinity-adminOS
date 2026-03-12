@@ -115,7 +115,7 @@ export async function createSession(
     .bind(id, data.user_id, data.refresh_token_hash, data.expires_at, now, data.ip_address ?? null, data.user_agent ?? null)
     .run();
 
-  return { id, ...data, created_at: now };
+  return { id, ...data, created_at: now, ip_address: data.ip_address ?? null, user_agent: data.user_agent ?? null };
 }
 
 export async function getSessionByRefreshHash(env: Env, hash: string): Promise<Session | null> {

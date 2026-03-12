@@ -245,8 +245,15 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
+      - name: Install pnpm
+        run: npm install -g pnpm@latest
+
       - name: Install wrangler globally
         run: npm install -g wrangler@latest typescript
+
+      - name: Install auth-api dependencies
+        working-directory: workers/auth-api
+        run: pnpm install --no-frozen-lockfile
 
       - name: Create D1 database (idempotent)
         working-directory: workers/auth-api
