@@ -23,9 +23,28 @@ env:
   NODE_VERSION: '20'
 
 jobs:
+  check-credentials:
+    name: Check Cloudflare credentials configured
+    runs-on: ubuntu-latest
+    outputs:
+      has_credentials: ${{ steps.check.outputs.has_credentials }}
+    steps:
+      - name: Check if CLOUDFLARE_API_TOKEN secret is set
+        id: check
+        run: |
+          if [ -n "${{ secrets.CLOUDFLARE_API_TOKEN }}" ] && [ -n "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" ]; then
+            echo "has_credentials=true" >> $GITHUB_OUTPUT
+            echo "Cloudflare credentials configured - will deploy"
+          else
+            echo "has_credentials=false" >> $GITHUB_OUTPUT
+            echo "CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID not set - skipping deploy"
+          fi
+
   deploy-frontend:
     name: Deploy Shell to Cloudflare Pages
     runs-on: ubuntu-latest
+    needs: check-credentials
+    if: needs.check-credentials.outputs.has_credentials == 'true'
     environment:
       name: ${{ inputs.environment || 'production' }}
       url: ${{ steps.deploy.outputs.url }}
