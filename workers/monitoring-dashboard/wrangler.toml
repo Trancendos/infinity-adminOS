@@ -9,15 +9,15 @@ crons = ["*/5 * * * *"]
 [[d1_databases]]
 binding = "DB"
 database_name = "infinity-monitoring"
-database_id = "PLACEHOLDER_D1_DATABASE_ID"
+database_id = "34480b66-65e7-4de6-957c-4d1abafe56d6"
 
 [[kv_namespaces]]
 binding = "KV_METRICS"
-id = "PLACEHOLDER_KV_METRICS_ID"
+id = "3bc9913c458146b9a5a87fe2bdd55c99"
 
 [[kv_namespaces]]
 binding = "KV_ALERTS"
-id = "PLACEHOLDER_KV_ALERTS_ID"
+id = "d3bd442bab104cfc9c77ed0503480618"
 
 [vars]
 ENVIRONMENT = "production"
@@ -29,15 +29,15 @@ name = "infinity-monitoring-dashboard"
 [[env.production.d1_databases]]
 binding = "DB"
 database_name = "infinity-monitoring-prod"
-database_id = "PLACEHOLDER_D1_DATABASE_ID_PROD"
+database_id = "34480b66-65e7-4de6-957c-4d1abafe56d6_PROD"
 
 [[env.production.kv_namespaces]]
 binding = "KV_METRICS"
-id = "PLACEHOLDER_KV_METRICS_PROD_ID"
+id = "3bc9913c458146b9a5a87fe2bdd55c99"
 
 [[env.production.kv_namespaces]]
 binding = "KV_ALERTS"
-id = "PLACEHOLDER_KV_ALERTS_PROD_ID"
+id = "d3bd442bab104cfc9c77ed0503480618"
 
 [env.staging]
 name = "infinity-monitoring-dashboard-staging"
@@ -45,12 +45,12 @@ name = "infinity-monitoring-dashboard-staging"
 [[env.staging.d1_databases]]
 binding = "DB"
 database_name = "infinity-monitoring-staging"
-database_id = "PLACEHOLDER_D1_DATABASE_ID_STAGING"
+database_id = "34480b66-65e7-4de6-957c-4d1abafe56d6_STAGING"
 
 [[env.staging.kv_namespaces]]
 binding = "KV_METRICS"
-id = "PLACEHOLDER_KV_METRICS_STAGING_ID"
+id = "3bc9913c458146b9a5a87fe2bdd55c99"
 
 [[env.staging.kv_namespaces]]
 binding = "KV_ALERTS"
-id = "PLACEHOLDER_KV_ALERTS_STAGING_ID"
+id = "d3bd442bab104cfc9c77ed0503480618"

@@ -9,8 +9,8 @@ ALLOWED_ORIGINS = "https://infinity-os.pages.dev,http://localhost:5173"
 # KV Namespace for session storage
 [[kv_namespaces]]
 binding = "KV"
-id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
-preview_id = "REPLACE_WITH_YOUR_PREVIEW_KV_NAMESPACE_ID"
+id = "d66cf4e720db4b44a1807fcb1f55c546"
+preview_id = "d66cf4e720db4b44a1807fcb1f55c546"
 
 # D1 Database (optional — can use Supabase instead)
 # [[d1_databases]]

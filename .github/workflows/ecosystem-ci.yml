@@ -19,7 +19,7 @@ on:
         default: 'staging'
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
   DOCKER_REGISTRY: ghcr.io
   DOCKER_IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}
 

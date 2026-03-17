@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
       - uses: actions/setup-node@54045abd5dcd3b0fee9ca02fa24c57545834c9cc
         with:
-          node-version: '20'
+          node-version: '22'
       - name: Run redirect verification
         run: node scripts/verify-redirects.js
         env:
