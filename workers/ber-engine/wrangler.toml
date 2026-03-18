@@ -1,0 +1,15 @@
+name = "ber-engine"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+SERVICE_NAME = "ber-engine"
+DPID = "DPID-PCK-PIL6-002"
+PILLAR = "Wellbeing"
+ECOSYSTEM = "Tranquility"
+PORT = "3061"
+
+[[kv_namespaces]]
+binding = "BER_STATE"
+id = "ber_engine_state"
+preview_id = "ber_engine_state_preview"
