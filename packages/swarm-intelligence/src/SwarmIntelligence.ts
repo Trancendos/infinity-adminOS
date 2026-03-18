@@ -49,8 +49,10 @@ import {
   ScoutNode,
   Discovery,
   GuardianNode,
-  SecurityPolicy
-MessagePriority, TaskPriority, } from './types';
+  SecurityPolicy,
+  MessagePriority,
+  TaskPriority,
+} from './types';
 
 // ============================================================================
 // Swarm Intelligence Core
