@@ -1,0 +1,20 @@
+{
+  "name": "@trancendos/worker-the-grid-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TheGrid API — Queen's Hive intelligence + HAX threat matrix + Voxx protocol [DPID-GRD-API-001]",
+  "scripts": {
+    "dev": "wrangler dev --port 3087",
+    "deploy": "wrangler deploy",
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "hono": "^4.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.0.0",
+    "typescript": "^5.0.0",
+    "wrangler": "^3.0.0"
+  }
+}
