@@ -24,6 +24,9 @@
     "dist",
     "**/__tests__/**",
     "**/*.test.ts",
-    "**/*.spec.ts"
+    "**/*.spec.ts",
+    "src/platform/index.ts",
+    "src/os/webhook-system.ts",
+    "src/security/security-middleware.ts"
   ]
 }
