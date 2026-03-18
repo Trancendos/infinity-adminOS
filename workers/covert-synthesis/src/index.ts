@@ -295,6 +295,7 @@ app.use('*', async (c, next) => {
   }
 
   await next();
+  return;
 });
 
 app.use('*', logger());
