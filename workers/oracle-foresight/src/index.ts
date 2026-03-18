@@ -60,9 +60,9 @@ function movingAverage(data: number[], window = 3): number {
 
 function trendDirection(data: number[]): 'up' | 'down' | 'stable' | 'volatile' {
   const { slope } = linearRegression(data);
-  const volatility = Math.std ? 0 : data.reduce((acc, v, i, arr) => {
+  const volatility = data.reduce((acc, v, i, arr) => {
     if (i === 0) return 0;
-    return acc + Math.abs(v - arr[i-1]);
+    return acc + Math.abs(v - arr[i - 1]);
   }, 0) / data.length;
   if (volatility > 15) return 'volatile';
   if (Math.abs(slope) < 0.5) return 'stable';
