@@ -1,17 +1,15 @@
 {
   "name": "@trancendos/l402-gateway",
   "version": "1.0.0",
-  "description": "L402 Gateway — Lightning Network machine-to-machine micropayment gateway",
-  "main": "src/index.ts",
+  "description": "L402 Gateway — Lightning Network micropayment gateway. DPID: DPID-ECO-L402-001",
   "scripts": {
     "dev": "wrangler dev --port 3083",
     "deploy": "wrangler deploy",
+    "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "hono": "^4.0.0",
-    "@trancendos/slipstream-protocol": "workspace:*",
-    "@trancendos/tiga-middleware": "workspace:*",
     "zod": "^3.22.0",
     "pino": "^8.16.0"
   },

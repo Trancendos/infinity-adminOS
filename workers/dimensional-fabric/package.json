@@ -1,8 +1,21 @@
 {
   "name": "@trancendos/worker-dimensional-fabric",
   "version": "1.0.0",
-  "description": "Dimensional Fabric — Orchestrates all 30 Dimensional supporting services across 7 classes. DPID: DPID-DIM-FABRIC-001",
-  "scripts": { "dev": "wrangler dev", "deploy": "wrangler deploy", "build": "tsc" },
-  "dependencies": { "hono": "^3.12.0", "uuid": "^9.0.0", "zod": "^3.22.4" },
-  "devDependencies": { "@cloudflare/workers-types": "^4.20240208.0", "wrangler": "^3.28.1", "typescript": "^5.3.3" }
+  "description": "Dimensional Fabric — orchestrates all 30 Dimensionals. DPID: DPID-DIM-FABRIC-001",
+  "scripts": {
+    "dev": "wrangler dev --port 3065",
+    "deploy": "wrangler deploy",
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "hono": "^4.0.0",
+    "zod": "^3.22.0",
+    "pino": "^8.16.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240101.0",
+    "typescript": "^5.3.0",
+    "wrangler": "^3.22.0"
+  }
 }

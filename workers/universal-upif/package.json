@@ -1,17 +1,15 @@
 {
   "name": "@trancendos/universal-upif",
   "version": "1.0.0",
-  "description": "Universal UPIF — Universal Participant Identity Framework for the Trancendos Universe",
-  "main": "src/index.ts",
+  "description": "Universal UPIF — Universal Participant Identity Framework v3.0. DPID: DPID-ORC-UPF-001",
   "scripts": {
     "dev": "wrangler dev --port 3078",
     "deploy": "wrangler deploy",
+    "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "hono": "^4.0.0",
-    "@trancendos/slipstream-protocol": "workspace:*",
-    "@trancendos/tiga-middleware": "workspace:*",
     "zod": "^3.22.0",
     "pino": "^8.16.0"
   },

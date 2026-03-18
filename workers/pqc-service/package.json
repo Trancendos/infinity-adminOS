@@ -1,16 +1,15 @@
 {
   "name": "@trancendos/pqc-service",
   "version": "1.0.0",
-  "description": "Post-Quantum Cryptography Service — ML-KEM-768 key management and quantum-safe operations",
-  "main": "src/index.ts",
+  "description": "PQC Service — ML-KEM-768 Post-Quantum Cryptography. DPID: DPID-DIM-SEC-PQC-001",
   "scripts": {
     "dev": "wrangler dev --port 3079",
     "deploy": "wrangler deploy",
+    "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "hono": "^4.0.0",
-    "@trancendos/slipstream-protocol": "workspace:*",
     "zod": "^3.22.0",
     "pino": "^8.16.0"
   },
