@@ -8,7 +8,7 @@
 
 import { SHPStage, SlipstreamClass, TransitStatus } from './enums';
 import { SHPMessage, SlipstreamTunnel, TransitRequest, TransitResult } from './types';
-import { v4 as uuidv4 } from 'uuid';
+// Use native crypto.randomUUID() — no external uuid dependency needed
 
 /** SLA targets in milliseconds per Slipstream Class */
 export const SLA_TARGETS_MS: Record<SlipstreamClass, number> = {
@@ -26,7 +26,7 @@ export function createSHPMessage(
   signature = 'placeholder-hmac'
 ): SHPMessage {
   return {
-    messageId: uuidv4(),
+    messageId: crypto.randomUUID(),
     tunnelId,
     stage,
     timestamp: new Date(),
@@ -39,7 +39,7 @@ export function createSHPMessage(
 /** Create a new Slipstream Tunnel */
 export function createTunnel(request: TransitRequest, pqcKeyId: string): SlipstreamTunnel {
   return {
-    tunnelId: uuidv4(),
+    tunnelId: crypto.randomUUID(),
     slipstreamClass: request.slipstreamClass,
     sourceEcosystem: request.passport.homeEcosystem,
     destinationEcosystem: request.destinationEcosystem,
@@ -61,7 +61,7 @@ export function checkSLACompliance(
 
 /** Build a HELLO message for initiating SHP */
 export function buildHello(request: TransitRequest): SHPMessage {
-  const tunnelId = uuidv4();
+  const tunnelId = crypto.randomUUID();
   return createSHPMessage(tunnelId, SHPStage.HELLO, {
     passportId: request.passport.passportId,
     agentDpid: request.passport.agentDpid,
