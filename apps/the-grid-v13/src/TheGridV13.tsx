@@ -323,7 +323,7 @@ export const TheGridV13: React.FC = () => {
           }}>⬡</div>
           <div>
             <div style={{ fontSize: 16, fontWeight: 700, color: '#00FF88', letterSpacing: '0.05em' }}>THE GRID</div>
-            <div style={{ fontSize: 9, color: '#475569', letterSpacing: '0.15em' }}>VERSION 13 · QUEEN'S HIVE INTELLIGENCE NETWORK</div>
+            <div style={{ fontSize: 9, color: '#475569', letterSpacing: '0.15em' }}>VERSION 13 · QUEEN\'S HIVE INTELLIGENCE NETWORK</div>
           </div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
@@ -343,7 +343,7 @@ export const TheGridV13: React.FC = () => {
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 2, marginBottom: 16 }}>
         {([
-          { id: 'hive', label: '⬡ QUEEN'S HIVE', color: '#00FF88' },
+          { id: 'hive', label: '⬡ QUEEN\'S HIVE', color: '#00FF88' },
           { id: 'hax', label: '⚠ HAX MATRIX', color: '#FF3366' },
           { id: 'voxx', label: '◈ VOXX STREAM', color: '#00BFFF' },
         ] as const).map(tab => (
