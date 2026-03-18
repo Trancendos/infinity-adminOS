@@ -8,7 +8,7 @@
 
 import { AgentPassport } from './types';
 import { Ecosystem } from './enums';
-import { v4 as uuidv4 } from 'uuid';
+// Use native crypto.randomUUID() — no external uuid dependency needed
 
 const PASSPORT_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -23,7 +23,7 @@ export function issuePassport(
 ): AgentPassport {
   const now = new Date();
   return {
-    passportId: uuidv4(),
+    passportId: crypto.randomUUID(),
     agentDpid,
     agentName,
     homeEcosystem,
