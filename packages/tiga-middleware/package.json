@@ -1,0 +1,9 @@
+{
+  "name": "@trancendos/tiga-middleware",
+  "version": "1.0.0",
+  "description": "TIGA Framework Middleware — Trancendos Integrity & Governance Architecture. OPA policy enforcement, FACT Ledger logging, and compliance validation for all Hono workers.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": { "build": "tsc", "test": "jest" },
+  "license": "MIT"
+}
