@@ -1,0 +1,13 @@
+{
+  "name": "@trancendos/slipstream-protocol",
+  "version": "1.0.0",
+  "description": "Trancendos Slipstream Handshake Protocol (SHP) — shared types, enums and SDK for inter-ecosystem transit via Sentinel Station",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "keywords": ["trancendos","slipstream","sentinel-station","inter-ecosystem","transit","shp"],
+  "license": "MIT"
+}
