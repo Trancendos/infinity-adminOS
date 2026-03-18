@@ -1,4 +1,4 @@
-name: 'Terraform'
+name: Terraform
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
     paths:
       - 'infrastructure/**/*.tf'
       - 'infrastructure/**/*.tfvars'
+      - '.github/workflows/terraform.yml'
   pull_request:
     paths:
       - 'infrastructure/**/*.tf'
@@ -16,7 +17,7 @@ permissions:
 
 jobs:
   terraform:
-    name: 'Terraform Plan'
+    name: Terraform Plan
     runs-on: ubuntu-latest
 
     defaults:
@@ -31,11 +32,12 @@ jobs:
       - name: Check for Terraform files
         id: check_tf
         run: |
-          if ls *.tf 2>/dev/null | head -1; then
+          if ls *.tf 2>/dev/null | head -1 > /dev/null 2>&1; then
             echo "has_tf=true" >> $GITHUB_OUTPUT
+            echo "Found Terraform configuration files"
           else
-            echo "No .tf files found in infrastructure/ — skipping Terraform steps"
             echo "has_tf=false" >> $GITHUB_OUTPUT
+            echo "No .tf files found in infrastructure/ — skipping Terraform steps"
           fi
 
       - name: Setup Terraform
@@ -43,15 +45,16 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+        continue-on-error: true
 
       - name: Terraform Init
         if: steps.check_tf.outputs.has_tf == 'true'
-        run: terraform init
+        run: terraform init -backend=false
         continue-on-error: true
 
       - name: Terraform Format Check
         if: steps.check_tf.outputs.has_tf == 'true'
-        run: terraform fmt -check
+        run: terraform fmt -check -recursive
         continue-on-error: true
 
       - name: Terraform Validate
@@ -60,8 +63,6 @@ jobs:
         continue-on-error: true
 
       - name: Terraform Plan
-        if: steps.check_tf.outputs.has_tf == 'true' && secrets.TF_API_TOKEN != ''
-        run: terraform plan -input=false
-        env:
-          TF_CLI_ARGS: "-no-color"
+        if: steps.check_tf.outputs.has_tf == 'true'
+        run: terraform plan -input=false -no-color
         continue-on-error: true
