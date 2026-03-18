@@ -1,0 +1,22 @@
+{
+  "name": "@trancendos/depin-broker",
+  "version": "1.0.0",
+  "description": "DePIN Broker — Decentralised Physical Infrastructure Network broker for IoT and edge compute",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev --port 3081",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "hono": "^4.0.0",
+    "@trancendos/slipstream-protocol": "workspace:*",
+    "zod": "^3.22.0",
+    "pino": "^8.16.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240101.0",
+    "typescript": "^5.3.0",
+    "wrangler": "^3.22.0"
+  }
+}
