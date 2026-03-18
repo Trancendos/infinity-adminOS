@@ -1,0 +1,21 @@
+{
+  "name": "@trancendos/knowledge-graph-service",
+  "version": "1.0.0",
+  "description": "Knowledge Graph Service — semantic knowledge graph for the Trancendos Universe ontology",
+  "scripts": {
+    "dev": "wrangler dev --port 3085",
+    "deploy": "wrangler deploy",
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "hono": "^4.0.0",
+    "@trancendos/slipstream-protocol": "workspace:*",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240101.0",
+    "typescript": "^5.3.0",
+    "wrangler": "^3.22.0"
+  }
+}
