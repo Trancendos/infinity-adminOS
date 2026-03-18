@@ -1,12 +1,13 @@
 {
   "name": "@trancendos/universal-upif",
   "version": "1.0.0",
-  "description": "Universal UPIF — Universal Participant Identity Framework v3.0. DPID: DPID-ORC-UPF-001",
+  "description": "Universal UPIF \u2014 Universal Participant Identity Framework v3.0. DPID: DPID-ORC-UPF-001",
   "scripts": {
     "dev": "wrangler dev --port 3078",
     "deploy": "wrangler deploy",
     "build": "tsc --noEmit",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "hono": "^4.0.0",
@@ -16,6 +17,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240101.0",
     "typescript": "^5.3.0",
-    "wrangler": "^3.22.0"
+    "wrangler": "^3.22.0",
+    "vitest": "^4.0.18"
   }
 }
