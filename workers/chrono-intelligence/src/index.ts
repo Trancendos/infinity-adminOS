@@ -238,7 +238,7 @@ app.get('/health', (c) => {
     },
     activeForecasts: 23,  // one per location
     anomaliesDetected: 2,
-    uptime: process.uptime?.() ?? 99999,
+    uptime: 99999,
   };
   return c.json(health);
 });
