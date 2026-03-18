@@ -1,0 +1,42 @@
+/* TheGridV13 — Grid Design Tokens */
+:root {
+  --grid-bg: #020408;
+  --grid-surface: #060D14;
+  --grid-border: rgba(0, 255, 136, 0.15);
+  --queen: #00FF88;        /* Queen's Hive — emerald */
+  --hax: #FF3366;          /* HAX Threat Matrix — crimson */
+  --voxx: #00BFFF;         /* Voxx Agent Layer — cyan */
+  --grid-amber: #FFB800;   /* Alert state */
+  --grid-purple: #9945FF;  /* Protocol layer */
+  --font-grid: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--grid-bg);
+  color: #C8D8E8;
+  font-family: var(--font-grid);
+  min-height: 100vh;
+}
+
+@keyframes grid-scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(200%); }
+}
+
+@keyframes node-pulse {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+@keyframes data-stream {
+  0% { opacity: 0; transform: translateX(-10px); }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(10px); }
+}
+
+@keyframes threat-flash {
+  0%, 100% { border-color: rgba(255, 51, 102, 0.3); }
+  50% { border-color: rgba(255, 51, 102, 0.9); }
+}
