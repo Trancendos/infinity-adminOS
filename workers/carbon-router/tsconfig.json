@@ -10,8 +10,6 @@
     "noUnusedParameters": false,
     "noImplicitReturns": true,
     "skipLibCheck": true,
-    "declaration": true,
-    "declarationMap": true,
     "outDir": "dist"
   },
   "include": ["src/**/*.ts"],
