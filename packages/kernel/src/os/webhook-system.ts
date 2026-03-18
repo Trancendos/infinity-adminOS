@@ -800,7 +800,7 @@ export class WebhookManager {
   }
 
   private evaluateCondition(event: StreamEvent, condition: FilterCondition): boolean {
-    const value = this.getNestedValue(event, condition.field);
+    const value = this.getNestedValue(event as unknown as Record<string, unknown>, condition.field);
 
     switch (condition.operator) {
       case 'eq': return value === condition.value;

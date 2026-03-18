@@ -626,7 +626,7 @@ export class ApiKeyManager {
     // Mark old key as rotating (grace period)
     oldKey.status = 'rotating';
 
-    return result;
+    return { newKey: result.key, rawKey: result.rawKey };
   }
 
   /**
