@@ -1,0 +1,65 @@
+/* TrancendosCyberPhysical — BER Design Tokens */
+:root {
+  /* BER Core Palette */
+  --void-900: #050505;
+  --void-800: #0A0A0B;
+  --void-700: #111113;
+  --void-600: #1A1A1D;
+  --void-500: #242428;
+  --void-400: #35353B;
+  --void-300: #4A4A52;
+  --void-200: #6B6B75;
+
+  /* BER State Colours */
+  --empathy: #10B981;      /* LUCID state — green */
+  --alert: #F43F5E;        /* CHAOS state — red */
+  --warning: #F59E0B;      /* OVERLOAD state — amber */
+  --slipstream: #7B68EE;   /* Sentinel Station purple */
+
+  /* Typography */
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--void-900);
+  color: #E2E8F0;
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Animations */
+@keyframes pulse-empathy {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  50% { box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); }
+}
+
+@keyframes pulse-alert {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4); }
+  50% { box-shadow: 0 0 0 12px rgba(244, 63, 94, 0); }
+}
+
+@keyframes pulse-warning {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+  50% { box-shadow: 0 0 0 12px rgba(245, 158, 11, 0); }
+}
+
+@keyframes data-flow {
+  0% { transform: translateY(-100%); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(100%); opacity: 0; }
+}
+
+@keyframes scan-line {
+  0% { top: 0; }
+  100% { top: 100%; }
+}
+
+@keyframes slipstream-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
