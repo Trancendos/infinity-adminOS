@@ -1,17 +1,15 @@
 {
   "name": "@trancendos/cornelius-strategy-oracle",
   "version": "1.0.0",
-  "description": "Cornelius Strategy Oracle — Multi-agent strategic intelligence and executive decision support",
-  "main": "src/index.ts",
+  "description": "Cornelius Strategy Oracle — 7-agent council + FAST circuit breaker. DPID: DPID-ORC-COR-001",
   "scripts": {
     "dev": "wrangler dev --port 3077",
     "deploy": "wrangler deploy",
+    "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "hono": "^4.0.0",
-    "@trancendos/slipstream-protocol": "workspace:*",
-    "@trancendos/tiga-middleware": "workspace:*",
     "zod": "^3.22.0",
     "pino": "^8.16.0"
   },

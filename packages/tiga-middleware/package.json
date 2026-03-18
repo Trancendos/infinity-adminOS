@@ -1,9 +1,20 @@
 {
   "name": "@trancendos/tiga-middleware",
   "version": "1.0.0",
-  "description": "TIGA Framework Middleware — Trancendos Integrity & Governance Architecture. OPA policy enforcement, FACT Ledger logging, and compliance validation for all Hono workers.",
+  "description": "TIGA Middleware — OPA enforcement + FACT Ledger + ISO 42001 governance. DPID: DPID-DIM-GOV-003",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "scripts": { "build": "tsc", "test": "jest" },
-  "license": "MIT"
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "hono": "^4.0.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240101.0",
+    "typescript": "^5.3.0"
+  }
 }
