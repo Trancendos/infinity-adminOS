@@ -1,0 +1,22 @@
+{
+  "name": "@trancendos/pqc-service",
+  "version": "1.0.0",
+  "description": "Post-Quantum Cryptography Service — ML-KEM-768 key management and quantum-safe operations",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev --port 3079",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "hono": "^4.0.0",
+    "@trancendos/slipstream-protocol": "workspace:*",
+    "zod": "^3.22.0",
+    "pino": "^8.16.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240101.0",
+    "typescript": "^5.3.0",
+    "wrangler": "^3.22.0"
+  }
+}
