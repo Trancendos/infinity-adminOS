@@ -53,8 +53,9 @@ import {
   SwarmRole,
   SwarmState,
   HolographicInterface,
-  PostQuantumCrypto
-EmotionType, } from '../types';
+  PostQuantumCrypto,
+  EmotionType,
+} from '../types';
 
 // ============================================================================
 // Configuration
