@@ -1,0 +1,21 @@
+{
+  "name": "@trancendos/filesystem",
+  "version": "0.1.0",
+  "description": "R2-backed file storage worker with tenant isolation, CRUD, presigned URLs, directory listing",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run",
+    "dev": "wrangler dev"
+  },
+  "dependencies": {
+    "hono": "^4.7.4"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250312.0",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8",
+    "wrangler": "^4.0.0"
+  }
+}

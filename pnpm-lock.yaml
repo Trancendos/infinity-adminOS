@@ -365,6 +365,18 @@ importers:
         specifier: ^5.3.3
         version: 5.9.3
 
+  packages/ipc:
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20250312.0
+        version: 4.20260307.1
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9
+
   packages/kernel:
     dependencies:
       '@infinity-os/types':
@@ -410,6 +422,27 @@ importers:
         version: 5.9.3
 
   packages/observability:
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20250312.0
+        version: 4.20260307.1
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9
+
+  packages/permissions:
+    devDependencies:
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9
+
+  packages/platform-core:
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20250312.0
@@ -608,6 +641,25 @@ importers:
       typescript:
         specifier: ^5.3.0
         version: 5.9.3
+
+  workers/ai:
+    dependencies:
+      hono:
+        specifier: ^4.7.4
+        version: 4.12.8
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20250312.0
+        version: 4.20260307.1
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9
+      wrangler:
+        specifier: ^4.0.0
+        version: 4.75.0(@cloudflare/workers-types@4.20260307.1)
 
   workers/arcadian-exchange:
     dependencies:
@@ -880,6 +932,25 @@ importers:
       wrangler:
         specifier: ^3.22.0
         version: 3.114.17(@cloudflare/workers-types@4.20260307.1)
+
+  workers/filesystem:
+    dependencies:
+      hono:
+        specifier: ^4.7.4
+        version: 4.12.8
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20250312.0
+        version: 4.20260307.1
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9
+      wrangler:
+        specifier: ^4.0.0
+        version: 4.75.0(@cloudflare/workers-types@4.20260307.1)
 
   workers/hive:
     devDependencies:
