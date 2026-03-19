@@ -42,11 +42,11 @@
 - [x] 5.4 Create `packages/observability/src/__tests__/observability.test.ts`
 
 ### Phase 6: Build Pipeline & Hardening
-- [ ] 6.1 Verify full build: target 44/44+ GREEN (was 40)
-- [ ] 6.2 Verify full tests: target 49/49+ GREEN (was 45)
-- [ ] 6.3 Update all wrangler.toml configs with observability, nodejs_compat, current compatibility_date
-- [ ] 6.4 Git commit & push
+- [x] 6.1 Verify full build: 45/45 GREEN ✅ (was 40)
+- [x] 6.2 Verify full tests: 50/50 GREEN ✅ (was 45)
+- [x] 6.3 Update all 34 wrangler.toml configs with observability, nodejs_compat, compatibility_date=2025-03-01
+- [x] 6.4 Git commit 8b1916e (push requires auth token — commit saved locally)
 
 ### Phase 7: Production Architecture Dashboard & Delivery
-- [ ] 7.1 Create comprehensive production-readiness architecture dashboard (HTML)
-- [ ] 7.2 Present to user with all deliverables
+- [x] 7.1 Create comprehensive production-readiness architecture dashboard (HTML)
+- [x] 7.2 Present to user with all deliverables
