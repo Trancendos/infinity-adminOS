@@ -1,6 +1,6 @@
 name = "the-grid-api"
 main = "src/index.ts"
-compatibility_date = "2024-01-01"
+compatibility_date = "2025-03-01"
 
 [vars]
 DPID = "DPID-GRD-API-001"
@@ -8,3 +8,8 @@ SERVICE_VERSION = "0.1.0"
 COVERT_SYNTHESIS_URL = "https://covert-synthesis.trancendos.workers.dev"
 SLIPSTREAM_CLASS = "A"
 HIVE_AGENT_COUNT = "7"
+
+# ── Observability ────────────────────────────────────
+[observability]
+enabled = true
+head_sampling_rate = 1.0

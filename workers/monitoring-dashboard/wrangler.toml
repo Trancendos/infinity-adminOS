@@ -1,6 +1,6 @@
 name = "infinity-monitoring-dashboard"
 main = "src/index.ts"
-compatibility_date = "2024-09-23"
+compatibility_date = "2025-03-01"
 compatibility_flags = ["nodejs_compat"]
 
 [triggers]
@@ -54,3 +54,7 @@ id = "3bc9913c458146b9a5a87fe2bdd55c99"
 [[env.staging.kv_namespaces]]
 binding = "KV_ALERTS"
 id = "d3bd442bab104cfc9c77ed0503480618"
+# ── Observability ────────────────────────────────────
+[observability]
+enabled = true
+head_sampling_rate = 1.0

@@ -1,6 +1,6 @@
 name = "carbon-router"
 main = "src/index.ts"
-compatibility_date = "2024-01-01"
+compatibility_date = "2025-03-01"
 
 [vars]
 DPID = "DPID-ECO-CAR-001"
@@ -17,3 +17,8 @@ service = "sentinel-station"
 
 [dev]
 port = 3082
+
+# ── Observability ────────────────────────────────────
+[observability]
+enabled = true
+head_sampling_rate = 1.0

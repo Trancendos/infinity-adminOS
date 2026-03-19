@@ -1,6 +1,6 @@
 name = "covert-synthesis"
 main = "src/index.ts"
-compatibility_date = "2024-01-01"
+compatibility_date = "2025-03-01"
 
 [vars]
 DPID = "DPID-COV-SYN-001"
@@ -22,3 +22,8 @@ service = "pqc-service"
 
 [dev]
 port = 3080
+
+# ── Observability ────────────────────────────────────
+[observability]
+enabled = true
+head_sampling_rate = 1.0
