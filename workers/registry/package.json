@@ -1,0 +1,21 @@
+{
+  "name": "@trancendos/registry",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Module Registry Worker — Trancendos Plug-and-Play Ecosystem",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "dev": "wrangler dev",
+    "test": "vitest run",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "hono": "^4.7.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250313.0",
+    "typescript": "^5.7.3",
+    "vitest": "^4.0.18",
+    "wrangler": "^4.10.0"
+  }
+}
