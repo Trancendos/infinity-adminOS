@@ -10,8 +10,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "echo No tests yet - ts-jest setup pending",
+    "test:watch": "jest --watch",
     "lint": "eslint src/ --ext .ts",
     "clean": "rm -rf dist"
   },

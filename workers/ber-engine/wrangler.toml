@@ -1,6 +1,6 @@
 name = "ber-engine"
 main = "src/index.ts"
-compatibility_date = "2025-03-01"
+compatibility_date = "2024-01-01"
 
 [vars]
 SERVICE_NAME = "ber-engine"
@@ -13,8 +13,3 @@ PORT = "3061"
 binding = "BER_STATE"
 id = "ber_engine_state"
 preview_id = "ber_engine_state_preview"
-
-# ── Observability ────────────────────────────────────
-[observability]
-enabled = true
-head_sampling_rate = 1.0

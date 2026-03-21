@@ -1,6 +1,6 @@
 name = "dimensional-fabric"
 main = "src/index.ts"
-compatibility_date = "2025-03-01"
+compatibility_date = "2024-01-01"
 
 [vars]
 SERVICE_NAME = "dimensional-fabric"
@@ -13,8 +13,3 @@ DIMENSIONAL_CLASSES = "Data,Messaging,Security,AI,Infrastructure,API,Governance"
 binding = "DIM_REGISTRY"
 id = "dimensional_fabric_registry"
 preview_id = "dimensional_fabric_registry_preview"
-
-# ── Observability ────────────────────────────────────
-[observability]
-enabled = true
-head_sampling_rate = 1.0

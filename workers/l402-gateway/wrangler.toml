@@ -1,6 +1,6 @@
 name = "l402-gateway"
 main = "src/index.ts"
-compatibility_date = "2025-03-01"
+compatibility_date = "2024-01-01"
 
 [vars]
 DPID = "DPID-ECO-L402-001"
@@ -18,8 +18,3 @@ service = "sentinel-station"
 
 [dev]
 port = 3083
-
-# ── Observability ────────────────────────────────────
-[observability]
-enabled = true
-head_sampling_rate = 1.0

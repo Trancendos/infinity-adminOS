@@ -1,6 +1,6 @@
 name = "universal-upif"
 main = "src/index.ts"
-compatibility_date = "2025-03-01"
+compatibility_date = "2024-01-01"
 
 [vars]
 DPID = "DPID-ORC-UPF-001"
@@ -22,8 +22,3 @@ service = "ber-engine"
 
 [dev]
 port = 3078
-
-# ── Observability ────────────────────────────────────
-[observability]
-enabled = true
-head_sampling_rate = 1.0

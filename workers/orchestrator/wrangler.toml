@@ -37,8 +37,3 @@ crons = ["*/1 * * * *", "*/5 * * * *", "0 * * * *"]
 
 [ai]
 binding = "AI"
-
-# ── Observability ────────────────────────────────────
-[observability]
-enabled = true
-head_sampling_rate = 1.0

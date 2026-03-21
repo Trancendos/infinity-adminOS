@@ -1,6 +1,6 @@
 name = "dpid-registry"
 main = "src/index.ts"
-compatibility_date = "2025-03-01"
+compatibility_date = "2024-01-01"
 
 [vars]
 DPID = "DPID-REG-CORE-001"
@@ -12,8 +12,3 @@ AUTO_REGISTER = "true"
 
 [dev]
 port = 3084
-
-# ── Observability ────────────────────────────────────
-[observability]
-enabled = true
-head_sampling_rate = 1.0

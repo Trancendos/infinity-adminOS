@@ -1,6 +1,6 @@
 name = "cornelius-strategy-oracle"
 main = "src/index.ts"
-compatibility_date = "2025-03-01"
+compatibility_date = "2024-01-01"
 
 [vars]
 DPID = "DPID-ORC-COR-001"
@@ -24,8 +24,3 @@ service = "chrono-intelligence"
 
 [dev]
 port = 3077
-
-# ── Observability ────────────────────────────────────
-[observability]
-enabled = true
-head_sampling_rate = 1.0

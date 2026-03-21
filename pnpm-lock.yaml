@@ -290,6 +290,18 @@ importers:
         specifier: ^4.0.18
         version: 4.0.18(@types/node@20.19.37)(tsx@4.21.0)
 
+  packages/ai-gateway:
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20250313.0
+        version: 4.20260307.1
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.18
+        version: 4.0.18(@types/node@20.19.37)(tsx@4.21.0)
+
   packages/financial-types:
     devDependencies:
       typescript:
@@ -484,30 +496,6 @@ importers:
       typescript:
         specifier: ^5.3.3
         version: 5.9.3
-
-  packages/sdk:
-    devDependencies:
-      '@cloudflare/workers-types':
-        specifier: ^4.20250313.0
-        version: 4.20260307.1
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-      vitest:
-        specifier: ^4.0.18
-        version: 4.0.18(@types/node@20.19.37)(tsx@4.21.0)
-
-  packages/service-mesh:
-    devDependencies:
-      '@cloudflare/workers-types':
-        specifier: ^4.20250313.0
-        version: 4.20260307.1
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-      vitest:
-        specifier: ^4.0.18
-        version: 4.0.18(@types/node@20.19.37)(tsx@4.21.0)
 
   packages/slipstream-protocol:
     dependencies:
@@ -968,6 +956,40 @@ importers:
   workers/dpid-registry:
     dependencies:
       hono:
+        specifier: ^4.12.8
+        version: 4.12.8
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20240101.0
+        version: 4.20260307.1
+      typescript:
+        specifier: ^5.3.0
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.18
+        version: 4.0.18(@types/node@20.19.37)(tsx@4.21.0)
+      wrangler:
+        specifier: ^3.22.0
+        version: 3.114.17(@cloudflare/workers-types@4.20260307.1)
+
+  workers/auth-api:
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20241022.0
+        version: 4.20260307.1
+      typescript:
+        specifier: ^5.3.0
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.18
+        version: 4.0.18(@types/node@20.19.37)(tsx@4.21.0)
+      wrangler:
+        specifier: ^3.0.0
+        version: 3.114.17(@cloudflare/workers-types@4.20260307.1)
+
+  workers/ber-engine:
+    dependencies:
+      hono:
         specifier: ^4.0.0
         version: 4.12.8
       pino:
@@ -990,7 +1012,180 @@ importers:
         specifier: ^3.22.0
         version: 3.114.17(@cloudflare/workers-types@4.20260307.1)
 
-  workers/files-api:
+  workers/carbon-router:
+    dependencies:
+      hono:
+        specifier: ^4.0.0
+        version: 4.12.8
+      pino:
+        specifier: ^8.16.0
+        version: 8.21.0
+      zod:
+        specifier: ^3.22.0
+        version: 3.25.76
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20240101.0
+        version: 4.20260307.1
+      typescript:
+        specifier: ^5.3.0
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.18
+        version: 4.0.18(@types/node@20.19.37)(tsx@4.21.0)
+      wrangler:
+        specifier: ^3.22.0
+        version: 3.114.17(@cloudflare/workers-types@4.20260307.1)
+
+  workers/chrono-intelligence:
+    dependencies:
+      hono:
+        specifier: ^4.0.0
+        version: 4.12.8
+      pino:
+        specifier: ^8.16.0
+        version: 8.21.0
+      zod:
+        specifier: ^3.22.0
+        version: 3.25.76
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20240101.0
+        version: 4.20260307.1
+      typescript:
+        specifier: ^5.3.0
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.18
+        version: 4.0.18(@types/node@20.19.37)(tsx@4.21.0)
+      wrangler:
+        specifier: ^3.22.0
+        version: 3.114.17(@cloudflare/workers-types@4.20260307.1)
+
+  workers/cornelius-strategy-oracle:
+    dependencies:
+      hono:
+        specifier: ^4.0.0
+        version: 4.12.8
+      pino:
+        specifier: ^8.16.0
+        version: 8.21.0
+      zod:
+        specifier: ^3.22.0
+        version: 3.25.76
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20240101.0
+        version: 4.20260307.1
+      typescript:
+        specifier: ^5.3.0
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.18
+        version: 4.0.18(@types/node@20.19.37)(tsx@4.21.0)
+      wrangler:
+        specifier: ^3.22.0
+        version: 3.114.17(@cloudflare/workers-types@4.20260307.1)
+
+  workers/covert-synthesis:
+    dependencies:
+      hono:
+        specifier: ^4.0.0
+        version: 4.12.8
+      pino:
+        specifier: ^8.16.0
+        version: 8.21.0
+      zod:
+        specifier: ^3.22.0
+        version: 3.25.76
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20240101.0
+        version: 4.20260307.1
+      typescript:
+        specifier: ^5.3.0
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.18
+        version: 4.0.18(@types/node@20.19.37)(tsx@4.21.0)
+      wrangler:
+        specifier: ^3.22.0
+        version: 3.114.17(@cloudflare/workers-types@4.20260307.1)
+
+  workers/cyber-physical-api:
+    dependencies:
+      hono:
+        specifier: ^4.0.0
+        version: 4.12.8
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.0.0
+        version: 4.20260307.1
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.18
+        version: 4.0.18(@types/node@20.19.37)(tsx@4.21.0)
+      wrangler:
+        specifier: ^3.0.0
+        version: 3.114.17(@cloudflare/workers-types@4.20260307.1)
+
+  workers/depin-broker:
+    dependencies:
+      hono:
+        specifier: ^4.0.0
+        version: 4.12.8
+      pino:
+        specifier: ^8.16.0
+        version: 8.21.0
+      zod:
+        specifier: ^3.22.0
+        version: 3.25.76
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20240101.0
+        version: 4.20260307.1
+      typescript:
+        specifier: ^5.3.0
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.18
+        version: 4.0.18(@types/node@20.19.37)(tsx@4.21.0)
+      wrangler:
+        specifier: ^3.22.0
+        version: 3.114.17(@cloudflare/workers-types@4.20260307.1)
+
+  workers/dimensional-fabric:
+    dependencies:
+      hono:
+        specifier: ^4.0.0
+        version: 4.12.8
+      pino:
+        specifier: ^8.16.0
+        version: 8.21.0
+      zod:
+        specifier: ^3.22.0
+        version: 3.25.76
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20240101.0
+        version: 4.20260307.1
+      typescript:
+        specifier: ^5.3.0
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.18
+        version: 4.0.18(@types/node@20.19.37)(tsx@4.21.0)
+      wrangler:
+        specifier: ^3.22.0
+        version: 3.114.17(@cloudflare/workers-types@4.20260307.1)
+
+  workers/dispatch:
+    dependencies:
+      '@trancendos/tenant-do':
+        specifier: workspace:*
+        version: link:../../packages/tenant-do
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20250313.0
@@ -1005,24 +1200,30 @@ importers:
         specifier: ^4.10.0
         version: 4.75.0(@cloudflare/workers-types@4.20260307.1)
 
-  workers/filesystem:
+  workers/dpid-registry:
     dependencies:
       hono:
-        specifier: ^4.7.4
+        specifier: ^4.0.0
         version: 4.12.8
+      pino:
+        specifier: ^8.16.0
+        version: 8.21.0
+      zod:
+        specifier: ^3.22.0
+        version: 3.25.76
     devDependencies:
       '@cloudflare/workers-types':
-        specifier: ^4.20250312.0
+        specifier: ^4.20240101.0
         version: 4.20260307.1
       typescript:
-        specifier: ^5.7.3
+        specifier: ^5.3.0
         version: 5.9.3
       vitest:
-        specifier: ^2.1.8
-        version: 2.1.9
+        specifier: ^4.0.18
+        version: 4.0.18(@types/node@20.19.37)(tsx@4.21.0)
       wrangler:
-        specifier: ^4.0.0
-        version: 4.75.0(@cloudflare/workers-types@4.20260307.1)
+        specifier: ^3.22.0
+        version: 3.114.17(@cloudflare/workers-types@4.20260307.1)
 
   workers/hive:
     devDependencies:
@@ -1234,25 +1435,6 @@ importers:
         specifier: ^3.22.0
         version: 3.114.17(@cloudflare/workers-types@4.20260307.1)
 
-  workers/registry:
-    dependencies:
-      hono:
-        specifier: ^4.7.0
-        version: 4.12.8
-    devDependencies:
-      '@cloudflare/workers-types':
-        specifier: ^4.20250313.0
-        version: 4.20260307.1
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-      vitest:
-        specifier: ^4.0.18
-        version: 4.0.18(@types/node@20.19.37)(tsx@4.21.0)
-      wrangler:
-        specifier: ^4.10.0
-        version: 4.75.0(@cloudflare/workers-types@4.20260307.1)
-
   workers/royal-bank:
     dependencies:
       hono:
@@ -1270,6 +1452,75 @@ importers:
         version: 4.0.18(@types/node@20.19.37)(tsx@4.21.0)
       wrangler:
         specifier: ^3.114.17
+        version: 3.114.17(@cloudflare/workers-types@4.20260307.1)
+
+  workers/sentinel-station:
+    dependencies:
+      hono:
+        specifier: ^4.0.0
+        version: 4.12.8
+      pino:
+        specifier: ^8.16.0
+        version: 8.21.0
+      zod:
+        specifier: ^3.22.0
+        version: 3.25.76
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20240101.0
+        version: 4.20260307.1
+      typescript:
+        specifier: ^5.3.0
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.18
+        version: 4.0.18(@types/node@20.19.37)(tsx@4.21.0)
+      wrangler:
+        specifier: ^3.22.0
+        version: 3.114.17(@cloudflare/workers-types@4.20260307.1)
+
+  workers/the-grid-api:
+    dependencies:
+      hono:
+        specifier: ^4.0.0
+        version: 4.12.8
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.0.0
+        version: 4.20260307.1
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.18
+        version: 4.0.18(@types/node@20.19.37)(tsx@4.21.0)
+      wrangler:
+        specifier: ^3.0.0
+        version: 3.114.17(@cloudflare/workers-types@4.20260307.1)
+
+  workers/universal-upif:
+    dependencies:
+      hono:
+        specifier: ^4.0.0
+        version: 4.12.8
+      pino:
+        specifier: ^8.16.0
+        version: 8.21.0
+      zod:
+        specifier: ^3.22.0
+        version: 3.25.76
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20240101.0
+        version: 4.20260307.1
+      typescript:
+        specifier: ^5.3.0
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.18
+        version: 4.0.18(@types/node@20.19.37)(tsx@4.21.0)
+      wrangler:
+        specifier: ^3.22.0
         version: 3.114.17(@cloudflare/workers-types@4.20260307.1)
 
   workers/sentinel-station:
@@ -3110,6 +3361,17 @@ packages:
     dev: true
     optional: true
 
+  /@img/sharp-darwin-x64@0.34.5:
+    resolution: {integrity: sha512-YNEFAF/4KQ/PeW0N+r+aVVsoIY0/qxxikF2SWdp+NRkmMB7y9LBZAVqQ4yhGCm/H3H270OSykqmQMKLBhBJDEw==}
+    engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
+    cpu: [x64]
+    os: [darwin]
+    requiresBuild: true
+    optionalDependencies:
+      '@img/sharp-libvips-darwin-x64': 1.2.4
+    dev: true
+    optional: true
+
   /@img/sharp-libvips-darwin-arm64@1.0.4:
     resolution: {integrity: sha512-XblONe153h0O2zuFfTAbQYAX2JhYmDHeWikp1LM9Hul9gVPjFY427k6dFEcOL72O01QxQsWi761svJ/ev9xEDg==}
     cpu: [arm64]
@@ -3328,6 +3590,17 @@ packages:
     requiresBuild: true
     optionalDependencies:
       '@img/sharp-libvips-linux-s390x': 1.0.4
+    dev: true
+    optional: true
+
+  /@img/sharp-linux-s390x@0.34.5:
+    resolution: {integrity: sha512-nQtCk0PdKfho3eC5MrbQoigJ2gd1CgddUMkabUj+rBevs8tZ2cULOx46E7oyX+04WGfABgIwmMC0VqieTiR4jg==}
+    engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
+    cpu: [s390x]
+    os: [linux]
+    requiresBuild: true
+    optionalDependencies:
+      '@img/sharp-libvips-linux-s390x': 1.2.4
     dev: true
     optional: true
 
@@ -4135,6 +4408,11 @@ packages:
 
   /@sinclair/typebox@0.27.10:
     resolution: {integrity: sha512-MTBk/3jGLNB2tVxv6uLlFh1iu64iYOQ2PbdOSK3NW8JZsmlaOh2q6sdtKowBhfw8QFLmYNzTW4/oK4uATIi6ZA==}
+    dev: true
+
+  /@sindresorhus/is@7.2.0:
+    resolution: {integrity: sha512-P1Cz1dWaFfR4IR+U13mqqiGsLFf1KbayybWwdd2vfctdV6hDpUkgCY0nKOLLTMSoRd/jJNjtbqzf13K8DCCXQw==}
+    engines: {node: '>=18'}
     dev: true
 
   /@sindresorhus/is@7.2.0:
@@ -7690,10 +7968,6 @@ packages:
     hasBin: true
     dependencies:
       js-tokens: 4.0.0
-
-  /loupe@3.2.1:
-    resolution: {integrity: sha512-CdzqowRJCeLU72bHvWqwRBBlLcMEtIvGrlvef74kMnV2AolS9Y8xUv1I0U/MNAWMhBlKIoyuEgoJ0t/bbwHbLQ==}
-    dev: true
 
   /lru-cache@11.2.7:
     resolution: {integrity: sha512-aY/R+aEsRelme17KGQa/1ZSIpLpNYYrhcrepKTZgE+W3WM16YMCaPwOHLHsmopZHELU0Ojin1lPVxKR0MihncA==}
