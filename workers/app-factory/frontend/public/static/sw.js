@@ -96,9 +96,10 @@ self.addEventListener('fetch', (event) => {
                 // Clone response for caching
                 if (response.ok) {
                     const responseClone = response.clone();
-                    caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(event.request, responseClone);
-                    });
+                    // Asynchronously cache the response and handle potential errors.
+                    caches.open(CACHE_NAME)
+                        .then((cache) => cache.put(event.request, responseClone))
+                        .catch((err) => console.error('[SW] Caching failed:', err));
                 }
                 return response;
             })
