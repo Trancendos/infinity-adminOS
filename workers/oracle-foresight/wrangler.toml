@@ -1,0 +1,13 @@
+name = "oracle-foresight"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+SERVICE_NAME = "oracle-foresight"
+DPID = "DPID-ORC-SUITE-001"
+PORT = "3075"
+
+[[kv_namespaces]]
+binding = "FORESIGHT_STORE"
+id = "oracle_foresight_store"
+preview_id = "oracle_foresight_store_preview"

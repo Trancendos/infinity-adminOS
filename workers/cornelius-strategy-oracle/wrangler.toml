@@ -1,0 +1,26 @@
+name = "cornelius-strategy-oracle"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+DPID = "DPID-ORC-COR-001"
+SERVICE_NAME = "Cornelius Strategy Oracle"
+PORT = "3077"
+ECOSYSTEM = "SOVEREIGN"
+AGENT_COUNT = "7"
+FAST_CIRCUIT_BREAKER_THRESHOLD = "0.5"
+
+[[services]]
+binding = "SENTINEL_STATION"
+service = "sentinel-station"
+
+[[services]]
+binding = "ORACLE_FORESIGHT"
+service = "oracle-foresight"
+
+[[services]]
+binding = "CHRONO_INTELLIGENCE"
+service = "chrono-intelligence"
+
+[dev]
+port = 3077
