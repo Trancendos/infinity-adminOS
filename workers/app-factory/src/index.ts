@@ -249,7 +249,7 @@ async function handleProvision(
     ).bind(app.id, app.tenantId, app.name, app.template, app.status, app.region, app.createdAt, app.updatedAt).run();
   } catch (err) {
     return jsonResponse(
-      { error: 'Failed to provision app', detail: String(err) },
+      { error: 'Failed to provision app', ...(env.ENVIRONMENT === 'production' ? {} : { detail: String(err) }) },
       500, request, env,
     );
   }
