@@ -9,25 +9,30 @@
 
 ---
 
-## Sprint 7: Platform Strengthening & Integration Hardening ✅
+## Sprint 7: Platform Strengthening & Integration Hardening ✅ COMPLETE
 
-### Phase 1: Critical Empty Workers ✅
-- [x] 1.1 Create `workers/ai/src/index.ts` — AI inference proxy with model routing, streaming
-- [x] 1.2 Create `workers/ai/` configs + tests
-- [x] 1.3 Create `workers/filesystem/src/index.ts` — R2 file storage with tenant isolation
-- [x] 1.4 Create `workers/filesystem/` configs + tests
+---
 
-### Phase 2: Missing Core Packages ✅
-- [x] 2.1 Create `packages/ipc/src/index.ts` — Typed IPC between workers
-- [x] 2.2 Create `packages/ipc/` configs + tests
-- [x] 2.3 Create `packages/permissions/src/index.ts` — RBAC permission engine
-- [x] 2.4 Create `packages/permissions/` configs + tests
+## Sprint 8: Full Platform Coverage & Policy Engine
 
-### Phase 3: Platform Core Bootstrap ✅
-- [x] 3.1 Create `packages/platform-core/src/index.ts` — Unified worker bootstrap
-- [x] 3.2 Create `packages/platform-core/` configs + tests
+### Phase 1: Missing Worker Tests (5 workers)
+- [x] 1.1 Create `workers/ai-api/src/__tests__/ai-api.test.ts`
+- [x] 1.2 Create `workers/api-gateway/src/__tests__/api-gateway.test.ts`
+- [x] 1.3 Create `workers/app-factory/src/index.ts` + configs + tests
+- [x] 1.4 Create `workers/files-api/src/__tests__/files-api.test.ts`
+- [x] 1.5 Create `workers/ws-api/src/__tests__/ws-api.test.ts`
 
-### Phase 4: Build Verification & Push ✅
-- [x] 4.1 Verify full build GREEN — 50/50 ✅
-- [x] 4.2 Verify full tests GREEN — 733 passed across 40 files ✅
-- [x] 4.3 Git commit & push to GitHub — 3dc2b81 ✅
+### Phase 2: Policy Engine Package (missing entirely)
+- [x] 2.1 Create `packages/policy-engine/src/index.ts` — Rule engine, CEL-like evaluation
+- [x] 2.2 Create `packages/policy-engine/` configs + tests
+
+### Phase 3: High-Value Package Tests (priority packages)
+- [x] 3.1 Add tests for `packages/kernel` — core dispatch bootstrap (39 tests)
+- [x] 3.2 Add tests for `packages/iam-middleware` — auth middleware (85 tests)
+- [x] 3.3 Add tests for `packages/agent-sdk` — agent lifecycle (78 tests)
+- [x] 3.4 Add tests for `packages/webauthn` — passkey flows (50 tests)
+
+### Phase 4: Build Verification & Push
+- [ ] 4.1 Verify full build GREEN (target 55+)
+- [ ] 4.2 Verify full tests GREEN (target 850+)
+- [ ] 4.3 Git commit & push to GitHub
