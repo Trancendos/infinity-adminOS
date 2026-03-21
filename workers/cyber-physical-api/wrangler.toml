@@ -1,0 +1,10 @@
+name = "cyber-physical-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+DPID = "DPID-CYB-PHY-API-001"
+SERVICE_VERSION = "0.1.0"
+BER_ENGINE_URL = "https://ber-engine.trancendos.workers.dev"
+DEPIN_BROKER_URL = "https://depin-broker.trancendos.workers.dev"
+SLIPSTREAM_CLASS = "A"

@@ -1,0 +1,54 @@
+# HIVE Worker — Bio-Inspired Swarm Data Router
+# 100% Cloudflare: D1 + KV + Zero third-party deps
+
+name = "infinity-hive"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+ENVIRONMENT = "development"
+LIGHTHOUSE_URL = "https://infinity-lighthouse.luminous-aimastermind.workers.dev"
+VOID_URL = "https://infinity-void.luminous-aimastermind.workers.dev"
+
+# ── Production ──────────────────────────────────────────────
+[env.production]
+name = "infinity-hive"
+
+[env.production.vars]
+ENVIRONMENT = "production"
+LIGHTHOUSE_URL = "https://infinity-lighthouse.luminous-aimastermind.workers.dev"
+VOID_URL = "https://infinity-void.luminous-aimastermind.workers.dev"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "infinity-os-db"
+database_id = "placeholder-d1-id"
+
+[[env.production.kv_namespaces]]
+binding = "KV_CACHE"
+id = "placeholder-hive-cache-kv-id"
+
+[[env.production.kv_namespaces]]
+binding = "KV_RATE_LIMIT"
+id = "placeholder-hive-ratelimit-kv-id"
+
+# ── Staging ──────────────────────────────────────────────────
+[env.staging]
+name = "infinity-hive-staging"
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "infinity-os-db"
+database_id = "placeholder-d1-staging-id"
+
+[[env.staging.kv_namespaces]]
+binding = "KV_CACHE"
+id = "placeholder-hive-cache-kv-staging-id"
+
+[[env.staging.kv_namespaces]]
+binding = "KV_RATE_LIMIT"
+id = "placeholder-hive-ratelimit-kv-staging-id"

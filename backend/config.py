@@ -37,7 +37,10 @@ class InfinityConfig(BaseModel):
     jwt_access_token_expire_minutes: int = Field(default=30, ge=5, le=1440)
     jwt_refresh_token_expire_days: int = Field(default=7, ge=1, le=90)
     cors_origins: List[str] = Field(default_factory=lambda: [
-        "http://localhost:3000", "http://localhost:5173", "http://localhost:8080"
+        "http://localhost:3000", "http://localhost:5173", "http://localhost:8080",
+        "https://infinity-portal.pages.dev",
+        "https://infinity-os.trancendos.com",
+        "https://app.trancendos.com",
     ])
 
     # ── Database ─────────────────────────────────────────────
@@ -196,7 +199,10 @@ def _load_from_env() -> InfinityConfig:
         cors_origins=[
             o.strip() for o in os.getenv(
                 "CORS_ORIGINS",
-                "http://localhost:3000,http://localhost:5173,http://localhost:8080"
+                "http://localhost:3000,http://localhost:5173,http://localhost:8080,"
+                "https://infinity-portal.pages.dev,"
+                "https://infinity-os.trancendos.com,"
+                "https://app.trancendos.com"
             ).split(",")
         ],
         database_url=os.getenv("DATABASE_URL", "postgresql+asyncpg://infinity_os:secure_password@localhost/infinity_os"),

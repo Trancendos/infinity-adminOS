@@ -1,0 +1,22 @@
+{
+  "name": "@trancendos/worker-dispatch",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dispatch Worker — OS Kernel for Multi-Tenant Request Routing",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@trancendos/tenant-do": "workspace:*"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250313.0",
+    "typescript": "^5.7.3",
+    "vitest": "^4.0.18",
+    "wrangler": "^4.10.0"
+  }
+}

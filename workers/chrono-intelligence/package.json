@@ -1,0 +1,23 @@
+{
+  "name": "@trancendos/chrono-intelligence",
+  "version": "1.0.0",
+  "description": "Chrono-Intelligence Oracle \u2014 Liquid Neural Network temporal forecasting. DPID: DPID-ORC-CHR-001",
+  "scripts": {
+    "dev": "wrangler dev --port 3076",
+    "deploy": "wrangler deploy",
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "hono": "^4.0.0",
+    "zod": "^3.22.0",
+    "pino": "^8.16.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240101.0",
+    "typescript": "^5.3.0",
+    "wrangler": "^3.22.0",
+    "vitest": "^4.0.18"
+  }
+}

@@ -1,7 +1,7 @@
 {
   "name": "infinity-os",
   "version": "0.1.0",
-  "description": "Infinity OS \u2014 A browser-native, AI-augmented, modular Virtual Operating System Platform",
+  "description": "Infinity OS — A browser-native, AI-augmented, modular Virtual Operating System Platform",
   "private": true,
   "author": "Trancendos",
   "license": "MIT",
@@ -19,14 +19,15 @@
     "clean": "turbo run clean"
   },
   "devDependencies": {
-    "turbo": "^2.0.0",
-    "typescript": "^5.3.0",
-    "prettier": "^3.1.0",
-    "eslint": "^8.55.0",
     "@typescript-eslint/eslint-plugin": "^8.32.0",
     "@typescript-eslint/parser": "^8.32.0",
+    "eslint": "^8.55.0",
     "husky": "^9.1.7",
-    "lint-staged": "^16.3.1"
+    "lint-staged": "^16.3.1",
+    "prettier": "^3.1.0",
+    "turbo": "^2.0.0",
+    "typescript": "^5.3.0",
+    "vitest": "^4.0.18"
   },
   "engines": {
     "node": ">=20.0.0",
