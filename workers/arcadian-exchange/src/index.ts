@@ -1287,3 +1287,37 @@ const PASSIVE_INCOME_STREAMS = [
   { id: 'data_insights', name: 'Data Insights Licensing', type: 'data_insights', monthlyTarget: 200, riskScore: 10, status: 'researching' },
   { id: 'defi_yield', name: 'DeFi Yield Farming', type: 'defi_yield', monthlyTarget: 500, riskScore: 40, status: 'pending_approval' },
 ];
+// ─── DURABLE OBJECT STUBS ──────────────────────────────────────────────────
+// Required exports for wrangler to deploy with Durable Object bindings
+
+export class TradingEngine implements DurableObject {
+  state: DurableObjectState;
+  env: Env;
+
+  constructor(state: DurableObjectState, env: Env) {
+    this.state = state;
+    this.env = env;
+  }
+
+  async fetch(request: Request): Promise<Response> {
+    return new Response(JSON.stringify({ status: 'trading-engine-ready' }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+}
+
+export class MarketMaker implements DurableObject {
+  state: DurableObjectState;
+  env: Env;
+
+  constructor(state: DurableObjectState, env: Env) {
+    this.state = state;
+    this.env = env;
+  }
+
+  async fetch(request: Request): Promise<Response> {
+    return new Response(JSON.stringify({ status: 'market-maker-ready' }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+}

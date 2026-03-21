@@ -1,0 +1,24 @@
+name = "covert-synthesis"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+DPID = "DPID-COV-SYN-001"
+SERVICE_NAME = "COVERT Synthesis — Penumbra"
+PORT = "3080"
+ECOSYSTEM = "GUARDIAN"
+CLASSIFICATION = "RESTRICTED"
+PENUMBRA_MODE = "ACTIVE"
+THREAT_NEUTRALISATION = "AUTONOMOUS"
+DARK_PATTERN_DETECTION = "true"
+
+[[services]]
+binding = "SENTINEL_STATION"
+service = "sentinel-station"
+
+[[services]]
+binding = "PQC_SERVICE"
+service = "pqc-service"
+
+[dev]
+port = 3080

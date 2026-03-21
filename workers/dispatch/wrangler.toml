@@ -1,0 +1,63 @@
+# Dispatch Worker — OS Kernel
+# ═══════════════════════════════════════════════════════════════
+# ALL requests to the platform enter through this worker.
+# Routes to tenant User Workers via Workers for Platforms.
+
+name = "dispatch-kernel"
+main = "src/index.ts"
+compatibility_date = "2025-03-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ── Routes ───────────────────────────────────────────────────────
+# In production, this catches all traffic for *.trancendos.com
+# routes = [
+#   { pattern = "*.app.trancendos.com/*", zone_name = "trancendos.com" },
+#   { pattern = "*.trancendos.dev/*", zone_name = "trancendos.dev" },
+# ]
+
+# ── Workers for Platforms ────────────────────────────────────────
+# The DISPATCHER binding gives access to all tenant User Workers.
+# Each tenant's code runs in an isolated V8 isolate.
+# [dispatch_namespaces]
+# binding = "DISPATCHER"
+# namespace = "trancendos-tenants"
+
+# ── Durable Objects ─────────────────────────────────────────────
+[durable_objects]
+bindings = [
+  { name = "TENANT_DO", class_name = "TenantDO", script_name = "tenant-do-dev" }
+]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["TenantDO"]
+
+# ── D1 Database (Tenant Registry) ───────────────────────────────
+[[d1_databases]]
+binding = "DB"
+database_name = "infinity-os-db"
+database_id = "placeholder-add-real-id"
+
+# ── KV Namespace (Cache + Rate Limits) ──────────────────────────
+[[kv_namespaces]]
+binding = "CACHE"
+id = "placeholder-add-real-id"
+
+# ── Environment Variables ────────────────────────────────────────
+[vars]
+ENVIRONMENT = "development"
+
+# JWT_SECRET should be set via `wrangler secret put JWT_SECRET`
+# Never commit secrets to wrangler.toml
+
+# ── Observability ────────────────────────────────────────────────
+# [observability]
+# enabled = true
+# head_sampling_rate = 1.0
+
+# ── Production overrides ─────────────────────────────────────────
+# [env.production]
+# vars = { ENVIRONMENT = "production" }
+# routes = [
+#   { pattern = "*.app.trancendos.com/*", zone_name = "trancendos.com" },
+# ]
