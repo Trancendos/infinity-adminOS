@@ -30,7 +30,7 @@ assignees: ''
 - 
 
 ### 🔄 PROJECT PULSE & REVERT LOG
-*(Mandatory: Fill this out so the maintainer has a safe save point to revert to if deployment fails).*
+*(Mandatory: Fill this out so the maintainer has a safe point to revert to if deployment fails).*
 
 | Ticket ID | Modified Files | Complexity | Revert Hash | Status |
 | :--- | :--- | :--- | :--- | :--- |
