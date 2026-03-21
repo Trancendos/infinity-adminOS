@@ -271,7 +271,11 @@ async function handleGetApp(
   const cacheKey = `app:${tenantId}:${appId}`;
   const cached = await env.CACHE.get(cacheKey);
   if (cached) {
-    return jsonResponse(JSON.parse(cached), 200, request, env);
+    try {
+      return jsonResponse(JSON.parse(cached), 200, request, env);
+    } catch {
+      await env.CACHE.delete(cacheKey);
+    }
   }
 
   try {
