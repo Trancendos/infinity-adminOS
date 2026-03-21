@@ -10,48 +10,43 @@ PLATFORM_NAME = "Arcadia"
 # KV Namespaces
 [[kv_namespaces]]
 binding = "COST_PROFILES"
-id = "REPLACE_WITH_COST_PROFILES_KV_ID"
-preview_id = "REPLACE_WITH_COST_PROFILES_KV_PREVIEW_ID"
+id = "61546b1bb7704981a4868c98dfd0ecae"
+preview_id = "61546b1bb7704981a4868c98dfd0ecae"
 
 [[kv_namespaces]]
 binding = "REVENUE_STREAMS"
-id = "REPLACE_WITH_REVENUE_STREAMS_KV_ID"
-preview_id = "REPLACE_WITH_REVENUE_STREAMS_KV_PREVIEW_ID"
+id = "84841d4a52a84839b192b0a54c5b7071"
+preview_id = "84841d4a52a84839b192b0a54c5b7071"
 
 [[kv_namespaces]]
 binding = "APPROVAL_QUEUE"
-id = "REPLACE_WITH_APPROVAL_QUEUE_KV_ID"
-preview_id = "REPLACE_WITH_APPROVAL_QUEUE_KV_PREVIEW_ID"
+id = "d2854b93141e49fdb6bec4dc2ff48408"
+preview_id = "d2854b93141e49fdb6bec4dc2ff48408"
 
 [[kv_namespaces]]
 binding = "RESEARCH_CACHE"
-id = "REPLACE_WITH_RESEARCH_CACHE_KV_ID"
-preview_id = "REPLACE_WITH_RESEARCH_CACHE_KV_PREVIEW_ID"
+id = "8801f296d8ca410c836118022dbcc5a2"
+preview_id = "8801f296d8ca410c836118022dbcc5a2"
 
 [[kv_namespaces]]
 binding = "FREE_TIER_USAGE"
-id = "REPLACE_WITH_FREE_TIER_USAGE_KV_ID"
-preview_id = "REPLACE_WITH_FREE_TIER_USAGE_KV_PREVIEW_ID"
+id = "7674640097c043ddadeffb96eedf8766"
+preview_id = "7674640097c043ddadeffb96eedf8766"
 
 # D1 Database
 [[d1_databases]]
 binding = "FINANCIAL_DB"
 database_name = "arcadia-financial"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "0bf4885f-50cb-4b9f-a417-a6d0b9e2aaaf"
 
 # AI Binding
 [ai]
 binding = "AI"
 
 # Cron Triggers
-[triggers]
-crons = [
-  "0 * * * *",      # Every hour: Monitor free tier usage
-  "0 */6 * * *",    # Every 6 hours: Revenue research
-  "0 9 * * *",      # Daily: Financial report
-  "0 9 * * 1",      # Weekly: Full audit
-  "0 9 1 * *"       # Monthly: Tax liability
-]
+# Cron Triggers (disabled - account cron limit reached; enable via CF dashboard)
+# [triggers]
+# crons = ["0 * * * *", "0 */6 * * *", "0 9 * * *"]
 
 # Secrets (set via: wrangler secret put SECRET_NAME)
 # JWT_SECRET

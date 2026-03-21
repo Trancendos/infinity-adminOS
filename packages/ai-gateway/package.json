@@ -1,0 +1,18 @@
+{
+  "name": "@trancendos/ai-gateway",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI Gateway — Per-Tenant Conditional Routing with Failover, Caching & Token Budgets",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "eslint src/"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250313.0",
+    "typescript": "^5.7.3",
+    "vitest": "^4.0.18"
+  }
+}

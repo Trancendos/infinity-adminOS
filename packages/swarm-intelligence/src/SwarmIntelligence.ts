@@ -49,7 +49,9 @@ import {
   ScoutNode,
   Discovery,
   GuardianNode,
-  SecurityPolicy
+  SecurityPolicy,
+  MessagePriority,
+  TaskPriority,
 } from './types';
 
 // ============================================================================
@@ -146,7 +148,7 @@ export class SwarmIntelligence {
     await this.broadcastMessage({
       type: MessageType.HEARTBEAT,
       content: { nodeId: node.id, role: node.role },
-      priority: 'normal'
+      priority: MessagePriority.NORMAL
     });
     
     return node;
@@ -212,7 +214,7 @@ export class SwarmIntelligence {
       description: task.description || '',
       requirements: task.requirements || [],
       constraints: task.constraints || [],
-      priority: task.priority || 'normal',
+      priority: task.priority || TaskPriority.NORMAL,
       status: TaskStatus.QUEUED,
       assignedTo: [],
       progress: 0,
@@ -341,7 +343,7 @@ export class SwarmIntelligence {
           to: nodeId,
           type: MessageType.TASK_REQUEST,
           content: { taskId: task.id, description: task.description },
-          priority: task.priority,
+          priority: task.priority as unknown as MessagePriority,
           ttl: 60000
         });
       }
@@ -406,7 +408,7 @@ export class SwarmIntelligence {
       to: message.to || 'broadcast',
       type: message.type || MessageType.QUERY,
       content: message.content,
-      priority: message.priority || 'normal',
+      priority: message.priority || MessagePriority.NORMAL,
       ttl: message.ttl || 30000,
       createdAt: new Date(),
       expiresAt: new Date(Date.now() + (message.ttl || 30000)),
@@ -446,7 +448,7 @@ export class SwarmIntelligence {
       to: message.to as string,
       type: message.type || MessageType.QUERY,
       content: message.content,
-      priority: message.priority || 'normal',
+      priority: message.priority || MessagePriority.NORMAL,
       ttl: message.ttl || 30000,
       createdAt: new Date(),
       expiresAt: new Date(Date.now() + (message.ttl || 30000)),
@@ -508,7 +510,7 @@ export class SwarmIntelligence {
           to: node.id,
           type: MessageType.PROPOSAL,
           content: { proposal: fullProposal.id },
-          priority: 'high',
+          priority: MessagePriority.HIGH,
           ttl: 30000
         });
       }
