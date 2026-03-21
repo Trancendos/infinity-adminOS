@@ -1,56 +1,60 @@
-# PHASE 28 — Full Security Remediation & Future-Proofing
+# INFINITY PORTAL — Multi-Tenant OS Architecture Implementation
 
-## STEP 1: Triage & Close Duplicate Issues
-- [x] Close all 1,114 duplicate auto-generated issues (bulk close)
-- [x] Read real issues #1, #2, #1081 for context
-- [x] Close #1 [Security Baseline] Wave 2 remediation — resolved
-- [x] Close #2 [Security Readiness] Portfolio remediation checklist — resolved
+## Phase 1: OS Kernel Foundation [IN PROGRESS]
 
-## STEP 2: Fix All 33 Unique CVEs at Source
-- [x] Fix vite@5.x → 7.3.1 (closes 12 CVEs: GHSA-356w, GHSA-4r4m, GHSA-64vr, etc.)
-- [x] Fix vitest@1.x → 4.0.18 across ALL 12 workspaces (removes vite 5 transitive dep)
-- [x] Fix python-jose → PyJWT 2.11.0 (5 CVEs, abandoned package)
-- [x] Fix sqlalchemy → 2.0.40
-- [x] Fix uvicorn → 0.34.3
-- [x] Fix aiohttp → 3.13.3 (3 CVEs: GHSA-54jq, GHSA-69f9, GHSA-6jhg)
-- [x] Fix cryptography → >=46.0.5 (2 CVEs: GHSA-79v4, GHSA-r6ph)
-- [x] Fix python-multipart → 0.0.22 (GHSA-wp53)
-- [x] Fix hono → 4.12.7 (Prototype Pollution — all 4 workers)
-- [x] Fix minimatch → 10.2.4 (ReDoS — via @typescript-eslint 8.x upgrade)
-- [x] Fix serialize-javascript → 7.0.4, esbuild → 0.27.3, undici → 7.22.0
-- [x] Add pnpm.overrides for transitive dependency pinning
-- [x] GitHub Dependabot: 0 open alerts ✅
-- [x] pnpm audit: No known vulnerabilities found ✅
+### 1A: TenantDO Package (Per-Tenant Stateful Kernel)
+- [x] Create `packages/tenant-do/src/index.ts` — Full DO with SQLite, RPC, alarms
+- [x] Create `packages/tenant-do/package.json`
+- [x] Create `packages/tenant-do/tsconfig.json`
+- [x] Create `packages/tenant-do/wrangler.toml` (DO bindings)
+- [x] Create `packages/tenant-do/vitest.config.ts`
+- [x] Create `packages/tenant-do/src/__tests__/tenant-do.test.ts` — 16/16 tests ✅
 
-## STEP 3: Stop Issue Flood — Fix CI Scanner Config
-- [x] Rewrite cve-sla-check.js v2.0 with full deduplication logic
-- [x] Add fingerprint-based dedup (CVE-ID::package) — prevents future flooding
-- [x] Add rate limiting (max 5 issues/run) + severity filter (HIGH/CRITICAL only)
-- [x] Change schedule from every 6h → daily at 07:00 UTC
+### 1B: Dispatch Worker (OS Kernel / Request Router)
+- [x] Create `workers/dispatch/src/types.ts`
+- [x] Create `workers/dispatch/src/middleware/auth.ts`
+- [x] Create `workers/dispatch/src/middleware/ratelimit.ts`
+- [x] Create `workers/dispatch/src/middleware/cors.ts`
+- [x] Create `workers/dispatch/src/router.ts` — Tenant lookup + route to User Worker
+- [x] Create `workers/dispatch/src/index.ts` — Entry point, all requests enter here
+- [x] Create `workers/dispatch/package.json`
+- [x] Create `workers/dispatch/tsconfig.json`
+- [x] Create `workers/dispatch/wrangler.toml` (Workers for Platforms + DO bindings)
+- [x] Create `workers/dispatch/vitest.config.ts`
+- [x] Create `workers/dispatch/src/__tests__/dispatch.test.ts` — 32/32 tests ✅
 
-## STEP 4: Auth API — Complete Deployment
-- [x] Use D1_DATABASE_ID GitHub secret fallback approach in CI
-- [x] Fix TS2322 error in db.ts
-- [x] Remove invalid [[migrations]] section from wrangler.toml
-- [x] Add pnpm install step for auth-api dependencies
-- [ ] ⚠️ ADD GitHub Secret: D1_DATABASE_ID (BLOCKER — Cloudflare Dashboard → D1 → infinity-os-db → UUID)
-- [ ] ⚠️ ADD GitHub Secret: SESSIONS_KV_ID (BLOCKER — Cloudflare Dashboard → KV → infinity-auth-api-SESSIONS → ID)
-- [ ] Verify CLOUDFLARE_API_TOKEN has D1 + KV permissions
-- [ ] Trigger deployment and verify auth-api /health endpoint
+## Phase 2: Ports & Adapters Library ✅
+- [x] Create `packages/adapters/src/ports/storage.ts` — StoragePort interface
+- [x] Create `packages/adapters/src/ports/ai-completion.ts` — AICompletionPort interface
+- [x] Create `packages/adapters/src/ports/vector.ts` — VectorPort interface
+- [x] Create `packages/adapters/src/ports/database.ts` — DatabasePort interface
+- [x] Create `packages/adapters/src/ports/index.ts` — barrel export
+- [x] Create `packages/adapters/src/adapters/cloudflare/` — D1, R2, Workers AI, Vectorize
+- [x] Create `packages/adapters/src/adapters/fallback/` — MemoryStorage, MemoryDatabase
+- [x] Create `packages/adapters/src/adaptive-service.ts` — Auto-failover across adapters
+- [x] Create `packages/adapters/package.json` + `tsconfig.json` + `vitest.config.ts`
+- [x] Tests: 29/29 passed ✅
 
-## STEP 5: Future-Proof Security Architecture
-- [x] Expand dependabot.yml to cover all workers + backend (npm + pip)
-- [x] Rewrite SECURITY.md with full responsible disclosure policy
-- [x] Create SECURITY_STATUS.md with Phase 28 metrics
-- [x] Fix hidden Unicode characters in zscan.yml + ISTA_PORTFOLIO.md (Renovate warning)
-- [ ] Consider adding security headers (CSP, HSTS) to workers
-- [ ] Consider OSSF scorecard workflow
+## Phase 3: AI Gateway & Intelligence Layer ✅
+- [x] Create `packages/ai-gateway/src/types.ts` — Gateway types
+- [x] Create `packages/ai-gateway/src/router.ts` — Routing engine + failover + caching + budget
+- [x] Create `packages/ai-gateway/src/providers/workers-ai.ts` — Cloudflare Workers AI
+- [x] Create `packages/ai-gateway/src/providers/openai.ts` — OpenAI GPT-4o
+- [x] Create `packages/ai-gateway/src/providers/anthropic.ts` — Anthropic Claude
+- [x] Create `packages/ai-gateway/package.json` + `tsconfig.json` + `vitest.config.ts`
+- [x] Tests: 19/19 passed ✅
 
-## STEP 6: Documentation & Project Pulse
-- [x] Write PROJECT_PULSE_SESSION18.md covering Phase 27+28
-- [x] Update SECURITY_STATUS.md with remediation state
+## Phase 4: Build Pipeline Integration & Tests ✅
+- [x] Build: 40/40 turbo tasks GREEN ✅ (was 36)
+- [x] Tests: 45/45 turbo tasks GREEN ✅ (was 40)
+- [ ] Commit and push to GitHub
 
-## OVERALL STATUS
-- Security: ✅ CLEAN (0 CVEs, 0 Dependabot alerts, 0 pnpm audit vulns)
-- Issues: ✅ 1,116 closed, 1 open (Dependency Dashboard — Renovate managed)
-- Deployment: ⚠️ Auth API blocked on D1_DATABASE_ID + SESSIONS_KV_ID secrets
+## Phase 5: Architecture Documentation & Delivery
+- [ ] Update implementation plan with actual code references
+- [ ] Create architecture diagram (HTML)
+- [ ] Present deliverables to user
+
+## BUILD BASELINE
+- Build: 36/36 GREEN ✅ (verified this session)
+- Tests: 40/40 GREEN ✅ (verified last session, commit ac72916)
+- Branch: fix/node22-cors-worker-configs-proactive-hardening

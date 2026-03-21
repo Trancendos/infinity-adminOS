@@ -1,0 +1,23 @@
+{
+  "name": "@trancendos/tenant-do",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TenantDO — Per-Tenant Stateful Kernel (Durable Object with SQLite, RPC, Alarms)",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "eslint src/",
+    "dev": "wrangler dev"
+  },
+  "dependencies": {
+    "hono": "^4.7.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250313.0",
+    "typescript": "^5.7.3",
+    "vitest": "^4.0.18",
+    "wrangler": "^4.10.0"
+  }
+}

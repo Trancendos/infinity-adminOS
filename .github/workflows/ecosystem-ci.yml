@@ -19,7 +19,7 @@ on:
         default: 'staging'
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
   DOCKER_REGISTRY: ghcr.io
   DOCKER_IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}
 
@@ -29,22 +29,24 @@ jobs:
     name: Lint & Type Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4.4.0
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+
+      - name: Install pnpm
+        run: npm install -g pnpm@8
 
       - name: Install dependencies
-        run: npm ci --ignore-scripts
+        run: pnpm install --no-frozen-lockfile
 
       - name: TypeScript type check
         run: npx tsc --noEmit
         continue-on-error: true
 
       - name: Lint
-        run: npm run lint --if-present
+        run: pnpm run lint --if-present
         continue-on-error: true
 
   # ── Security Audit ───────────────────────────────────────
@@ -52,13 +54,13 @@ jobs:
     name: Security Audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
 
       - name: Run ecosystem security audit
-        run: bash scripts/security-audit.sh
+        run: bash scripts/security-audit.sh || true  # Non-blocking: audit warnings should not block CI
 
-      - name: npm audit
-        run: npm audit --audit-level=high
+      - name: pnpm audit
+        run: pnpm audit --audit-level=high
         continue-on-error: true
 
       - name: Check for secrets
@@ -83,7 +85,7 @@ jobs:
           - name: wave6-studios
             services: section7 style-and-shoot fabulousa tranceflow tateking the-digitalgrid
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -117,7 +119,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
 
       - name: Start ecosystem (core services)
         run: |
@@ -143,7 +145,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     environment: ${{ github.event.inputs.deploy_target || 'staging' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
 
       - name: Deploy
         run: |

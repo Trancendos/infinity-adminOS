@@ -1,0 +1,19 @@
+name = "pqc-service"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+DPID = "DPID-DIM-SEC-PQC-001"
+SERVICE_NAME = "PQC Service"
+PORT = "3079"
+ECOSYSTEM = "GUARDIAN"
+PQC_ALGORITHM = "ML-KEM-768"
+KEY_ROTATION_INTERVAL_HOURS = "24"
+QUANTUM_THREAT_LEVEL = "HARVEST_NOW_DECRYPT_LATER"
+
+[[services]]
+binding = "SENTINEL_STATION"
+service = "sentinel-station"
+
+[dev]
+port = 3079

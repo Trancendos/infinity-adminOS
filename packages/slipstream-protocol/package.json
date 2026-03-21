@@ -1,0 +1,19 @@
+{
+  "name": "@trancendos/slipstream-protocol",
+  "version": "1.0.0",
+  "description": "Slipstream Handshake Protocol — shared TypeScript types, enums, passport SDK. DPID: DPID-PKG-SLP-001",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240101.0",
+    "typescript": "^5.3.0"
+  }
+}

@@ -1,0 +1,20 @@
+name = "l402-gateway"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+DPID = "DPID-ECO-L402-001"
+SERVICE_NAME = "L402 Gateway"
+PORT = "3083"
+ECOSYSTEM = "SOVEREIGN"
+LIGHTNING_NETWORK = "mainnet"
+MACAROON_TTL_SECONDS = "3600"
+DEFAULT_PRICE_SATS = "10"
+TRAN_CONVERSION_RATE = "1000"
+
+[[services]]
+binding = "SENTINEL_STATION"
+service = "sentinel-station"
+
+[dev]
+port = 3083

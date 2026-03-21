@@ -1,0 +1,14 @@
+name = "dpid-registry"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+DPID = "DPID-REG-CORE-001"
+SERVICE_NAME = "DPID Registry Service"
+PORT = "3084"
+ECOSYSTEM = "NEXUS"
+REGISTRY_VERSION = "3.0"
+AUTO_REGISTER = "true"
+
+[dev]
+port = 3084
