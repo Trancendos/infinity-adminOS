@@ -179,9 +179,7 @@ export class HealthCheckRegistry {
         break;
       }
       if (result.status === HealthStatus.DEGRADED || result.status === HealthStatus.UNHEALTHY) {
-        if (overallStatus !== HealthStatus.UNHEALTHY) {
-          overallStatus = HealthStatus.DEGRADED;
-        }
+        overallStatus = HealthStatus.DEGRADED;
       }
     }
 

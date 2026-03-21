@@ -138,7 +138,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Install license-checker
         run: npm install -g license-checker
@@ -147,7 +147,8 @@ jobs:
         run: |
           # Scan root package
           if [ -f package.json ]; then
-            npm install --ignore-scripts 2>/dev/null || true
+            npm install -g pnpm@8 2>/dev/null || true
+            pnpm install --no-frozen-lockfile 2>/dev/null || true
             license-checker --json --out /tmp/node-licenses.json 2>/dev/null || true
           fi
 

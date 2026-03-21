@@ -19,14 +19,15 @@
     "clean": "turbo run clean"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.32.0",
+    "@typescript-eslint/parser": "^8.32.0",
+    "eslint": "^8.55.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.3.1",
+    "prettier": "^3.1.0",
     "turbo": "^2.0.0",
     "typescript": "^5.3.0",
-    "prettier": "^3.1.0",
-    "eslint": "^8.55.0",
-    "@typescript-eslint/eslint-plugin": "^6.13.0",
-    "@typescript-eslint/parser": "^6.13.0",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.3.1"
+    "vitest": "^4.0.18"
   },
   "engines": {
     "node": ">=20.0.0",
@@ -40,7 +41,20 @@
     "modules/*"
   ],
   "lint-staged": {
-    "*.{ts,tsx}": ["eslint --fix", "prettier --write"],
-    "*.{json,md,css}": ["prettier --write"]
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,css}": [
+      "prettier --write"
+    ]
+  },
+  "pnpm": {
+    "overrides": {
+      "minimatch": ">=9.0.7",
+      "serialize-javascript": ">=7.0.3",
+      "esbuild": ">=0.25.0",
+      "undici": ">=6.23.0"
+    }
   }
 }

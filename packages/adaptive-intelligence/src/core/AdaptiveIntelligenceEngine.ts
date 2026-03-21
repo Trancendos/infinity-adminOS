@@ -53,7 +53,8 @@ import {
   SwarmRole,
   SwarmState,
   HolographicInterface,
-  PostQuantumCrypto
+  PostQuantumCrypto,
+  EmotionType,
 } from '../types';
 
 // ============================================================================
@@ -330,8 +331,8 @@ export class AdaptiveIntelligenceEngine {
       arousal: 0.3,
       dominance: 0.6,
       emotions: [
-        { type: 'interest' as const, intensity: 0.7 },
-        { type: 'satisfaction' as const, intensity: 0.5 }
+        { type: EmotionType.INTEREST, intensity: 0.7 },
+        { type: EmotionType.SATISFACTION, intensity: 0.5 }
       ],
       detectedAt: new Date(),
       confidence: 0.85
@@ -680,7 +681,7 @@ export class AdaptiveIntelligenceEngine {
   private async updateCapabilities(improvement: { overallScore: number }): Promise<void> {
     for (const capability of this.profile.capabilities) {
       capability.maturity = Math.min(1, capability.maturity + improvement.overallScore * 0.01);
-      capability.performance.accuracy += improvement.accuracyDelta * 0.01;
+      capability.performance.accuracy += improvement.overallScore * 0.01;
     }
     this.profile.updatedAt = new Date();
   }
@@ -823,7 +824,7 @@ class DecisionEngine {
       id: `${Date.now()}`,
       context: situation,
       options,
-      selectedOption,
+      selectedOption: selectedOption.id,
       reasoning: {
         factors: [],
         logic: 'risk_adjusted_utility_maximization',
