@@ -3,7 +3,7 @@
 
 name = "infinity-one"
 main = "src/index.ts"
-compatibility_date = "2024-09-23"
+compatibility_date = "2025-03-01"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
@@ -52,3 +52,7 @@ id = "placeholder-infinity-one-sessions-kv-staging-id"
 [[env.staging.kv_namespaces]]
 binding = "KV_RATE_LIMIT"
 id = "placeholder-infinity-one-ratelimit-kv-staging-id"
+# ── Observability ────────────────────────────────────
+[observability]
+enabled = true
+head_sampling_rate = 1.0
