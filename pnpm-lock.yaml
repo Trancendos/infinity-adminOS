@@ -1058,8 +1058,8 @@ importers:
         specifier: ^4.20231218.0
         version: 4.20260317.1
       miniflare:
-        specifier: ^3.20250718.3
-        version: 3.20250718.3
+        specifier: ^4.20260317.1
+        version: 4.20260317.1
       typescript:
         specifier: ^5.3.0
         version: 5.9.3
