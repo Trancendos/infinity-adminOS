@@ -1,9 +1,10 @@
 ---
-name: "🐛 Bug Report"
-about: "Report a broken feature, UI glitch, or system failure."
+name: "\U0001F41B Bug Report"
+about: Report a broken feature, UI glitch, or system failure.
 title: "[BUG] - Brief description"
-labels: "bug, triage"
-assignees: ""
+labels: bug
+assignees: ''
+
 ---
 
 ## 🎟️ Ticket Scope & Complexity

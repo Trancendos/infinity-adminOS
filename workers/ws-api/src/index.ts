@@ -155,7 +155,7 @@ async function verifyToken(token: string, env: Env): Promise<{ userId: string; r
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const { pathname } = url;
     const origin = getAllowedOrigin(request, env);
