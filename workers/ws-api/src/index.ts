@@ -155,7 +155,7 @@ async function verifyToken(token: string, env: Env): Promise<{ userId: string; r
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const { pathname } = url;
     const origin = getAllowedOrigin(request, env);
@@ -230,6 +230,14 @@ export default {
         body: JSON.stringify(body),
         headers: { 'Content-Type': 'application/json' },
       }));
+    }
+
+    // List active rooms (static list — Durable Objects don't have enumeration)
+    if (pathname === '/api/v1/ws/rooms' && request.method === 'GET') {
+      return new Response(JSON.stringify({ rooms: [] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+      });
     }
 
     return new Response(JSON.stringify({ error: 'Not found' }), {
