@@ -119,7 +119,7 @@ async function setCachedResponse(env: Env, cacheKey: string, response: Response,
 
 /* ── Main Handler ──────────────────────────────────────── */
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const origin = getAllowedOrigin(request);
     const corsHeaders: Record<string, string> = origin
