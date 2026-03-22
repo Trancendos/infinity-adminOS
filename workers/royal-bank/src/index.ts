@@ -18,7 +18,7 @@ import type {
   ResearchReport,
   FinancialAuditEntry,
   ZeroCostAlternative,
-} from '../../financial-types/src/index';
+} from '@arcadia/financial-types';
 
 // ─── ENVIRONMENT BINDINGS ────────────────────────────────────────────────────
 
@@ -587,7 +587,7 @@ For each alternative, provide:
 Focus on: open-source tools, free tiers, self-hosted solutions, and community alternatives.
 Return as JSON array.`;
 
-    const response = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+    const response = await env.AI.run('@cf/meta/llama-3.1-8b-instruct' as any, {
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 500,
     });
@@ -757,7 +757,7 @@ Consider: DeFi yields, affiliate programs, API monetisation, white-labelling, ma
 
   let aiResponse = '';
   try {
-    const response = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+    const response = await env.AI.run('@cf/meta/llama-3.1-8b-instruct' as any, {
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 1000,
     });
