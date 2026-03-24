@@ -1,0 +1,231 @@
+{
+  "description": "Cloudflare Zero Trust Access Policies - Free Tier (50 Users)",
+  "version": "1.0.0",
+  "applications": [
+    {
+      "name": "infinity-portal-main",
+      "domain": "transcendos.com",
+      "type": "self_hosted",
+      "policy": {
+        "name": "Public Access",
+        "precedence": 1,
+        "decision": "allow",
+        "include": [
+          {"everyone": {}}
+        ]
+      },
+      "notes": "Main portal is publicly accessible"
+    },
+    {
+      "name": "infinity-portal-admin",
+      "domain": "admin.transcendos.com",
+      "type": "self_hosted",
+      "policy": {
+        "name": "Admin Access Policy",
+        "precedence": 1,
+        "decision": "allow",
+        "include": [
+          {"email_domain": {"domain": "transcendos.com"}},
+          {"email": {"email": "admin@transcendos.com"}}
+        ],
+        "require": [
+          {"mfa": {"type": "any"}}
+        ]
+      },
+      "notes": "Admin panel requires email domain + MFA"
+    },
+    {
+      "name": "infinity-portal-api-internal",
+      "domain": "internal-api.transcendos.com",
+      "type": "self_hosted",
+      "policy": {
+        "name": "Internal API Access",
+        "precedence": 1,
+        "decision": "allow",
+        "include": [
+          {"email_domain": {"domain": "transcendos.com"}},
+          {"group": {"name": "developers"}},
+          {"group": {"name": "services"}}
+        ]
+      },
+      "notes": "Internal API access for team members"
+    },
+    {
+      "name": "infinity-portal-staging",
+      "domain": "staging.transcendos.com",
+      "type": "self_hosted",
+      "policy": {
+        "name": "Staging Access Policy",
+        "precedence": 1,
+        "decision": "allow",
+        "include": [
+          {"email_domain": {"domain": "transcendos.com"}},
+          {"group": {"name": "developers"}},
+          {"group": {"name": "qa"}}
+        ]
+      },
+      "notes": "Staging environment for development team"
+    },
+    {
+      "name": "infinity-portal-monitoring",
+      "domain": "monitoring.transcendos.com",
+      "type": "self_hosted",
+      "policy": {
+        "name": "Monitoring Access Policy",
+        "precedence": 1,
+        "decision": "allow",
+        "include": [
+          {"email_domain": {"domain": "transcendos.com"}},
+          {"group": {"name": "ops"}}
+        ]
+      },
+      "notes": "Monitoring dashboard for operations team"
+    },
+    {
+      "name": "infinity-portal-void",
+      "domain": "void.transcendos.com",
+      "type": "self_hosted",
+      "policy": {
+        "name": "VOID Secrets Manager Access",
+        "precedence": 1,
+        "decision": "allow",
+        "include": [
+          {"group": {"name": "admins"}}
+        ],
+        "require": [
+          {"mfa": {"type": "hardware"}},
+          {"device_posture": {"integration": "device_posture", "id": "corporate_device"}}
+        ]
+      },
+      "notes": "Secrets manager requires hardware MFA + corporate device"
+    },
+    {
+      "name": "infinity-portal-hive",
+      "domain": "hive.transcendos.com",
+      "type": "self_hosted",
+      "policy": {
+        "name": "HIVE Router Access",
+        "precedence": 1,
+        "decision": "allow",
+        "include": [
+          {"service_account": {"name": "internal-services"}}
+        ]
+      },
+      "notes": "Internal service-to-service communication"
+    }
+  ],
+  "groups": [
+    {
+      "name": "admins",
+      "description": "Platform administrators with full access",
+      "include": [
+        {"email_domain": {"domain": "transcendos.com"}}
+      ]
+    },
+    {
+      "name": "developers",
+      "description": "Development team members",
+      "include": [
+        {"email_domain": {"domain": "transcendos.com"}}
+      ]
+    },
+    {
+      "name": "ops",
+      "description": "Operations and DevOps team",
+      "include": [
+        {"email_domain": {"domain": "transcendos.com"}}
+      ]
+    },
+    {
+      "name": "qa",
+      "description": "Quality assurance team",
+      "include": [
+        {"email_domain": {"domain": "transcendos.com"}}
+      ]
+    },
+    {
+      "name": "services",
+      "description": "Service accounts for internal APIs",
+      "include": [
+        {"service_account": {"name": "infinity-one"}},
+        {"service_account": {"name": "lighthouse"}},
+        {"service_account": {"name": "hive"}},
+        {"service_account": {"name": "void"}}
+      ]
+    }
+  ],
+  "identity_providers": [
+    {
+      "name": "GitHub",
+      "type": "github",
+      "config": {
+        "client_id": "${GITHUB_CLIENT_ID}",
+        "client_secret": "${GITHUB_CLIENT_SECRET}"
+      }
+    },
+    {
+      "name": "Google",
+      "type": "google",
+      "config": {
+        "client_id": "${GOOGLE_CLIENT_ID}",
+        "client_secret": "${GOOGLE_CLIENT_SECRET}"
+      }
+    },
+    {
+      "name": "One-Time PIN",
+      "type": "onetimepin",
+      "config": {}
+    }
+  ],
+  "device_posture_rules": [
+    {
+      "name": "corporate_device",
+      "type": "device_posture",
+      "check": {
+        "type": "file",
+        "path": "/etc/transcendos-device-certificate",
+        "exists": true
+      }
+    },
+    {
+      "name": "updated_os",
+      "type": "device_posture",
+      "check": {
+        "type": "os_version",
+        "min_version": {
+          "macos": "13.0",
+          "windows": "11.0",
+          "ios": "17.0",
+          "android": "14.0"
+        }
+      }
+    }
+  ],
+  "gateway_settings": {
+    "dns_filtering": {
+      "enabled": true,
+      "categories": {
+        "block": [
+          "Malware",
+          "Phishing",
+          "Cryptomining",
+          "New Domains"
+        ],
+        "warn": [
+          "Gambling",
+          "Social Media"
+        ]
+      }
+    },
+    "http_filtering": {
+      "enabled": true,
+      "inspect_ssl": true,
+      "block_categories": [
+        "Malware",
+        "Phishing",
+        "Cryptomining",
+        "Command and Control"
+      ]
+    }
+  }
+}
