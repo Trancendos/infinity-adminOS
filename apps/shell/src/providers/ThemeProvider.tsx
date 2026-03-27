@@ -1,62 +1,57 @@
 /**
- * ThemeProvider — Manages Infinity OS visual themes
- * Supports: light, dark, high-contrast, system, custom
- * WCAG 2.2 AA compliant colour tokens throughout
+ * ThemeProvider — Manages theme state (light/dark/high-contrast/system)
+ * Persists preference to kernel storage
+ * Applies CSS class to document root
  */
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 type Theme = 'light' | 'dark' | 'high-contrast' | 'system';
 
 interface ThemeContextValue {
   theme: Theme;
-  resolvedTheme: 'light' | 'dark' | 'high-contrast';
   setTheme: (theme: Theme) => void;
+  resolvedTheme: 'light' | 'dark' | 'high-contrast';
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
+function getSystemTheme(): 'light' | 'dark' {
+  if (typeof window === 'undefined') return 'light';
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
-    return (localStorage.getItem('infinity-os:theme') as Theme) ?? 'system';
+    if (typeof window === 'undefined') return 'system';
+    return (localStorage.getItem('infinity-os-theme') as Theme) ?? 'system';
   });
 
-  const getResolvedTheme = (t: Theme): 'light' | 'dark' | 'high-contrast' => {
-    if (t === 'system') {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    return t;
-  };
+  const resolvedTheme = theme === 'system' ? getSystemTheme() : theme;
 
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark' | 'high-contrast'>(
-    () => getResolvedTheme(theme)
-  );
+  const setTheme = useCallback((newTheme: Theme) => {
+    setThemeState(newTheme);
+    localStorage.setItem('infinity-os-theme', newTheme);
+  }, []);
 
+  // Apply theme class to document
   useEffect(() => {
-    const resolved = getResolvedTheme(theme);
-    setResolvedTheme(resolved);
-
     const root = document.documentElement;
-    root.classList.remove('theme-light', 'theme-dark', 'theme-high-contrast');
-    root.classList.add(`theme-${resolved}`);
-    root.setAttribute('data-theme', resolved);
-
-    localStorage.setItem('infinity-os:theme', theme);
+    root.classList.remove('theme-light', 'theme-dark', 'theme-high-contrast', 'theme-system');
+    root.classList.add(`theme-${theme}`);
   }, [theme]);
 
   // Listen for system theme changes
   useEffect(() => {
     if (theme !== 'system') return;
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = () => setResolvedTheme(mq.matches ? 'dark' : 'light');
+    const handler = () => setThemeState('system'); // trigger re-render
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
   }, [theme]);
 
-  const setTheme = (t: Theme) => setThemeState(t);
-
   return (
-    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme, resolvedTheme }}>
       {children}
     </ThemeContext.Provider>
   );
