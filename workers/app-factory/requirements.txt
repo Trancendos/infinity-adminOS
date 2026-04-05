@@ -18,13 +18,13 @@ orjson==3.11.7
 # HTTP & Async
 aiohttp==3.13.3
 httpx==0.28.1
-requests==2.32.4
+requests==2.33.0
 
 # Caching & Database
 redis[hiredis]==5.2.1
 
 # AI Provider SDKs
-google-generativeai==0.8.5
+google-generativeai==0.8.6
 
 # Security & Auth — python-jose REPLACED with PyJWT (5 CVEs fixed)
 # python-jose is abandoned with multiple unpatched vulnerabilities
