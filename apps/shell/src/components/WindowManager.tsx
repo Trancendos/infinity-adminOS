@@ -1,322 +1,11 @@
 /**
- * WindowManager — Infinity OS Window System
- * ============================================================
- * Premium Figma-grade window management with:
- * - Draggable windows with mouse tracking
- * - Resizable from edges and corners
- * - macOS-style traffic light controls (close/minimise/maximise)
- * - Glassmorphism title bar with module icon
- * - Smooth open/close/maximise animations
- * - Snap-to-edge on maximise
- * - WCAG 2.2 AA: keyboard close (Ctrl+W), focus management
- * ============================================================
+ * WindowManager — Draggable, resizable window system
+ * Manages z-order, focus, minimise, maximise, close
  */
 
-import React, { Suspense, lazy, useState, useCallback, useRef, useEffect } from 'react';
+import React, { useRef, useCallback } from 'react';
 import type { Window as OSWindow } from '@infinity-os/types';
 
-// ─── Lazy-load modules ───
-const AdminPanel = lazy(() => import('../modules/AdminPanel'));
-const ComplianceDashboard = lazy(() => import('../modules/ComplianceDashboard'));
-const HITLDashboard = lazy(() => import('../modules/HITLDashboard'));
-const RepositoryManager = lazy(() => import('../modules/RepositoryManager'));
-const BuildManager = lazy(() => import('../modules/BuildManager'));
-const FederationDashboard = lazy(() => import('../modules/FederationDashboard'));
-const KanbanBoard = lazy(() => import('../modules/KanbanBoard'));
-const FileManager = lazy(() => import('../modules/FileManager'));
-const AIStudio = lazy(() => import('../modules/AIStudio'));
-const Settings = lazy(() => import('../modules/Settings'));
-const Terminal = lazy(() => import('../modules/Terminal'));
-const IntegrationHub = lazy(() => import('../modules/IntegrationHub'));
-const AppStore = lazy(() => import('../modules/AppStore'));
-const NotificationCentre = lazy(() => import('../modules/NotificationCentre'));
-const ITSMDashboard = lazy(() => import('../modules/ITSMDashboard'));
-const ProjectGates = lazy(() => import('../modules/ProjectGates'));
-const TownHallDashboard = lazy(() => import('../modules/TownHallDashboard'));
-const DocumentLibrary = lazy(() => import('../modules/DocumentLibrary'));
-const AssetRegistry = lazy(() => import('../modules/AssetRegistry'));
-const KnowledgeHub = lazy(() => import('../modules/KnowledgeHub'));
-const DependencyMap = lazy(() => import('../modules/DependencyMap'));
-const WorkflowBuilder = lazy(() => import('../modules/WorkflowBuilder'));
-const SecretsVault = lazy(() => import('../modules/SecretsVault'));
-const ObservabilityDashboard = lazy(() => import('../modules/ObservabilityDashboard'));
-const InfinityOneDashboard = lazy(() => import('../modules/InfinityOneDashboard'));
-const LighthouseDashboard = lazy(() => import('../modules/LighthouseDashboard'));
-const HiveDashboard = lazy(() => import('../modules/HiveDashboard'));
-const VoidDashboard = lazy(() => import('../modules/VoidDashboard'));
-const PlatformObservatory = lazy(() => import('../modules/PlatformObservatory'));
-
-// ─── Module loading fallback ───
-function ModuleLoading() {
-  return (
-    <div className="window__loading" role="status" aria-label="Loading module">
-      <div className="window__loading-spinner" />
-      <p className="window__loading-text">Loading module…</p>
-    </div>
-  );
-}
-
-function PlaceholderModule({ name, icon }: { name: string; icon: string }) {
-  return (
-    <div className="window__placeholder">
-      <span className="window__placeholder-icon">{icon}</span>
-      <h3 className="window__placeholder-title">{name}</h3>
-      <p className="window__placeholder-text">Module coming soon</p>
-    </div>
-  );
-}
-
-// ─── Module renderer ───
-function ModuleRenderer({ moduleId }: { moduleId: string }) {
-  const moduleMap: Record<string, React.ReactNode> = {
-    'com.infinity-os.admin-panel': <AdminPanel />,
-    'com.infinity-os.compliance': <ComplianceDashboard />,
-    'com.infinity-os.hitl-dashboard': <HITLDashboard />,
-    'com.infinity-os.repositories': <RepositoryManager />,
-    'com.infinity-os.build-manager': <BuildManager />,
-    'com.infinity-os.federation': <FederationDashboard />,
-    'com.infinity-os.kanban': <KanbanBoard />,
-    'com.infinity-os.file-manager': <FileManager />,
-    'com.infinity-os.terminal': <Terminal />,
-    'com.infinity-os.settings': <Settings />,
-    'com.infinity-os.ai-studio': <AIStudio />,
-    'com.infinity-os.integrations': <IntegrationHub />,
-    'com.infinity-os.appstore': <AppStore />,
-    'com.infinity-os.notifications': <NotificationCentre />,
-    'com.infinity-os.itsm': <ITSMDashboard />,
-    'com.infinity-os.gates': <ProjectGates />,
-    'com.infinity-os.townhall': <TownHallDashboard />,
-    'com.infinity-os.documents': <DocumentLibrary />,
-    'com.infinity-os.assets': <AssetRegistry />,
-    'com.infinity-os.knowledge': <KnowledgeHub />,
-    'com.infinity-os.dependencies': <DependencyMap />,
-    'com.infinity-os.workflows': <WorkflowBuilder />,
-    'com.infinity-os.secrets': <SecretsVault />,
-    'com.infinity-os.observability': <ObservabilityDashboard />,
-    'com.infinity-os.infinity-one': <InfinityOneDashboard />,
-    'com.infinity-os.lighthouse': <LighthouseDashboard />,
-    'com.infinity-os.hive': <HiveDashboard />,
-    'com.infinity-os.void': <VoidDashboard />,
-    'com.infinity-os.observatory': <PlatformObservatory />,
-    'com.infinity-os.text-editor': <PlaceholderModule name="Text Editor" icon="📝" />,
-    'com.infinity-os.browser': <PlaceholderModule name="Browser" icon="🌐" />,
-    'com.infinity-os.media-player': <PlaceholderModule name="Media Player" icon="🎵" />,
-    'com.infinity-os.calendar': <PlaceholderModule name="Calendar" icon="📅" />,
-    'com.infinity-os.mail': <PlaceholderModule name="Mail" icon="✉️" />,
-    'com.infinity-os.notes': <PlaceholderModule name="Notes" icon="📒" />,
-  };
-
-  return (
-    <Suspense fallback={<ModuleLoading />}>
-      {moduleMap[moduleId] || <PlaceholderModule name={moduleId} icon="📦" />}
-    </Suspense>
-  );
-}
-
-// ─── Single Window Component ───
-interface WindowComponentProps {
-  win: OSWindow;
-  onClose: (id: string) => void;
-  onFocus: (id: string) => void;
-  onUpdate: (id: string, updates: Partial<OSWindow>) => void;
-}
-
-function WindowComponent({ win, onClose, onFocus, onUpdate }: WindowComponentProps) {
-  const windowRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
-  const dragOffset = useRef({ x: 0, y: 0 });
-  const resizeStart = useRef({ x: 0, y: 0, w: 0, h: 0 });
-  const [preMaxState, setPreMaxState] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
-
-  // Drag handlers
-  const handleDragStart = useCallback((e: React.MouseEvent) => {
-    if (win.isMaximised) return;
-    e.preventDefault();
-    onFocus(win.id);
-    setIsDragging(true);
-    dragOffset.current = { x: e.clientX - win.x, y: e.clientY - win.y };
-  }, [win.id, win.x, win.y, win.isMaximised, onFocus]);
-
-  useEffect(() => {
-    if (!isDragging) return;
-    const handleMove = (e: MouseEvent) => {
-      onUpdate(win.id, {
-        x: Math.max(0, e.clientX - dragOffset.current.x),
-        y: Math.max(0, e.clientY - dragOffset.current.y),
-      });
-    };
-    const handleUp = () => setIsDragging(false);
-    window.addEventListener('mousemove', handleMove);
-    window.addEventListener('mouseup', handleUp);
-    return () => {
-      window.removeEventListener('mousemove', handleMove);
-      window.removeEventListener('mouseup', handleUp);
-    };
-  }, [isDragging, win.id, onUpdate]);
-
-  // Resize handlers
-  const handleResizeStart = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onFocus(win.id);
-    setIsResizing(true);
-    resizeStart.current = { x: e.clientX, y: e.clientY, w: win.width, h: win.height };
-  }, [win.id, win.width, win.height, onFocus]);
-
-  useEffect(() => {
-    if (!isResizing) return;
-    const handleMove = (e: MouseEvent) => {
-      const dx = e.clientX - resizeStart.current.x;
-      const dy = e.clientY - resizeStart.current.y;
-      onUpdate(win.id, {
-        width: Math.max(400, resizeStart.current.w + dx),
-        height: Math.max(300, resizeStart.current.h + dy),
-      });
-    };
-    const handleUp = () => setIsResizing(false);
-    window.addEventListener('mousemove', handleMove);
-    window.addEventListener('mouseup', handleUp);
-    return () => {
-      window.removeEventListener('mousemove', handleMove);
-      window.removeEventListener('mouseup', handleUp);
-    };
-  }, [isResizing, win.id, onUpdate]);
-
-  // Maximise toggle
-  const handleMaximise = useCallback(() => {
-    if (win.isMaximised) {
-      // Restore
-      if (preMaxState) {
-        onUpdate(win.id, { ...preMaxState, isMaximised: false });
-        setPreMaxState(null);
-      } else {
-        onUpdate(win.id, { isMaximised: false });
-      }
-    } else {
-      setPreMaxState({ x: win.x, y: win.y, width: win.width, height: win.height });
-      onUpdate(win.id, { isMaximised: true });
-    }
-  }, [win, preMaxState, onUpdate]);
-
-  // Double-click title bar to maximise
-  const handleTitleDoubleClick = useCallback(() => {
-    handleMaximise();
-  }, [handleMaximise]);
-
-  if (win.isMinimised) return null;
-
-  const style: React.CSSProperties = win.isMaximised
-    ? { position: 'fixed', top: 0, left: 0, right: 0, bottom: 64, zIndex: win.zIndex }
-    : { position: 'absolute', top: win.y, left: win.x, width: win.width, height: win.height, zIndex: win.zIndex };
-
-  return (
-    <div
-      ref={windowRef}
-      className={`window ${win.isFocused ? 'window--focused' : ''} ${win.isMaximised ? 'window--maximised' : ''}`}
-      style={style}
-      onMouseDown={() => onFocus(win.id)}
-      role="dialog"
-      aria-label={`${win.title} window`}
-    >
-      {/* Title bar */}
-      <div
-        className="window__titlebar"
-        onMouseDown={handleDragStart}
-        onDoubleClick={handleTitleDoubleClick}
-      >
-        {/* Traffic light controls */}
-        <div className="window__controls" role="group" aria-label="Window controls">
-          <button
-            className="window__control window__control--close"
-            onClick={(e) => { e.stopPropagation(); onClose(win.id); }}
-            aria-label="Close window"
-            title="Close"
-          >
-            <svg viewBox="0 0 12 12" width="8" height="8"><path d="M3.172 3.172a.5.5 0 01.707 0L6 5.293l2.121-2.121a.5.5 0 01.707.707L6.707 6l2.121 2.121a.5.5 0 01-.707.707L6 6.707 3.879 8.828a.5.5 0 01-.707-.707L5.293 6 3.172 3.879a.5.5 0 010-.707z" fill="currentColor"/></svg>
-          </button>
-          <button
-            className="window__control window__control--minimise"
-            onClick={(e) => { e.stopPropagation(); onUpdate(win.id, { isMinimised: true }); }}
-            aria-label="Minimise window"
-            title="Minimise"
-          >
-            <svg viewBox="0 0 12 12" width="8" height="8"><path d="M3 6h6" stroke="currentColor" strokeWidth="1.5" fill="none"/></svg>
-          </button>
-          <button
-            className="window__control window__control--maximise"
-            onClick={(e) => { e.stopPropagation(); handleMaximise(); }}
-            aria-label={win.isMaximised ? 'Restore window' : 'Maximise window'}
-            title={win.isMaximised ? 'Restore' : 'Maximise'}
-          >
-            {win.isMaximised ? (
-              <svg viewBox="0 0 12 12" width="8" height="8"><rect x="2.5" y="2.5" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.2" fill="none"/></svg>
-            ) : (
-              <svg viewBox="0 0 12 12" width="8" height="8"><path d="M3.5 4.5v4h4m-5-3v-2a1 1 0 011-1h2" stroke="currentColor" strokeWidth="1.2" fill="none"/></svg>
-            )}
-          </button>
-        </div>
-
-        {/* Title */}
-        <span className="window__title">{win.title}</span>
-
-        {/* Spacer for centering */}
-        <div className="window__titlebar-spacer" />
-      </div>
-
-      {/* Content */}
-      <div className="window__content">
-        <ModuleRenderer moduleId={win.moduleId} />
-      </div>
-
-      {/* Resize handle (bottom-right corner) */}
-      {!win.isMaximised && (
-        <div
-          className="window__resize-handle"
-          onMouseDown={handleResizeStart}
-          aria-hidden="true"
-        />
-      )}
-    </div>
-  );
-}
-
-// ─── Module Registry ───
-export const MODULE_REGISTRY = [
-  { id: 'com.infinity-os.kanban', name: 'Task Board', icon: '📋', category: 'productivity' },
-  { id: 'com.infinity-os.admin-panel', name: 'Admin Panel', icon: '👥', category: 'system' },
-  { id: 'com.infinity-os.townhall', name: 'The TownHall', icon: '🏛️', category: 'governance' },
-  { id: 'com.infinity-os.compliance', name: 'Compliance', icon: '🛡️', category: 'governance' },
-  { id: 'com.infinity-os.hitl-dashboard', name: 'HITL Oversight', icon: '🔍', category: 'governance' },
-  { id: 'com.infinity-os.repositories', name: 'Repositories', icon: '📦', category: 'development' },
-  { id: 'com.infinity-os.build-manager', name: 'Build & Package', icon: '🔨', category: 'development' },
-  { id: 'com.infinity-os.federation', name: 'Federation Hub', icon: '🌐', category: 'system' },
-  { id: 'com.infinity-os.file-manager', name: 'Files', icon: '📁', category: 'productivity' },
-  { id: 'com.infinity-os.text-editor', name: 'Editor', icon: '📝', category: 'productivity' },
-  { id: 'com.infinity-os.terminal', name: 'Terminal', icon: '💻', category: 'development' },
-  { id: 'com.infinity-os.ai-studio', name: 'AI Studio', icon: '🤖', category: 'ai' },
-  { id: 'com.infinity-os.integrations', name: 'Integrations', icon: '🔗', category: 'system' },
-  { id: 'com.infinity-os.appstore', name: 'App Store', icon: '🏪', category: 'system' },
-  { id: 'com.infinity-os.notifications', name: 'Notifications', icon: '🔔', category: 'system' },
-  { id: 'com.infinity-os.settings', name: 'Settings', icon: '⚙️', category: 'system' },
-  { id: 'com.infinity-os.browser', name: 'Browser', icon: '🌐', category: 'productivity' },
-  { id: 'com.infinity-os.itsm', name: 'ITSM', icon: '🎫', category: 'management' },
-  { id: 'com.infinity-os.gates', name: 'Project Gates', icon: '🚦', category: 'management' },
-  { id: 'com.infinity-os.documents', name: 'Documents', icon: '📚', category: 'management' },
-  { id: 'com.infinity-os.assets', name: 'Asset Registry', icon: '🏷', category: 'management' },
-  { id: 'com.infinity-os.knowledge', name: 'Knowledge Hub', icon: '🧠', category: 'management' },
-  { id: 'com.infinity-os.dependencies', name: 'Dependencies', icon: '🗺', category: 'management' },
-  { id: 'com.infinity-os.workflows', name: 'Workflow Builder', icon: '⚡', category: 'automation' },
-  { id: 'com.infinity-os.secrets', name: 'Secrets Vault', icon: '🔑', category: 'security' },
-  { id: 'com.infinity-os.observability', name: 'Observability', icon: '📊', category: 'operations' },
-  { id: 'com.infinity-os.infinity-one', name: 'Infinity-One IAM', icon: '∞', category: 'platform-core' },
-  { id: 'com.infinity-os.lighthouse', name: 'Lighthouse', icon: '🔦', category: 'platform-core' },
-  { id: 'com.infinity-os.hive', name: 'HIVE', icon: '🐝', category: 'platform-core' },
-  { id: 'com.infinity-os.void', name: 'The Void', icon: '🌌', category: 'platform-core' },
-  { id: 'com.infinity-os.observatory', name: 'Observatory', icon: '🔭', category: 'platform-core' },
-];
-
-// ─── Window Manager ───
 interface WindowManagerProps {
   windows: OSWindow[];
   onClose: (windowId: string) => void;
@@ -324,20 +13,255 @@ interface WindowManagerProps {
   onUpdate: (windowId: string, updates: Partial<OSWindow>) => void;
 }
 
+interface DragState {
+  windowId: string;
+  startX: number;
+  startY: number;
+  startWinX: number;
+  startWinY: number;
+}
+
 export function WindowManager({ windows, onClose, onFocus, onUpdate }: WindowManagerProps) {
+  const dragState = useRef<DragState | null>(null);
+
+  const handleTitlebarMouseDown = useCallback((e: React.MouseEvent, window: OSWindow) => {
+    if (window.isMaximised) return;
+    e.preventDefault();
+    onFocus(window.id);
+
+    dragState.current = {
+      windowId: window.id,
+      startX: e.clientX,
+      startY: e.clientY,
+      startWinX: window.x,
+      startWinY: window.y,
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!dragState.current) return;
+      const dx = e.clientX - dragState.current.startX;
+      const dy = e.clientY - dragState.current.startY;
+      onUpdate(dragState.current.windowId, {
+        x: Math.max(0, dragState.current.startWinX + dx),
+        y: Math.max(0, dragState.current.startWinY + dy),
+      });
+    };
+
+    const handleMouseUp = () => {
+      dragState.current = null;
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [onFocus, onUpdate]);
+
+  const handleMaximise = useCallback((window: OSWindow) => {
+    onUpdate(window.id, { isMaximised: !window.isMaximised });
+  }, [onUpdate]);
+
+  const handleMinimise = useCallback((window: OSWindow) => {
+    onUpdate(window.id, { isMinimised: true, isFocused: false });
+  }, [onUpdate]);
+
   return (
-    <div className="window-manager">
-      {windows.map((win) => (
-        <WindowComponent
-          key={win.id}
-          win={win}
-          onClose={onClose}
-          onFocus={onFocus}
-          onUpdate={onUpdate}
-        />
+    <>
+      {windows.filter(w => !w.isMinimised).map(window => (
+        <div
+          key={window.id}
+          className={`window ${window.isFocused ? 'window--focused' : ''}`}
+          role="dialog"
+          aria-label={window.title}
+          aria-modal="false"
+          onClick={() => onFocus(window.id)}
+          style={{
+            left: window.isMaximised ? 0 : window.x,
+            top: window.isMaximised ? 0 : window.y,
+            width: window.isMaximised ? '100vw' : window.width,
+            height: window.isMaximised ? 'calc(100vh - 52px)' : window.height,
+            zIndex: window.zIndex,
+            borderRadius: window.isMaximised ? 0 : undefined,
+          }}
+        >
+          {/* Title Bar */}
+          <div
+            className="window__titlebar"
+            onMouseDown={(e) => handleTitlebarMouseDown(e, window)}
+            onDoubleClick={() => handleMaximise(window)}
+          >
+            <div className="window__controls">
+              <button
+                className="window__control window__control--close"
+                onClick={(e) => { e.stopPropagation(); onClose(window.id); }}
+                aria-label={`Close ${window.title}`}
+                title="Close"
+              />
+              <button
+                className="window__control window__control--min"
+                onClick={(e) => { e.stopPropagation(); handleMinimise(window); }}
+                aria-label={`Minimise ${window.title}`}
+                title="Minimise"
+              />
+              <button
+                className="window__control window__control--max"
+                onClick={(e) => { e.stopPropagation(); handleMaximise(window); }}
+                aria-label={`${window.isMaximised ? 'Restore' : 'Maximise'} ${window.title}`}
+                title={window.isMaximised ? 'Restore' : 'Maximise'}
+              />
+            </div>
+            <span className="window__title">{window.title}</span>
+          </div>
+
+          {/* Window Content — Module renders here */}
+          <div className="window__content">
+            <ModuleRenderer moduleId={window.moduleId} windowId={window.id} />
+          </div>
+        </div>
       ))}
+    </>
+  );
+}
+
+/** Renders the appropriate module content inside a window */
+function ModuleRenderer({ moduleId, windowId }: { moduleId: string; windowId: string }) {
+  // In Phase 3: dynamically load micro-frontend via Module Federation
+  // For now: render placeholder content per module
+  const moduleContent: Record<string, React.ReactNode> = {
+    'com.infinity-os.file-manager': <FileManagerPlaceholder />,
+    'com.infinity-os.text-editor':  <TextEditorPlaceholder />,
+    'com.infinity-os.terminal':     <TerminalPlaceholder />,
+    'com.infinity-os.settings':     <SettingsPlaceholder />,
+    'com.infinity-os.app-store':    <AppStorePlaceholder />,
+  };
+
+  return (
+    <div style={{ padding: 24, height: '100%' }}>
+      {moduleContent[moduleId] ?? (
+        <div style={{ color: 'var(--text-muted)', textAlign: 'center', paddingTop: 40 }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>📦</div>
+          <div>Module <code>{moduleId}</code> is loading...</div>
+        </div>
+      )}
     </div>
   );
 }
 
-export default WindowComponent;
+function FileManagerPlaceholder() {
+  return (
+    <div>
+      <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, color: 'var(--text-primary)' }}>
+        📁 File Manager
+      </h2>
+      <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>
+        Virtual file system — Phase 1 implementation. Connect to the File System Service worker to browse files.
+      </p>
+    </div>
+  );
+}
+
+function TextEditorPlaceholder() {
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>📝 Text Editor</h2>
+      <textarea
+        style={{
+          flex: 1,
+          background: 'var(--bg-input)',
+          border: '1px solid var(--border-default)',
+          borderRadius: 8,
+          padding: 12,
+          color: 'var(--text-primary)',
+          fontFamily: 'var(--font-mono)',
+          fontSize: 13,
+          resize: 'none',
+          outline: 'none',
+        }}
+        placeholder="Start typing..."
+        aria-label="Text editor content"
+      />
+    </div>
+  );
+}
+
+function TerminalPlaceholder() {
+  return (
+    <div style={{
+      background: '#0a0a0a',
+      height: '100%',
+      borderRadius: 8,
+      padding: 16,
+      fontFamily: 'var(--font-mono)',
+      fontSize: 13,
+      color: '#00ff88',
+    }}>
+      <div>Infinity OS Terminal v0.1.0</div>
+      <div style={{ color: '#606060' }}>Type 'help' for available commands</div>
+      <div style={{ marginTop: 8 }}>
+        <span style={{ color: '#6c63ff' }}>infinity@os</span>
+        <span style={{ color: '#ffffff' }}>:~$ </span>
+        <span style={{ animation: 'pulse 1s infinite' }}>▋</span>
+      </div>
+    </div>
+  );
+}
+
+function SettingsPlaceholder() {
+  return (
+    <div>
+      <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, color: 'var(--text-primary)' }}>
+        ⚙️ Settings
+      </h2>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {['Appearance', 'Privacy & Security', 'Notifications', 'Modules', 'Account', 'About'].map(item => (
+          <button
+            key={item}
+            style={{
+              padding: '10px 14px',
+              background: 'var(--bg-input)',
+              border: '1px solid var(--border-default)',
+              borderRadius: 8,
+              color: 'var(--text-primary)',
+              textAlign: 'left',
+              cursor: 'pointer',
+              fontSize: 14,
+            }}
+          >
+            {item}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AppStorePlaceholder() {
+  return (
+    <div>
+      <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, color: 'var(--text-primary)' }}>
+        🏪 Infinity Market
+      </h2>
+      <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 16 }}>
+        Discover and install modules for Infinity OS
+      </p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+        {['Calendar', 'Notes', 'Calculator', 'Weather', 'Music', 'Photos'].map(app => (
+          <div
+            key={app}
+            style={{
+              padding: 16,
+              background: 'var(--bg-input)',
+              border: '1px solid var(--border-default)',
+              borderRadius: 12,
+              textAlign: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <div style={{ fontSize: 28, marginBottom: 8 }}>📦</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>{app}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
