@@ -25,7 +25,7 @@ cryptography>=46.0.5
 
 # HTTP
 httpx==0.28.1
-aiohttp==3.13.3
+aiohttp==3.13.4
 
 # C2PA Content Provenance (EU AI Act compliance)
 c2pa-python>=0.6.0
