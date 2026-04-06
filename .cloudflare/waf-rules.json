@@ -1,0 +1,121 @@
+{
+  "description": "Cloudflare WAF Rules Configuration - Free Tier",
+  "version": "1.0.0",
+  "rules": [
+    {
+      "id": "allow-known-bots",
+      "name": "Allow Known Bots",
+      "expression": "cf.client.bot",
+      "action": "allow",
+      "status": "enabled",
+      "note": "Allow legitimate search engine crawlers"
+    },
+    {
+      "id": "block-sqli-high",
+      "name": "Block SQL Injection (High Confidence)",
+      "expression": "cf.waf.score.sqli < -20",
+      "action": "block",
+      "status": "enabled",
+      "note": "Block high-confidence SQL injection attempts"
+    },
+    {
+      "id": "challenge-sqli-medium",
+      "name": "Challenge SQL Injection (Medium)",
+      "expression": "cf.waf.score.sqli < 20 and cf.waf.score.sqli >= -20",
+      "action": "challenge",
+      "status": "enabled",
+      "note": "Challenge medium-confidence SQL injection"
+    },
+    {
+      "id": "block-xss-high",
+      "name": "Block XSS (High Confidence)",
+      "expression": "cf.waf.score.xss < -20",
+      "action": "block",
+      "status": "enabled",
+      "note": "Block high-confidence XSS attempts"
+    },
+    {
+      "id": "challenge-xss-medium",
+      "name": "Challenge XSS (Medium)",
+      "expression": "cf.waf.score.xss < 20 and cf.waf.score.xss >= -20",
+      "action": "challenge",
+      "status": "enabled",
+      "note": "Challenge medium-confidence XSS"
+    },
+    {
+      "id": "block-known-bad-ips",
+      "name": "Block Known Malicious IPs",
+      "expression": "ip.src in $cf.attackers",
+      "action": "block",
+      "status": "enabled",
+      "note": "Block IPs from Cloudflare's threat intelligence"
+    },
+    {
+      "id": "challenge-rate-limit",
+      "name": "Rate Limit Challenge",
+      "expression": "cf.threat_score > 50",
+      "action": "challenge",
+      "status": "enabled",
+      "note": "Challenge suspicious traffic based on threat score"
+    },
+    {
+      "id": "block-api-abuse",
+      "name": "Block API Abuse",
+      "expression": "starts_with(http.request.uri.path, \"/api/\") and rate_limit.exceeded",
+      "action": "block",
+      "status": "enabled",
+      "note": "Block when API rate limit exceeded"
+    },
+    {
+      "id": "protect-auth-endpoints",
+      "name": "Protect Auth Endpoints",
+      "expression": "http.request.uri.path contains \"/auth/\" or http.request.uri.path contains \"/login\"",
+      "action": "challenge",
+      "status": "enabled",
+      "note": "Extra protection for authentication endpoints"
+    },
+    {
+      "id": "block-post-without-csrf",
+      "name": "Block POST without Valid Origin",
+      "expression": "http.request.method in {\"POST\" \"PUT\" \"DELETE\" \"PATCH\"} and not http.request.headers[\"origin\"] in {\"https://transcendos.com\" \"https://www.transcendos.com\" \"https://infinity-portal.pages.dev\"}",
+      "action": "block",
+      "status": "disabled",
+      "note": "Block cross-origin POST requests (enable after testing)"
+    }
+  ],
+  "managed_rulesets": [
+    {
+      "name": "Cloudflare Managed Ruleset",
+      "status": "enabled",
+      "action": "block"
+    },
+    {
+      "name": "Cloudflare OWASP Core Ruleset",
+      "status": "enabled",
+      "action": "challenge",
+      " paranoia_level": 2
+    }
+  ],
+  "rate_limiting": {
+    "rules": [
+      {
+        "name": "API Rate Limit",
+        "path": "/api/*",
+        "requests_per_minute": 100,
+        "action": "challenge"
+      },
+      {
+        "name": "Auth Rate Limit",
+        "path": "/auth/*",
+        "requests_per_minute": 20,
+        "action": "block"
+      },
+      {
+        "name": "Global Rate Limit",
+        "path": "/*",
+        "requests_per_minute": 500,
+        "action": "challenge"
+      }
+    ]
+  }
+}

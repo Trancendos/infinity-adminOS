@@ -1,0 +1,125 @@
+{
+  "description": "Cloudflare Cache Rules Configuration - Free Tier Optimization",
+  "version": "1.0.0",
+  "configuration_rules": [
+    {
+      "name": "Cache Static JavaScript",
+      "expression": "ends_with(http.request.uri.path, \".js\")",
+      "action": "set_cache_settings",
+      "settings": {
+        "edge_ttl": 2592000,
+        "browser_ttl": 31536000,
+        "cache_status": "enabled",
+        "stale_while_revalidate": 86400
+      }
+    },
+    {
+      "name": "Cache Static CSS",
+      "expression": "ends_with(http.request.uri.path, \".css\")",
+      "action": "set_cache_settings",
+      "settings": {
+        "edge_ttl": 2592000,
+        "browser_ttl": 31536000,
+        "cache_status": "enabled",
+        "stale_while_revalidate": 86400
+      }
+    },
+    {
+      "name": "Cache Images",
+      "expression": "ends_with(http.request.uri.path, \".png\") or ends_with(http.request.uri.path, \".jpg\") or ends_with(http.request.uri.path, \".jpeg\") or ends_with(http.request.uri.path, \".webp\") or ends_with(http.request.uri.path, \".gif\") or ends_with(http.request.uri.path, \".svg\") or ends_with(http.request.uri.path, \".ico\")",
+      "action": "set_cache_settings",
+      "settings": {
+        "edge_ttl": 2592000,
+        "browser_ttl": 2592000,
+        "cache_status": "enabled"
+      }
+    },
+    {
+      "name": "Cache Fonts",
+      "expression": "ends_with(http.request.uri.path, \".woff\") or ends_with(http.request.uri.path, \".woff2\") or ends_with(http.request.uri.path, \".ttf\") or ends_with(http.request.uri.path, \".eot\")",
+      "action": "set_cache_settings",
+      "settings": {
+        "edge_ttl": 31536000,
+        "browser_ttl": 31536000,
+        "cache_status": "enabled"
+      }
+    },
+    {
+      "name": "Cache Media Files",
+      "expression": "ends_with(http.request.uri.path, \".mp4\") or ends_with(http.request.uri.path, \".webm\") or ends_with(http.request.uri.path, \".mp3\") or ends_with(http.request.uri.path, \".wav\")",
+      "action": "set_cache_settings",
+      "settings": {
+        "edge_ttl": 604800,
+        "browser_ttl": 604800,
+        "cache_status": "enabled"
+      }
+    },
+    {
+      "name": "Bypass API Cache",
+      "expression": "starts_with(http.request.uri.path, \"/api/\")",
+      "action": "set_cache_settings",
+      "settings": {
+        "cache_status": "disabled"
+      }
+    },
+    {
+      "name": "Bypass Auth Cache",
+      "expression": "starts_with(http.request.uri.path, \"/auth/\")",
+      "action": "set_cache_settings",
+      "settings": {
+        "cache_status": "disabled"
+      }
+    },
+    {
+      "name": "Cache HTML Homepage",
+      "expression": "http.request.uri.path eq \"/\" or http.request.uri.path eq \"/index.html\"",
+      "action": "set_cache_settings",
+      "settings": {
+        "edge_ttl": 3600,
+        "browser_ttl": 0,
+        "cache_status": "enabled"
+      }
+    },
+    {
+      "name": "Bypass Query String Cache for API",
+      "expression": "starts_with(http.request.uri.path, \"/api/\") and http.request.uri.query ne \"\"",
+      "action": "set_cache_settings",
+      "settings": {
+        "cache_status": "disabled"
+      }
+    }
+  ],
+  "page_rules": [
+    {
+      "name": "Admin Cache Bypass",
+      "url": "admin.transcendos.com/*",
+      "settings": {
+        "cache_level": "bypass",
+        "security_level": "high"
+      }
+    },
+    {
+      "name": "API Gateway Cache Bypass",
+      "url": "api.transcendos.com/*",
+      "settings": {
+        "cache_level": "bypass"
+      }
+    },
+    {
+      "name": "Static Assets Edge Cache",
+      "url": "transcendos.com/assets/*",
+      "settings": {
+        "cache_level": "cache_everything",
+        "edge_cache_ttl": 2592000,
+        "browser_cache_ttl": 31536000
+      }
+    }
+  ],
+  "configuration_settings": {
+    "development_mode": false,
+    "always_online": true,
+    "browser_cache_ttl": 14400,
+    "cache_level": "aggressive",
+    "development_mode_expires": 0
+  }
+}
