@@ -16,7 +16,7 @@ import type {
   BotAgent,
   Portfolio,
   BotLog,
-} from '../../financial-types/src/index';
+} from '@arcadia/financial-types';
 
 // ─── ENVIRONMENT BINDINGS ────────────────────────────────────────────────────
 
@@ -715,7 +715,7 @@ async function searchMarketplace(env: Env, query: string): Promise<MarketplaceAs
   return demos.filter(a =>
     a.name.toLowerCase().includes(q) ||
     a.description.toLowerCase().includes(q) ||
-    a.tags.some(t => t.toLowerCase().includes(q))
+    a.tags.some((t: string) => t.toLowerCase().includes(q))
   );
 }
 
@@ -1085,7 +1085,7 @@ async function getPassiveIncomeOverview(env: Env): Promise<Record<string, unknow
 
 async function discoverPassiveIncomeOpportunities(env: Env): Promise<unknown[]> {
   try {
-    const response = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+    const response = await env.AI.run('@cf/meta/llama-3.1-8b-instruct' as any, {
       messages: [{
         role: 'user',
         content: `List 5 specific passive income opportunities for a cloud platform in 2025.

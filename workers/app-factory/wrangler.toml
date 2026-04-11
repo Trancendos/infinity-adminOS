@@ -1,0 +1,35 @@
+# ============================================================
+# Infinity OS — App Factory Worker
+# ============================================================
+
+name = "infinity-app-factory"
+main = "src/index.ts"
+compatibility_date = "2025-03-01"
+compatibility_flags = ["nodejs_compat"]
+
+[observability]
+enabled = true
+head_sampling_rate = 1.0
+
+[env.production]
+name = "infinity-app-factory"
+
+[env.production.vars]
+ENVIRONMENT = "production"
+ALLOWED_ORIGINS = "https://infinity-portal.pages.dev,https://infinity-portal.com"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "infinity-platform"
+database_id = "placeholder-db-id"
+
+[[env.production.kv_namespaces]]
+binding = "CACHE"
+id = "placeholder-kv-id"
+
+[env.staging]
+name = "infinity-app-factory-staging"
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+ALLOWED_ORIGINS = "https://infinity-portal.pages.dev"

@@ -317,7 +317,7 @@ async function handleInternalHeartbeat(request: Request, env: Env): Promise<Resp
 // ============================================================
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname;
     const method = request.method;

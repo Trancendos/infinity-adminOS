@@ -1,0 +1,17 @@
+{
+  "name": "@trancendos/service-mesh",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Service Mesh — Inter-worker communication with circuit breakers, health checks, and discovery",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250313.0",
+    "typescript": "^5.7.3",
+    "vitest": "^4.0.18"
+  }
+}
