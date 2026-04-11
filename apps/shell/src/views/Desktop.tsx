@@ -18,6 +18,7 @@ import { WindowManager } from '../components/WindowManager';
 import { NotificationCentre } from '../components/NotificationCentre';
 import { UniversalSearch } from '../components/UniversalSearch';
 import { DesktopWidgets } from '../components/DesktopWidgets';
+import { ServiceShortcuts } from '../components/ServiceShortcuts';
 import { ContextMenu } from '../components/ContextMenu';
 import type { Window as OSWindow } from '@infinity-os/types';
 
@@ -224,6 +225,9 @@ export default function Desktop() {
       <div className="desktop__widgets">
         <DesktopWidgets user={user!} />
       </div>
+
+      {/* Service Shortcuts Layer */}
+      <ServiceShortcuts />
 
       {/* Window Manager Layer */}
       <div className="desktop__windows">
