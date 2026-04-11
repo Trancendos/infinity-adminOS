@@ -2,7 +2,7 @@
 # Uses pnpm workspaces (pnpm-lock.yaml)
 
 # Stage 1: Dependencies
-FROM node:20-alpine AS deps
+FROM node:25-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
@@ -17,7 +17,7 @@ COPY turbo.json ./
 RUN pnpm install --frozen-lockfile --prefer-offline
 
 # Stage 2: Builder
-FROM node:20-alpine AS builder
+FROM node:25-alpine AS builder
 WORKDIR /app
 
 # Install pnpm
@@ -36,7 +36,7 @@ ENV TURBO_TELEMETRY_DISABLED=1
 RUN pnpm turbo build --filter='./apps/*' 2>/dev/null ||     pnpm run build 2>/dev/null ||     echo "Build step complete"
 
 # Stage 3: Runner
-FROM node:20-alpine AS runner
+FROM node:25-alpine AS runner
 WORKDIR /app
 
 RUN apk add --no-cache curl
