@@ -1,0 +1,196 @@
+# ══════════════════════════════════════════════════════════════
+# TRANCENDOS ECOSYSTEM — Prometheus Alerting Rules
+# ══════════════════════════════════════════════════════════════
+
+groups:
+  # ── Service Health ────────────────────────────────────────
+  - name: service_health
+    interval: 30s
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Service {{ $labels.service }} is down"
+          description: "{{ $labels.service }} (Wave {{ $labels.wave }}) has been unreachable for more than 1 minute."
+          runbook: "Check docker logs for {{ $labels.service }}, verify health endpoint, check resource limits."
+
+      - alert: CriticalServiceDown
+        expr: up{critical="true"} == 0
+        for: 30s
+        labels:
+          severity: page
+          team: platform
+        annotations:
+          summary: "CRITICAL: {{ $labels.service }} is down"
+          description: "Critical service {{ $labels.service }} is unreachable. Immediate action required."
+
+      - alert: HighRestartRate
+        expr: increase(process_start_time_seconds[1h]) > 3
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "{{ $labels.service }} restarting frequently"
+          description: "{{ $labels.service }} has restarted more than 3 times in the last hour."
+
+  # ── Latency ──────────────────────────────────────────────
+  - name: latency
+    interval: 30s
+    rules:
+      - alert: HighLatencyP95
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High P95 latency on {{ $labels.service }}"
+          description: "P95 latency for {{ $labels.service }} is {{ $value }}s (threshold: 2s)."
+
+      - alert: HighLatencyP99
+        expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m])) > 5
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Critical P99 latency on {{ $labels.service }}"
+          description: "P99 latency for {{ $labels.service }} is {{ $value }}s (threshold: 5s)."
+
+  # ── Error Rates ──────────────────────────────────────────
+  - name: error_rates
+    interval: 30s
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) by (service)
+            /
+            sum(rate(http_requests_total[5m])) by (service)
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High error rate on {{ $labels.service }}"
+          description: "{{ $labels.service }} error rate is {{ $value | humanizePercentage }} (threshold: 5%)."
+
+      - alert: CriticalErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m])) by (service)
+            /
+            sum(rate(http_requests_total[5m])) by (service)
+          ) > 0.15
+        for: 2m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "CRITICAL error rate on {{ $labels.service }}"
+          description: "{{ $labels.service }} error rate is {{ $value | humanizePercentage }} (threshold: 15%)."
+
+  # ── Resource Usage ───────────────────────────────────────
+  - name: resources
+    interval: 60s
+    rules:
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes / 1024 / 1024 > 512
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High memory usage on {{ $labels.service }}"
+          description: "{{ $labels.service }} is using {{ $value }}MB of memory (threshold: 512MB)."
+
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total[5m]) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High CPU usage on {{ $labels.service }}"
+          description: "{{ $labels.service }} CPU usage is {{ $value | humanizePercentage }}."
+
+  # ── Circuit Breaker (2060 Resilience) ────────────────────
+  - name: resilience_2060
+    interval: 30s
+    rules:
+      - alert: CircuitBreakerOpen
+        expr: circuit_breaker_state{state="open"} == 1
+        for: 1m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Circuit breaker OPEN on {{ $labels.service }}"
+          description: "{{ $labels.service }} circuit breaker is open — downstream dependency failure."
+
+      - alert: HighRateLimitRejections
+        expr: rate(rate_limit_rejected_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High rate limit rejections on {{ $labels.service }}"
+          description: "{{ $labels.service }} is rejecting {{ $value }} requests/sec due to rate limiting."
+
+  # ── Wave 6 Studio Specific ──────────────────────────────
+  - name: studio_health
+    interval: 30s
+    rules:
+      - alert: StudioIstaViolation
+        expr: ista_empathy_mandate_violations_total > 0
+        for: 1m
+        labels:
+          severity: warning
+          team: studios
+        annotations:
+          summary: "Ista Standard violation in {{ $labels.service }}"
+          description: "{{ $labels.ista }} persona in {{ $labels.service }} has {{ $value }} empathy mandate violations."
+
+      - alert: AllStudiosDown
+        expr: count(up{category="studio"} == 0) == 6
+        for: 2m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "ALL Wave 6 Studios are down"
+          description: "All 6 creative intelligence studios are unreachable."
+
+  # ── Ecosystem-Wide ──────────────────────────────────────
+  - name: ecosystem
+    interval: 60s
+    rules:
+      - alert: MajorOutage
+        expr: count(up == 0) > 10
+        for: 2m
+        labels:
+          severity: page
+          team: platform
+        annotations:
+          summary: "MAJOR OUTAGE: {{ $value }} services down"
+          description: "More than 10 services are unreachable. Possible infrastructure failure."
+
+      - alert: WaveCompletelyDown
+        expr: |
+          count(up{wave="2"} == 0) == count(up{wave="2"})
+          or count(up{wave="3"} == 0) == count(up{wave="3"})
+          or count(up{wave="4"} == 0) == count(up{wave="4"})
+        for: 2m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Entire wave is down"
+          description: "All services in a wave are unreachable."

@@ -14,6 +14,7 @@ from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 router = APIRouter(prefix="/api/v1/memories", tags=["Agent Memory"])
 
@@ -59,7 +60,7 @@ class MemoryUpdateRequest(BaseModel):
 
 # ── In-Memory Store (replace with PostgreSQL + pgvector in production) ──
 
-_memories: dict[str, dict] = {}
+_memories = store_factory("agent_memory", "memories")
 
 
 # ── Endpoints ───────────────────────────────────────────────

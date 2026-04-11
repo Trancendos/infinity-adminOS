@@ -1,0 +1,16 @@
+# Cloudflare Pages Configuration — Infinity OS Shell
+# Deploy: npx wrangler pages deploy dist --project-name=infinity-os-shell
+name = "infinity-os-shell"
+compatibility_date = "2025-03-01"
+
+[site]
+bucket = "./dist"
+
+# Environment variables for the frontend build
+[vars]
+VITE_BACKEND_API_URL = "https://api.infinity-os.dev"
+VITE_WS_URL = "wss://api.infinity-os.dev"
+# ── Observability ────────────────────────────────────
+[observability]
+enabled = true
+head_sampling_rate = 1.0

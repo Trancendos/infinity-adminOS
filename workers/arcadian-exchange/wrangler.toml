@@ -1,6 +1,6 @@
 name = "arcadia-exchange"
 main = "src/index.ts"
-compatibility_date = "2024-01-01"
+compatibility_date = "2025-03-01"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
@@ -11,30 +11,30 @@ PLATFORM_WALLET = "REPLACE_WITH_PLATFORM_WALLET"
 # KV Namespaces
 [[kv_namespaces]]
 binding = "MARKETPLACE"
-id = "REPLACE_WITH_MARKETPLACE_KV_ID"
-preview_id = "REPLACE_WITH_MARKETPLACE_KV_PREVIEW_ID"
+id = "4e07cdedc58d4cbaaa538406490d6520"
+preview_id = "4e07cdedc58d4cbaaa538406490d6520"
 
 [[kv_namespaces]]
 binding = "ORDER_BOOK"
-id = "REPLACE_WITH_ORDER_BOOK_KV_ID"
-preview_id = "REPLACE_WITH_ORDER_BOOK_KV_PREVIEW_ID"
+id = "fb8655ac85ce4ed18626570ef1f06c7c"
+preview_id = "fb8655ac85ce4ed18626570ef1f06c7c"
 
 [[kv_namespaces]]
 binding = "WALLETS"
-id = "REPLACE_WITH_WALLETS_KV_ID"
-preview_id = "REPLACE_WITH_WALLETS_KV_PREVIEW_ID"
+id = "92b1b9ffa668497bb9b1db102d1a7684"
+preview_id = "92b1b9ffa668497bb9b1db102d1a7684"
 
 [[kv_namespaces]]
 binding = "BOT_STATE"
-id = "REPLACE_WITH_BOT_STATE_KV_ID"
-preview_id = "REPLACE_WITH_BOT_STATE_KV_PREVIEW_ID"
+id = "996ec101236d4b938d28843a91f380b8"
+preview_id = "996ec101236d4b938d28843a91f380b8"
 
 [[kv_namespaces]]
 binding = "PORTFOLIO"
-id = "REPLACE_WITH_PORTFOLIO_KV_ID"
-preview_id = "REPLACE_WITH_PORTFOLIO_KV_PREVIEW_ID"
+id = "a4b6be6977934142b386caf700fcc4e4"
+preview_id = "a4b6be6977934142b386caf700fcc4e4"
 
-# Durable Objects
+# Durable Objects (using sqlite_classes for free tier)
 [[durable_objects.bindings]]
 name = "TRADING_ENGINE"
 class_name = "TradingEngine"
@@ -45,36 +45,21 @@ class_name = "MarketMaker"
 
 [[migrations]]
 tag = "v1"
-new_classes = ["TradingEngine", "MarketMaker"]
+new_sqlite_classes = ["TradingEngine", "MarketMaker"]
 
 # D1 Database
 [[d1_databases]]
 binding = "EXCHANGE_DB"
 database_name = "arcadia-exchange"
-database_id = "REPLACE_WITH_EXCHANGE_D1_ID"
+database_id = "4a5a6e28-56af-4c38-b39c-d3a5e97f75fd"
 
 # AI Binding
 [ai]
 binding = "AI"
 
-# Cron Triggers
-[triggers]
-crons = [
-  "*/5 * * * *",    # Every 5 min: Arbitrage bot
-  "*/15 * * * *",   # Every 15 min: Market maker
-  "0 * * * *",      # Every hour: DeFi yield optimizer
-  "0 */6 * * *",    # Every 6 hours: Passive income scan
-  "0 2 * * *",      # Daily: Portfolio rebalancing
-  "0 0 * * *"       # Daily: ARC token burn
-]
-
-# Secrets (set via: wrangler secret put SECRET_NAME)
-# JWT_SECRET
-# RBA_API_KEY
-# COINGECKO_API_KEY
-# STRIPE_SECRET_KEY
-# WEB3_RPC_URL
-# INTERNAL_API_KEY
+# Cron Triggers (disabled - account cron limit reached; enable via CF dashboard)
+# [triggers]
+# crons = ["*/5 * * * *", "*/15 * * * *", "0 * * * *"]
 
 [env.staging]
 name = "arcadia-exchange-staging"

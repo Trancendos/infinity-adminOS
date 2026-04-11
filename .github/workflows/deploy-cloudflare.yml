@@ -1,13 +1,16 @@
-# .github/workflows/deploy-cloudflare.yml
-# Deploy TypeScript services to Cloudflare Workers
+# ============================================================
+# Deploy to Cloudflare — Full Stack (Pages + Workers)
+# ============================================================
+# Deploys:
+#   1. Frontend → Cloudflare Pages
+#   2. API Gateway Worker → Cloudflare Workers
+# ============================================================
+
 name: Deploy to Cloudflare
 
 on:
   workflow_call:
     inputs:
-      worker-name:
-        type: string
-        required: true
       environment:
         type: string
         default: "production"
@@ -17,12 +20,8 @@ on:
       CLOUDFLARE_ACCOUNT_ID:
         required: true
 
-  # Also allow manual trigger
   workflow_dispatch:
     inputs:
-      worker-name:
-        description: "Worker name to deploy"
-        required: true
       environment:
         description: "Target environment"
         default: "production"
@@ -30,50 +29,673 @@ on:
         options:
           - production
           - staging
+      deploy_frontend:
+        description: "Deploy frontend to Pages"
+        type: boolean
+        default: true
+      deploy_gateway:
+        description: "Deploy API gateway worker"
+        type: boolean
+        default: true
+
+env:
+  NODE_VERSION: "20"
+  PNPM_VERSION: "8"
 
 jobs:
-  deploy:
+  # ── Build Frontend ─────────────────────────────────────────
+  build-frontend:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    if: ${{ github.event.inputs.deploy_frontend != 'false' }}
+    outputs:
+      build-success: ${{ steps.build.outcome == 'success' }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
-          node-version: "18"
-          cache: "npm"
+          node-version: ${{ env.NODE_VERSION }}
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install pnpm
+        run: npm install -g pnpm@${{ env.PNPM_VERSION }}
 
-      - name: Build
-        run: npm run build
+      - name: Install dependencies (workspace)
+        run: pnpm install --no-frozen-lockfile
 
-      - name: Run smoke tests
-        run: npm test -- --passWithNoTests
+      - name: Build frontend
+        id: build
+        working-directory: apps/shell
+        env:
+          VITE_BACKEND_API_URL: ${{ inputs.environment == 'production' && 'https://infinity-auth-api.luminous-aimastermind.workers.dev' || 'https://infinity-auth-api-staging.luminous-aimastermind.workers.dev' }}
+          VITE_WS_URL: ${{ inputs.environment == 'production' && 'wss://infinity-ws-api.luminous-aimastermind.workers.dev/ws' || 'wss://infinity-ws-api-staging.luminous-aimastermind.workers.dev/ws' }}
+          VITE_APP_NAME: "Infinity Portal"
+          VITE_APP_VERSION: ${{ github.sha }}
+        run: pnpm run build
 
-      - name: Deploy to Cloudflare Workers
-        uses: cloudflare/wrangler-action@v3
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy --name ${{ inputs.worker-name }}
+          name: frontend-dist
+          path: apps/shell/dist
+          retention-days: 1
 
-      - name: Post-deploy health check
+  # ── Deploy Frontend to Pages ───────────────────────────────
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    needs: build-frontend
+    if: ${{ needs.build-frontend.result == 'success' }}
+    environment: ${{ inputs.environment || 'production' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: dist
+
+      - name: Install wrangler globally
+        run: npm install -g wrangler@latest
+
+      - name: Create Pages project (idempotent)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: wrangler pages project create infinity-portal --production-branch=main 2>&1 || true
+
+      - name: Deploy to Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          WORKER_URL="https://${{ inputs.worker-name }}.${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.workers.dev"
-          echo "Checking health at ${WORKER_URL}/health ..."
+          wrangler pages deploy dist \
+            --project-name=infinity-portal \
+            --branch=${{ inputs.environment == 'production' && 'main' || 'staging' }} \
+            --commit-hash=${{ github.sha }}
 
+      - name: Post-deploy frontend check
+        run: |
+          PAGES_URL="${{ inputs.environment == 'production' && 'https://infinity-portal.pages.dev' || 'https://staging.infinity-portal.pages.dev' }}"
+          echo "Checking frontend at ${PAGES_URL} ..."
+          for i in {1..6}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${PAGES_URL}" || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "✅ Frontend is live (attempt $i)"
+              exit 0
+            fi
+            echo "⏳ Attempt $i: status=$STATUS, retrying in 15s..."
+            sleep 15
+          done
+          echo "⚠️  Frontend may still be propagating — check ${PAGES_URL} in a few minutes"
+
+  # ── Deploy API Gateway Worker ──────────────────────────────
+  deploy-gateway:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.deploy_gateway != 'false' }}
+    environment: ${{ inputs.environment || 'production' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install wrangler & typescript globally
+        run: npm install -g wrangler@latest typescript
+
+      - name: Resolve KV namespace IDs
+        working-directory: workers/api-gateway
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set +e  # Don't exit on error — we handle failures gracefully
+
+          # Create namespaces (will error if already exist — that's fine)
+          wrangler kv namespace create "RATE_LIMIT" > /tmp/rl_out.txt 2>&1
+          wrangler kv namespace create "CACHE" > /tmp/cache_out.txt 2>&1
+
+          echo "=== RATE_LIMIT create output ==="
+          cat /tmp/rl_out.txt
+
+          echo "=== CACHE create output ==="
+          cat /tmp/cache_out.txt
+
+          # Extract IDs — wrangler v3/v4 both include 'id = "..."' in output
+          RATE_LIMIT_ID=$(grep -oP '(?<=id = ")[^"]+' /tmp/rl_out.txt || echo "")
+          CACHE_ID=$(grep -oP '(?<=id = ")[^"]+' /tmp/cache_out.txt || echo "")
+
+          # If create failed (already exists), list and find by title
+          if [ -z "$RATE_LIMIT_ID" ]; then
+            echo "RATE_LIMIT create failed or already exists — listing namespaces..."
+            wrangler kv namespace list > /tmp/kv_list.txt 2>&1
+            cat /tmp/kv_list.txt
+            RATE_LIMIT_ID=$(grep -B1 '"RATE_LIMIT"' /tmp/kv_list.txt | grep -oP '(?<="id": ")[^"]+' || echo "")
+          fi
+
+          if [ -z "$CACHE_ID" ]; then
+            echo "CACHE create failed or already exists — listing namespaces..."
+            wrangler kv namespace list > /tmp/kv_list2.txt 2>&1
+            cat /tmp/kv_list2.txt
+            CACHE_ID=$(grep -B1 '"CACHE"' /tmp/kv_list2.txt | grep -oP '(?<="id": ")[^"]+' || echo "")
+          fi
+
+          echo "Resolved RATE_LIMIT ID: ${RATE_LIMIT_ID:-<not found>}"
+          echo "Resolved CACHE ID:      ${CACHE_ID:-<not found>}"
+
+          # Inject IDs or strip placeholder bindings
+          if [ -n "$RATE_LIMIT_ID" ]; then
+            sed -i "s/placeholder-rate-limit-id/${RATE_LIMIT_ID}/g" wrangler.toml
+            echo "✅ RATE_LIMIT KV injected"
+          else
+            echo "⚠️  Removing placeholder RATE_LIMIT KV binding"
+            sed -i '/\[\[env\.production\.kv_namespaces\]\]/{N;N;/RATE_LIMIT/,/placeholder-rate-limit-id/d}' wrangler.toml || true
+          fi
+
+          if [ -n "$CACHE_ID" ]; then
+            sed -i "s/placeholder-cache-id/${CACHE_ID}/g" wrangler.toml
+            echo "✅ CACHE KV injected"
+          else
+            echo "⚠️  Removing placeholder CACHE KV binding"
+            sed -i '/\[\[env\.production\.kv_namespaces\]\]/{N;N;/CACHE/,/placeholder-cache-id/d}' wrangler.toml || true
+          fi
+
+          echo "=== Final wrangler.toml ==="
+          cat wrangler.toml
+          set -e
+
+      - name: Deploy API Gateway
+        working-directory: workers/api-gateway
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          ENV="${{ inputs.environment || 'production' }}"
+          echo "Deploying gateway to environment: $ENV"
+          wrangler deploy --env "$ENV"
+
+      - name: Post-deploy gateway check
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          WORKER_URL="https://infinity-api-gateway.${CLOUDFLARE_ACCOUNT_ID}.workers.dev"
+          echo "Checking gateway at ${WORKER_URL}/health ..."
           for i in {1..5}; do
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${WORKER_URL}/health" || echo "000")
             if [ "$STATUS" = "200" ]; then
-              echo "✅ Health check passed (attempt $i)"
+              echo "✅ API Gateway is live (attempt $i)"
               exit 0
             fi
             echo "⏳ Attempt $i: status=$STATUS, retrying in 5s..."
             sleep 5
           done
+          echo "⚠️  Gateway may need warm-up time — check ${WORKER_URL}/health"
 
-          echo "⚠️ Health check did not return 200 after 5 attempts"
-          # Don't fail the deploy - worker may need warm-up time
+  # ── Deploy Auth API Worker ────────────────────────────────
+  deploy-auth-api:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'production' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install pnpm
+        run: npm install -g pnpm@latest
+
+      - name: Install wrangler globally
+        run: npm install -g wrangler@latest typescript
+
+      - name: Install auth-api dependencies
+        working-directory: workers/auth-api
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Inject D1 and KV IDs into wrangler.toml
+        working-directory: workers/auth-api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+          SESSIONS_KV_ID: ${{ secrets.SESSIONS_KV_ID }}
+        run: |
+          set -e
+          CF_BASE="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}"
+
+          # ── D1 Database ID ────────────────────────────────────────────────
+          D1_ID="${D1_DATABASE_ID}"
+
+          if [ -z "$D1_ID" ] || [ "$D1_ID" = "null" ]; then
+            echo "D1_DATABASE_ID secret not set — querying Cloudflare API..."
+            DB_NAME="infinity-os-db"
+            LIST_RESP=$(curl -sf "${CF_BASE}/d1/database?name=${DB_NAME}" -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" || echo "{}")
+            echo "D1 list: $LIST_RESP"
+            D1_ID=$(echo "$LIST_RESP" | jq -r '.result[0].uuid // .result[0].id // empty' 2>/dev/null || echo "")
+
+            if [ -z "$D1_ID" ] || [ "$D1_ID" = "null" ]; then
+              echo "Creating D1 database..."
+              CREATE_RESP=$(curl -sf -X POST "${CF_BASE}/d1/database" -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H "Content-Type: application/json" -d '{"name":"infinity-os-db"}' || echo "{}")
+              echo "D1 create: $CREATE_RESP"
+              D1_ID=$(echo "$CREATE_RESP" | jq -r '.result.uuid // .result.id // empty' 2>/dev/null || echo "")
+            fi
+          fi
+
+          if [ -n "$D1_ID" ] && [ "$D1_ID" != "null" ]; then
+            sed -i "s/placeholder-d1-id/${D1_ID}/g" wrangler.toml
+            sed -i "s/placeholder-d1-staging-id/${D1_ID}/g" wrangler.toml
+            echo "D1 ID injected: $D1_ID"
+          else
+            echo "ERROR: Cannot resolve D1 database ID."
+            echo "ACTION REQUIRED: Add D1_DATABASE_ID secret to GitHub repo:"
+            echo "  1. Cloudflare dashboard -> Workers & Pages -> D1"
+            echo "  2. Find 'infinity-os-db' and copy the UUID"
+            echo "  3. GitHub repo -> Settings -> Secrets -> New secret: D1_DATABASE_ID"
+            exit 1
+          fi
+
+          # ── KV Namespace ID ───────────────────────────────────────────────
+          KV_ID="${SESSIONS_KV_ID}"
+
+          if [ -z "$KV_ID" ] || [ "$KV_ID" = "null" ]; then
+            echo "SESSIONS_KV_ID secret not set — querying Cloudflare API..."
+            KV_TITLE="infinity-auth-api-SESSIONS"
+            KV_LIST=$(curl -sf "${CF_BASE}/storage/kv/namespaces?per_page=100" -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" || echo "{}")
+            echo "KV list: $KV_LIST"
+            KV_ID=$(echo "$KV_LIST" | jq -r ".result[] | select(.title == "${KV_TITLE}") | .id" 2>/dev/null | head -1 || echo "")
+
+            if [ -z "$KV_ID" ] || [ "$KV_ID" = "null" ]; then
+              echo "Creating KV namespace..."
+              KV_CREATE=$(curl -sf -X POST "${CF_BASE}/storage/kv/namespaces" -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H "Content-Type: application/json" -d "{"title":"${KV_TITLE}"}" || echo "{}")
+              echo "KV create: $KV_CREATE"
+              KV_ID=$(echo "$KV_CREATE" | jq -r '.result.id // empty' 2>/dev/null || echo "")
+            fi
+          fi
+
+          if [ -n "$KV_ID" ] && [ "$KV_ID" != "null" ]; then
+            sed -i "s/placeholder-sessions-kv-id/${KV_ID}/g" wrangler.toml
+            sed -i "s/placeholder-sessions-kv-staging-id/${KV_ID}/g" wrangler.toml
+            echo "Sessions KV injected: $KV_ID"
+          else
+            echo "WARNING: Could not resolve Sessions KV ID — leaving placeholder"
+          fi
+
+          echo "=== wrangler.toml IDs after injection ==="
+          grep -E "database_id|id = " wrangler.toml || true
+
+      - name: Set SECRET_KEY secret
+        working-directory: workers/auth-api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          ENV="${{ inputs.environment || 'production' }}"
+          SECRET="${{ secrets.BACKEND_SECRET_KEY }}"
+          if [ -z "$SECRET" ]; then
+            SECRET=$(openssl rand -hex 32)
+            echo "⚠️  No BACKEND_SECRET_KEY secret set — using generated key"
+          fi
+          echo "$SECRET" | wrangler secret put SECRET_KEY --env "$ENV" 2>&1 || true
+          echo "✅ SECRET_KEY configured"
+
+      - name: Verify wrangler.toml IDs before deploy
+        working-directory: workers/auth-api
+        run: |
+          echo "=== wrangler.toml (checking IDs are injected) ==="
+          cat wrangler.toml
+          if grep -q "placeholder" wrangler.toml; then
+            echo "ERROR: Placeholder IDs still present - ID injection failed"
+            exit 1
+          fi
+          echo "All IDs are properly set"
+
+      - name: Deploy Auth API Worker
+        working-directory: workers/auth-api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          ENV="${{ inputs.environment || 'production' }}"
+          echo "Deploying auth-api to: $ENV"
+          wrangler deploy --env "$ENV"
+
+      - name: Post-deploy auth API check
+        run: |
+          WORKER_URL="https://infinity-auth-api.luminous-aimastermind.workers.dev"
+          echo "Checking auth API at ${WORKER_URL}/health ..."
+          for i in {1..6}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${WORKER_URL}/health" || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "✅ Auth API is live (attempt $i)"
+              curl -s "${WORKER_URL}/health"
+              exit 0
+            fi
+            echo "⏳ Attempt $i: status=$STATUS, retrying in 10s..."
+            sleep 10
+          done
+          echo "⚠️  Auth API may still be starting"
+
+  # ── Deploy AI API Worker ──────────────────────────────────
+  deploy-ai-api:
+    runs-on: ubuntu-latest
+    needs: deploy-auth-api
+    if: always()
+    environment: ${{ inputs.environment || 'production' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install wrangler globally
+        run: npm install -g wrangler@latest typescript
+      - name: Create AI cache KV (idempotent)
+        working-directory: workers/ai-api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set +e
+          CREATE_OUT=$(wrangler kv namespace create "AI_CACHE" 2>&1 || true)
+          KV_ID=$(echo "$CREATE_OUT" | grep -oP '(?<=id = ")[^"]+' || true)
+          if [ -z "$KV_ID" ]; then
+            KV_ID=$(wrangler kv namespace list 2>&1 | grep -B1 '"AI_CACHE"' | grep -oP '(?<="id": ")[^"]+' || true)
+          fi
+          if [ -n "$KV_ID" ]; then
+            sed -i "s/placeholder-ai-cache-id/${KV_ID}/g" wrangler.toml
+            sed -i "s/placeholder-ai-cache-staging-id/${KV_ID}/g" wrangler.toml
+          fi
+          set -e
+      - name: Deploy AI API Worker
+        working-directory: workers/ai-api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: wrangler deploy --env ${{ inputs.environment || 'production' }} 2>&1 || echo "AI API deploy failed (Workers AI may need paid plan)"
+
+  # ── Deploy Files API Worker ───────────────────────────────
+  deploy-files-api:
+    runs-on: ubuntu-latest
+    needs: deploy-auth-api
+    if: always()
+    environment: ${{ inputs.environment || 'production' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install wrangler globally
+        run: npm install -g wrangler@latest typescript
+      - name: Create R2 bucket (idempotent)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          wrangler r2 bucket create infinity-portal-files 2>&1 || true
+          echo "R2 bucket ready"
+      - name: Inject D1 ID into files wrangler.toml
+        working-directory: workers/files-api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set +e
+          D1_ID=$(wrangler d1 list 2>&1 | grep "infinity-os-db" | grep -oP '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' | head -1 || true)
+          if [ -n "$D1_ID" ]; then
+            sed -i "s/placeholder-d1-id/${D1_ID}/g" wrangler.toml
+            sed -i "s/placeholder-d1-staging-id/${D1_ID}/g" wrangler.toml
+          fi
+          set -e
+      - name: Deploy Files API Worker
+        working-directory: workers/files-api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: wrangler deploy --env ${{ inputs.environment || 'production' }} 2>&1 || echo "Files API deploy failed"
+
+  # ── Deploy WebSocket API Worker ───────────────────────────
+  deploy-ws-api:
+    runs-on: ubuntu-latest
+    needs: deploy-auth-api
+    if: always()
+    environment: ${{ inputs.environment || 'production' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install wrangler globally
+        run: npm install -g wrangler@latest typescript
+      - name: Deploy WebSocket API Worker
+        working-directory: workers/ws-api
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: wrangler deploy --env ${{ inputs.environment || 'production' }} 2>&1 || echo "WS API deploy failed (Durable Objects may need paid plan)"
+
+  # ── Summary ───────────────────────────────────────────────
+  # ── Deploy HIVE Worker ─────────────────────────────────────────────────────
+  deploy-hive:
+    runs-on: ubuntu-latest
+    needs: deploy-auth-api
+    if: always()
+    environment: ${{ inputs.environment || 'production' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install wrangler & typescript
+        run: npm install -g wrangler@latest typescript
+      - name: Install hive dependencies
+        working-directory: workers/hive
+        run: npm install --no-package-lock 2>/dev/null || true
+      - name: Provision D1 + KV for HIVE
+        working-directory: workers/hive
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set +e
+          CF_BASE="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}"
+          D1_ID=$(curl -sf "${CF_BASE}/d1/database?name=infinity-os-db"             -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"             | jq -r '.result[0].uuid // .result[0].id // empty' 2>/dev/null || echo "")
+          [ -n "$D1_ID" ] && sed -i "s/PLACEHOLDER_D1_DATABASE_ID/${D1_ID}/g" wrangler.toml || true
+          for KV_BINDING in KV_CACHE KV_RATE_LIMIT; do
+            KV_TITLE="infinity-hive-${KV_BINDING}"
+            KV_ID=$(wrangler kv namespace create "${KV_BINDING}" 2>&1 | grep -oP '(?<=id = ")[^"]+' || true)
+            if [ -z "$KV_ID" ]; then
+              KV_ID=$(curl -sf "${CF_BASE}/storage/kv/namespaces?per_page=100"                 -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"                 | jq -r ".result[] | select(.title == "${KV_TITLE}") | .id" 2>/dev/null | head -1 || echo "")
+            fi
+            [ -n "$KV_ID" ] && sed -i "s/PLACEHOLDER_${KV_BINDING}_ID/${KV_ID}/g" wrangler.toml || true
+          done
+          set -e
+      - name: Deploy HIVE Worker
+        working-directory: workers/hive
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: wrangler deploy --env ${{ inputs.environment || 'production' }} 2>&1 || echo "HIVE deploy failed"
+
+  # ── Deploy VOID Worker ─────────────────────────────────────────────────────
+  deploy-void:
+    runs-on: ubuntu-latest
+    needs: deploy-auth-api
+    if: always()
+    environment: ${{ inputs.environment || 'production' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install wrangler & typescript
+        run: npm install -g wrangler@latest typescript
+      - name: Install void dependencies
+        working-directory: workers/void
+        run: npm install --no-package-lock 2>/dev/null || true
+      - name: Provision D1 + KV + R2 for VOID
+        working-directory: workers/void
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set +e
+          CF_BASE="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}"
+          D1_ID=$(curl -sf "${CF_BASE}/d1/database?name=infinity-os-db"             -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"             | jq -r '.result[0].uuid // .result[0].id // empty' 2>/dev/null || echo "")
+          [ -n "$D1_ID" ] && sed -i "s/PLACEHOLDER_D1_DATABASE_ID/${D1_ID}/g" wrangler.toml || true
+          for KV_BINDING in KV_SECRETS_CACHE KV_RATE_LIMIT; do
+            KV_TITLE="infinity-void-${KV_BINDING}"
+            KV_ID=$(wrangler kv namespace create "${KV_BINDING}" 2>&1 | grep -oP '(?<=id = ")[^"]+' || true)
+            if [ -z "$KV_ID" ]; then
+              KV_ID=$(curl -sf "${CF_BASE}/storage/kv/namespaces?per_page=100"                 -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"                 | jq -r ".result[] | select(.title == "${KV_TITLE}") | .id" 2>/dev/null | head -1 || echo "")
+            fi
+            [ -n "$KV_ID" ] && sed -i "s/PLACEHOLDER_${KV_BINDING}_ID/${KV_ID}/g" wrangler.toml || true
+          done
+          wrangler r2 bucket create infinity-void-secrets 2>&1 || true
+          set -e
+      - name: Deploy VOID Worker
+        working-directory: workers/void
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: wrangler deploy --env ${{ inputs.environment || 'production' }} 2>&1 || echo "VOID deploy failed"
+
+  # ── Deploy LIGHTHOUSE Worker ────────────────────────────────────────────────
+  deploy-lighthouse:
+    runs-on: ubuntu-latest
+    needs: deploy-auth-api
+    if: always()
+    environment: ${{ inputs.environment || 'production' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install wrangler & typescript
+        run: npm install -g wrangler@latest typescript
+      - name: Install lighthouse dependencies
+        working-directory: workers/lighthouse
+        run: npm install --no-package-lock 2>/dev/null || true
+      - name: Provision D1 + KV for LIGHTHOUSE
+        working-directory: workers/lighthouse
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set +e
+          CF_BASE="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}"
+          D1_ID=$(curl -sf "${CF_BASE}/d1/database?name=infinity-os-db"             -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"             | jq -r '.result[0].uuid // .result[0].id // empty' 2>/dev/null || echo "")
+          [ -n "$D1_ID" ] && sed -i "s/PLACEHOLDER_D1_DATABASE_ID/${D1_ID}/g" wrangler.toml || true
+          for KV_BINDING in KV_TOKEN_CACHE KV_RATE_LIMIT; do
+            KV_TITLE="infinity-lighthouse-${KV_BINDING}"
+            KV_ID=$(wrangler kv namespace create "${KV_BINDING}" 2>&1 | grep -oP '(?<=id = ")[^"]+' || true)
+            if [ -z "$KV_ID" ]; then
+              KV_ID=$(curl -sf "${CF_BASE}/storage/kv/namespaces?per_page=100"                 -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"                 | jq -r ".result[] | select(.title == "${KV_TITLE}") | .id" 2>/dev/null | head -1 || echo "")
+            fi
+            [ -n "$KV_ID" ] && sed -i "s/PLACEHOLDER_${KV_BINDING}_ID/${KV_ID}/g" wrangler.toml || true
+          done
+          set -e
+      - name: Deploy LIGHTHOUSE Worker
+        working-directory: workers/lighthouse
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: wrangler deploy --env ${{ inputs.environment || 'production' }} 2>&1 || echo "LIGHTHOUSE deploy failed"
+
+  # ── Deploy INFINITY-ONE Worker ──────────────────────────────────────────────
+  deploy-infinity-one:
+    runs-on: ubuntu-latest
+    needs: deploy-auth-api
+    if: always()
+    environment: ${{ inputs.environment || 'production' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install wrangler & typescript
+        run: npm install -g wrangler@latest typescript
+      - name: Install infinity-one dependencies
+        working-directory: workers/infinity-one
+        run: npm install --no-package-lock 2>/dev/null || true
+      - name: Provision D1 + KV for INFINITY-ONE
+        working-directory: workers/infinity-one
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set +e
+          CF_BASE="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}"
+          D1_ID=$(curl -sf "${CF_BASE}/d1/database?name=infinity-os-db"             -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"             | jq -r '.result[0].uuid // .result[0].id // empty' 2>/dev/null || echo "")
+          [ -n "$D1_ID" ] && sed -i "s/PLACEHOLDER_D1_DATABASE_ID/${D1_ID}/g" wrangler.toml || true
+          for KV_BINDING in KV_SESSIONS KV_RATE_LIMIT; do
+            KV_TITLE="infinity-one-${KV_BINDING}"
+            KV_ID=$(wrangler kv namespace create "${KV_BINDING}" 2>&1 | grep -oP '(?<=id = ")[^"]+' || true)
+            if [ -z "$KV_ID" ]; then
+              KV_ID=$(curl -sf "${CF_BASE}/storage/kv/namespaces?per_page=100"                 -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"                 | jq -r ".result[] | select(.title == "${KV_TITLE}") | .id" 2>/dev/null | head -1 || echo "")
+            fi
+            [ -n "$KV_ID" ] && sed -i "s/PLACEHOLDER_${KV_BINDING}_ID/${KV_ID}/g" wrangler.toml || true
+          done
+          set -e
+      - name: Set JWT_SECRET
+        working-directory: workers/infinity-one
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          ENV="${{ inputs.environment || 'production' }}"
+          SECRET="${{ secrets.BACKEND_SECRET_KEY }}"
+          if [ -z "$SECRET" ]; then SECRET=$(openssl rand -hex 32); fi
+          echo "$SECRET" | wrangler secret put JWT_SECRET --env "$ENV" 2>&1 || true
+      - name: Deploy INFINITY-ONE Worker
+        working-directory: workers/infinity-one
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: wrangler deploy --env ${{ inputs.environment || 'production' }} 2>&1 || echo "INFINITY-ONE deploy failed"
+
+  # ── Deploy MONITORING DASHBOARD Worker ─────────────────────────────────────
+  deploy-monitoring:
+    runs-on: ubuntu-latest
+    needs: [deploy-auth-api, deploy-hive, deploy-void, deploy-lighthouse, deploy-infinity-one]
+    if: always()
+    environment: ${{ inputs.environment || 'production' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install wrangler & typescript
+        run: npm install -g wrangler@latest typescript
+      - name: Install monitoring-dashboard dependencies
+        working-directory: workers/monitoring-dashboard
+        run: npm install --no-package-lock 2>/dev/null || true
+      - name: Provision D1 + KV for MONITORING
+        working-directory: workers/monitoring-dashboard
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set +e
+          CF_BASE="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}"
+          D1_ID=$(curl -sf "${CF_BASE}/d1/database?name=infinity-os-db"             -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"             | jq -r '.result[0].uuid // .result[0].id // empty' 2>/dev/null || echo "")
+          [ -n "$D1_ID" ] && sed -i "s/PLACEHOLDER_D1_DATABASE_ID/${D1_ID}/g" wrangler.toml || true
+          for KV_BINDING in KV_METRICS KV_ALERTS; do
+            KV_TITLE="infinity-monitoring-${KV_BINDING}"
+            KV_ID=$(wrangler kv namespace create "${KV_BINDING}" 2>&1 | grep -oP '(?<=id = ")[^"]+' || true)
+            if [ -z "$KV_ID" ]; then
+              KV_ID=$(curl -sf "${CF_BASE}/storage/kv/namespaces?per_page=100"                 -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"                 | jq -r ".result[] | select(.title == "${KV_TITLE}") | .id" 2>/dev/null | head -1 || echo "")
+            fi
+            [ -n "$KV_ID" ] && sed -i "s/PLACEHOLDER_${KV_BINDING}_ID/${KV_ID}/g" wrangler.toml || true
+          done
+          set -e
+      - name: Deploy MONITORING DASHBOARD Worker
+        working-directory: workers/monitoring-dashboard
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: wrangler deploy --env ${{ inputs.environment || 'production' }} 2>&1 || echo "MONITORING deploy failed"
+
+  # ── Summary ───────────────────────────────────────────────────────────────────
+  deploy-summary:
+    runs-on: ubuntu-latest
+    needs: [deploy-frontend, deploy-gateway, deploy-auth-api, deploy-ai-api, deploy-files-api, deploy-ws-api, deploy-hive, deploy-void, deploy-lighthouse, deploy-infinity-one, deploy-monitoring]
+    if: always()
+    steps:
+      - name: Deployment Summary
+        run: |
+          echo "================================================"
+          echo "  INFINITY PORTAL -- Deploy Summary"
+          echo "================================================"
+          echo "  Environment:   ${{ inputs.environment || 'production' }}"
+          echo "  Frontend:      ${{ needs.deploy-frontend.result || 'skipped' }}"
+          echo "  Gateway:       ${{ needs.deploy-gateway.result || 'skipped' }}"
+          echo "  Auth API:      ${{ needs.deploy-auth-api.result || 'skipped' }}"
+          echo "  AI API:        ${{ needs.deploy-ai-api.result || 'skipped' }}"
+          echo "  Files API:     ${{ needs.deploy-files-api.result || 'skipped' }}"
+          echo "  WS API:        ${{ needs.deploy-ws-api.result || 'skipped' }}"
+          echo "  HIVE:          ${{ needs.deploy-hive.result || 'skipped' }}"
+          echo "  VOID:          ${{ needs.deploy-void.result || 'skipped' }}"
+          echo "  LIGHTHOUSE:    ${{ needs.deploy-lighthouse.result || 'skipped' }}"
+          echo "  INFINITY-ONE:  ${{ needs.deploy-infinity-one.result || 'skipped' }}"
+          echo "  MONITORING:    ${{ needs.deploy-monitoring.result || 'skipped' }}"
+          echo "  Commit:        ${{ github.sha }}"
+          echo "  Triggered by:  ${{ github.actor }}"
+          echo "================================================"

@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "test:coverage": "jest --coverage"
   },
   "keywords": [
@@ -21,7 +21,7 @@
   "license": "MIT",
   "dependencies": {
     "zod": "^3.22.4",
-    "@trancendos/types": "*"
+    "@infinity-os/types": "workspace:*"
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",

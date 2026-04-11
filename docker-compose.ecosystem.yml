@@ -1,0 +1,664 @@
+# ============================================================
+# Trancendos Ecosystem — Local Development Compose
+# All 23 services + infrastructure | 2060-ready mesh routing
+# ============================================================
+# Usage:
+#   docker compose -f docker-compose.ecosystem.yml up -d
+#   docker compose -f docker-compose.ecosystem.yml logs -f guardian-ai
+#   docker compose -f docker-compose.ecosystem.yml down
+# ============================================================
+
+version: "3.9"
+
+x-common-env: &common-env
+  NODE_ENV: development
+  IAM_ENABLED: "true"
+  IAM_JWT_SECRET: "${IAM_JWT_SECRET:-trancendos-dev-secret-change-in-production}"
+  IAM_JWT_ALGORITHM: HS512
+  MESH_ROUTING_PROTOCOL: static_port
+  LOG_LEVEL: debug
+  NEON_DATABASE_URL: "${NEON_DATABASE_URL:-postgresql://localhost:5432/trancendos}"
+
+x-common-healthcheck: &common-healthcheck
+  interval: 30s
+  timeout: 10s
+  start_period: 15s
+  retries: 3
+
+services:
+  # ──────────────────────────────────────────────
+  # WAVE 1: Core Platform (Infinity Portal)
+  # ──────────────────────────────────────────────
+  infinity-portal:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: infinity-portal
+      PORT: "3000"
+      MESH_ADDRESS: "infinity-portal:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  # ──────────────────────────────────────────────
+  # WAVE 2: Core AI Agents
+  # ──────────────────────────────────────────────
+  guardian-ai:
+    build:
+      context: ../guardian-ai
+      dockerfile: Dockerfile
+    ports:
+      - "3010:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: guardian-ai
+      PORT: "3000"
+      MESH_ADDRESS: "guardian-ai:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  cornelius-ai:
+    build:
+      context: ../cornelius-ai
+      dockerfile: Dockerfile
+    ports:
+      - "3011:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: cornelius-ai
+      PORT: "3000"
+      MESH_ADDRESS: "cornelius-ai:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  dorris-ai:
+    build:
+      context: ../dorris-ai
+      dockerfile: Dockerfile
+    ports:
+      - "3012:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: dorris-ai
+      PORT: "3000"
+      MESH_ADDRESS: "dorris-ai:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  norman-ai:
+    build:
+      context: ../norman-ai
+      dockerfile: Dockerfile
+    ports:
+      - "3013:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: norman-ai
+      PORT: "3000"
+      MESH_ADDRESS: "norman-ai:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  the-dr-ai:
+    build:
+      context: ../the-dr-ai
+      dockerfile: Dockerfile
+    ports:
+      - "3014:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: the-dr-ai
+      PORT: "3000"
+      MESH_ADDRESS: "the-dr-ai:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  # ──────────────────────────────────────────────
+  # WAVE 3: Platform Modules
+  # ──────────────────────────────────────────────
+  the-agora:
+    build:
+      context: ../the-agora
+      dockerfile: Dockerfile
+    ports:
+      - "3020:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: the-agora
+      PORT: "3000"
+      MESH_ADDRESS: "the-agora:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  the-citadel:
+    build:
+      context: ../the-citadel
+      dockerfile: Dockerfile
+    ports:
+      - "3021:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: the-citadel
+      PORT: "3000"
+      MESH_ADDRESS: "the-citadel:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  the-hive:
+    build:
+      context: ../the-hive
+      dockerfile: Dockerfile
+    ports:
+      - "3022:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: the-hive
+      PORT: "3000"
+      MESH_ADDRESS: "the-hive:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  the-library:
+    build:
+      context: ../the-library
+      dockerfile: Dockerfile
+    ports:
+      - "3023:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: the-library
+      PORT: "3000"
+      MESH_ADDRESS: "the-library:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  the-nexus:
+    build:
+      context: ../the-nexus
+      dockerfile: Dockerfile
+    ports:
+      - "3024:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: the-nexus
+      PORT: "3000"
+      MESH_ADDRESS: "the-nexus:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  the-observatory:
+    build:
+      context: ../the-observatory
+      dockerfile: Dockerfile
+    ports:
+      - "3025:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: the-observatory
+      PORT: "3000"
+      MESH_ADDRESS: "the-observatory:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  the-treasury:
+    build:
+      context: ../the-treasury
+      dockerfile: Dockerfile
+    ports:
+      - "3026:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: the-treasury
+      PORT: "3000"
+      MESH_ADDRESS: "the-treasury:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  the-workshop:
+    build:
+      context: ../the-workshop
+      dockerfile: Dockerfile
+    ports:
+      - "3027:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: the-workshop
+      PORT: "3000"
+      MESH_ADDRESS: "the-workshop:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  arcadia:
+    build:
+      context: ../arcadia
+      dockerfile: Dockerfile
+    ports:
+      - "3028:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: arcadia
+      PORT: "3000"
+      MESH_ADDRESS: "arcadia:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  # ──────────────────────────────────────────────
+  # WAVE 4: Specialist AI Agents
+  # ──────────────────────────────────────────────
+  serenity-ai:
+    build:
+      context: ../serenity-ai
+      dockerfile: Dockerfile
+    ports:
+      - "3030:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: serenity-ai
+      PORT: "3000"
+      MESH_ADDRESS: "serenity-ai:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  oracle-ai:
+    build:
+      context: ../oracle-ai
+      dockerfile: Dockerfile
+    ports:
+      - "3031:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: oracle-ai
+      PORT: "3000"
+      MESH_ADDRESS: "oracle-ai:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  porter-family-ai:
+    build:
+      context: ../porter-family-ai
+      dockerfile: Dockerfile
+    ports:
+      - "3032:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: porter-family-ai
+      PORT: "3000"
+      MESH_ADDRESS: "porter-family-ai:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  prometheus-ai:
+    build:
+      context: ../prometheus-ai
+      dockerfile: Dockerfile
+    ports:
+      - "3033:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: prometheus-ai
+      PORT: "3000"
+      MESH_ADDRESS: "prometheus-ai:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  queen-ai:
+    build:
+      context: ../queen-ai
+      dockerfile: Dockerfile
+    ports:
+      - "3034:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: queen-ai
+      PORT: "3000"
+      MESH_ADDRESS: "queen-ai:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  renik-ai:
+    build:
+      context: ../renik-ai
+      dockerfile: Dockerfile
+    ports:
+      - "3035:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: renik-ai
+      PORT: "3000"
+      MESH_ADDRESS: "renik-ai:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  sentinel-ai:
+    build:
+      context: ../sentinel-ai
+      dockerfile: Dockerfile
+    ports:
+      - "3036:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: sentinel-ai
+      PORT: "3000"
+      MESH_ADDRESS: "sentinel-ai:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  solarscene-ai:
+    build:
+      context: ../solarscene-ai
+      dockerfile: Dockerfile
+    ports:
+      - "3037:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: solarscene-ai
+      PORT: "3000"
+      MESH_ADDRESS: "solarscene-ai:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+# ──────────────────────────────────────────────
+  # WAVE 5: Ecosystem Services
+  # ──────────────────────────────────────────────
+  api-marketplace:
+    build:
+      context: ../api-marketplace
+      dockerfile: Dockerfile
+    ports:
+      - "3040:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: api-marketplace
+      PORT: "3000"
+      MESH_ADDRESS: "api-marketplace:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  artifactory:
+    build:
+      context: ../artifactory
+      dockerfile: Dockerfile
+    ports:
+      - "3041:3041"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: artifactory
+      PORT: "3041"
+      MESH_ADDRESS: "artifactory:3041"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3041/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+
+  # ════════════════════════════════════════════════
+  # Wave 6 — Creative Intelligence Studios
+  # ════════════════════════════════════════════════
+
+  section7:
+    build:
+      context: ./wave6-studios/section7
+      dockerfile: Dockerfile
+    ports:
+      - "3050:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: section7
+      PORT: "3000"
+      MESH_ADDRESS: "section7:3000"
+      STUDIO_ROLE: "intelligence-narrative-research"
+      ISTA_PERSONA: "bert-joen-kater"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  style-and-shoot:
+    build:
+      context: ./wave6-studios/style-and-shoot
+      dockerfile: Dockerfile
+    ports:
+      - "3051:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: style-and-shoot
+      PORT: "3000"
+      MESH_ADDRESS: "style-and-shoot:3000"
+      STUDIO_ROLE: "ux-ui-visual-engine"
+      ISTA_PERSONA: "madam-krystal"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  fabulousa:
+    build:
+      context: ./wave6-studios/fabulousa
+      dockerfile: Dockerfile
+    ports:
+      - "3052:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: fabulousa
+      PORT: "3000"
+      MESH_ADDRESS: "fabulousa:3000"
+      STUDIO_ROLE: "generative-fashion-style"
+      ISTA_PERSONA: "baron-von-hilton"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  tranceflow:
+    build:
+      context: ./wave6-studios/tranceflow
+      dockerfile: Dockerfile
+    ports:
+      - "3053:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: tranceflow
+      PORT: "3000"
+      MESH_ADDRESS: "tranceflow:3000"
+      STUDIO_ROLE: "3d-spatial-avatar"
+      ISTA_PERSONA: "junior-cesar"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  tateking:
+    build:
+      context: ./wave6-studios/tateking
+      dockerfile: Dockerfile
+    ports:
+      - "3054:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: tateking
+      PORT: "3000"
+      MESH_ADDRESS: "tateking:3000"
+      STUDIO_ROLE: "cinematic-rendering"
+      ISTA_PERSONA: "benji-and-sam"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+  the-digitalgrid:
+    build:
+      context: ./wave6-studios/the-digitalgrid
+      dockerfile: Dockerfile
+    ports:
+      - "3055:3000"
+    environment:
+      <<: *common-env
+      SERVICE_NAME: the-digitalgrid
+      PORT: "3000"
+      MESH_ADDRESS: "the-digitalgrid:3000"
+      STUDIO_ROLE: "infrastructure-cicd"
+      ISTA_PERSONA: "tyler-towncroft"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      <<: *common-healthcheck
+    networks:
+      - trancendos-mesh
+    restart: unless-stopped
+
+
+# ──────────────────────────────────────────────
+# Network: Trancendos Service Mesh
+# ──────────────────────────────────────────────
+networks:
+  trancendos-mesh:
+    driver: bridge
+    name: trancendos-mesh
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+# ──────────────────────────────────────────────
+# Port Map Reference:
+# ──────────────────────────────────────────────
+# 3000  infinity-portal    (Wave 1 — Core Platform)
+# 3010  guardian-ai         (Wave 2 — Security Gateway)
+# 3011  cornelius-ai        (Wave 2 — Orchestrator)
+# 3012  dorris-ai           (Wave 2 — Financial Chief)
+# 3013  norman-ai           (Wave 2 — Security Intel)
+# 3014  the-dr-ai           (Wave 2 — Autonomous Healing)
+# 3020  the-agora           (Wave 3 — Forum Engine)
+# 3021  the-citadel         (Wave 3 — Defense Engine)
+# 3022  the-hive            (Wave 3 — Swarm Intelligence)
+# 3023  the-library         (Wave 3 — Knowledge Base)
+# 3024  the-nexus           (Wave 3 — Integration Hub)
+# 3025  the-observatory     (Wave 3 — Analytics Engine)
+# 3026  the-treasury        (Wave 3 — Resource Manager)
+# 3027  the-workshop        (Wave 3 — Code Quality)
+# 3028  arcadia             (Wave 3 — Community/Marketplace)
+# 3030  serenity-ai         (Wave 4 — Wellness Monitor)
+# 3031  oracle-ai           (Wave 4 — Prediction/Forecast)
+# 3032  porter-family-ai    (Wave 4 — Portfolio Mgmt)
+# 3033  prometheus-ai       (Wave 4 — Monitoring/Alerting)
+# 3034  queen-ai            (Wave 4 — Hive Coordinator)
+# 3035  renik-ai            (Wave 4 — Crypto Key Mgmt)
+# 3036  sentinel-ai         (Wave 4 — Service Health)
+# 3037  solarscene-ai       (Wave 4 — Operations/Workflow)
+# 3040  api-marketplace     (Wave 5 — API Discovery/Publishing)
+# 3041  artifactory         (Wave 5 — Artifact Registry/Storage)
+# 3050  section7            (Wave 6 — Intelligence, Narrative & Research)
+# 3051  style-and-shoot     (Wave 6 — UX/UI & Visual Engine)
+# 3052  fabulousa           (Wave 6 — Generative Fashion & Style Engine)
+# 3053  tranceflow          (Wave 6 — 3D Spatial & Avatar Engine)
+# 3054  tateking            (Wave 6 — Serverless Cinematic Rendering)
+# 3055  the-digitalgrid     (Wave 6 — Infrastructure & CI/CD Automation)

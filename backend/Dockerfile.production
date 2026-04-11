@@ -1,0 +1,91 @@
+# Dockerfile.production — Infinity OS Production Build
+# ═══════════════════════════════════════════════════════════════
+# Multi-stage build with security hardening:
+# Stage 1: Build dependencies (discarded)
+# Stage 2: Production runtime (minimal attack surface)
+#
+# 2060 Standard: Zero-Cost Infrastructure, Future-Proof Architecture
+# ═══════════════════════════════════════════════════════════════
+
+# ── Stage 1: Builder ─────────────────────────────────────────
+FROM python:3.12-slim AS builder
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+
+# Install Python dependencies into a virtual env
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# ── Stage 2: Production Runtime ──────────────────────────────
+FROM python:3.12-slim AS production
+
+# Security: Install only runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    tini \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get purge -y --auto-remove
+
+# Security: Create non-root user
+RUN groupadd -r infinity && useradd -r -g infinity -m -s /bin/false infinity
+
+# Copy virtual env from builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# Copy application code
+COPY --chown=infinity:infinity . .
+
+# Create data directories with proper permissions
+RUN mkdir -p /data/files /data/repos /data/builds /data/logs && \
+    chown -R infinity:infinity /data /app
+
+# Security: Remove unnecessary files
+RUN rm -rf tests/ __pycache__/ *.pyc .pytest_cache/ \
+    Dockerfile* docker-compose* .env* .git* \
+    alembic/ *.md 2>/dev/null || true
+
+# Security: Set restrictive file permissions
+RUN chmod -R 550 /app && \
+    chmod -R 770 /data
+
+# Switch to non-root user
+USER infinity
+
+# Environment defaults (override via docker-compose or K8s)
+ENV ENVIRONMENT=production
+ENV PORT=8000
+ENV WORKERS=4
+ENV LOG_LEVEL=INFO
+ENV RATE_LIMIT_ENABLED=true
+ENV MAX_REQUEST_SIZE_MB=50
+ENV DATA_RESIDENCY_DEFAULT=eu
+ENV CONSENT_REQUIRED=true
+ENV AI_AUDIT_ENABLED=true
+ENV ZERO_COST_MODE=true
+ENV FUTURE_PROOF_LEVEL=2060
+
+# Health check
+HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:${PORT}/ready || exit 1
+
+EXPOSE ${PORT}
+
+# Use tini as init system for proper signal handling
+ENTRYPOINT ["tini", "--"]
+
+# Production: Gunicorn with Uvicorn workers for multi-process serving
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT} --workers ${WORKERS} --loop uvloop --http httptools --no-access-log --proxy-headers --forwarded-allow-ips='*'"]

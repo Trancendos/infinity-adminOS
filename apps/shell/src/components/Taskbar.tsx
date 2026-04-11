@@ -6,9 +6,6 @@
 
 import React, { useState, useEffect } from 'react';
 import type { Window as OSWindow, User } from '@infinity-os/types';
-import { useBatteryStatus } from '../hooks/useBatteryStatus';
-import { useNetworkStatus } from '../hooks/useNetworkStatus';
-import { useDeviceDetection } from '../hooks/useDeviceDetection';
 
 interface TaskbarProps {
   windows: OSWindow[];
@@ -21,76 +18,12 @@ interface TaskbarProps {
 }
 
 const PINNED_APPS = [
-  // Platform Core — always visible in taskbar
-  { moduleId: 'com.infinity-os.observatory',   title: 'Observatory',   icon: '🔭' },
-  { moduleId: 'com.infinity-os.hive',          title: 'HIVE',          icon: '🐝' },
-  { moduleId: 'com.infinity-os.infinity-one',  title: 'Infinity-One',  icon: '∞'  },
-  { moduleId: 'com.infinity-os.lighthouse',    title: 'Lighthouse',    icon: '🔦' },
-  { moduleId: 'com.infinity-os.void',          title: 'The Void',      icon: '🌌' },
-  // Separator group — governance & ops
-  { moduleId: 'com.infinity-os.townhall',      title: 'TownHall',      icon: '🏛️' },
-  { moduleId: 'com.infinity-os.kanban',        title: 'Task Board',    icon: '📋' },
-  { moduleId: 'com.infinity-os.itsm',          title: 'ITSM',          icon: '🎫' },
-  { moduleId: 'com.infinity-os.terminal',      title: 'Terminal',      icon: '⌨️' },
-  { moduleId: 'com.infinity-os.ai-studio',     title: 'AI Studio',     icon: '🤖' },
-  { moduleId: 'com.infinity-os.settings',      title: 'Settings',      icon: '⚙️' },
+  { moduleId: 'com.infinity-os.file-manager', title: 'File Manager', icon: '📁' },
+  { moduleId: 'com.infinity-os.text-editor',  title: 'Text Editor',  icon: '📝' },
+  { moduleId: 'com.infinity-os.terminal',     title: 'Terminal',     icon: '⌨️' },
+  { moduleId: 'com.infinity-os.app-store',    title: 'App Store',    icon: '🏪' },
+  { moduleId: 'com.infinity-os.settings',     title: 'Settings',     icon: '⚙️' },
 ];
-
-function SystemStatus() {
-  const battery = useBatteryStatus();
-  const network = useNetworkStatus();
-  const device = useDeviceDetection();
-
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        fontSize: '11px',
-        color: 'var(--text-secondary)',
-        marginRight: '8px',
-      }}
-      aria-label="System status"
-    >
-      {/* Network status */}
-      <div
-        title={`Network: ${network.label} (${network.quality})`}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '3px',
-          color: network.online ? 'var(--text-secondary)' : '#ef4444',
-          cursor: 'default',
-        }}
-      >
-        <span style={{ fontSize: '12px' }}>{network.online ? '📶' : '🔴'}</span>
-        {!device.isMobile && (
-          <span style={{ fontSize: '10px' }}>{network.online ? network.effectiveType.toUpperCase() : 'Offline'}</span>
-        )}
-      </div>
-
-      {/* Battery status (only if supported) */}
-      {battery.supported && battery.levelPct !== null && (
-        <div
-          title={`Battery: ${battery.levelPct}% ${battery.charging ? '(charging)' : ''}`}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '3px',
-            color: battery.levelPct < 20 ? '#ef4444' : battery.levelPct < 40 ? '#f59e0b' : 'var(--text-secondary)',
-            cursor: 'default',
-          }}
-        >
-          <span style={{ fontSize: '12px' }}>{battery.icon}</span>
-          {!device.isMobile && (
-            <span style={{ fontSize: '10px' }}>{battery.levelPct}%</span>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function Clock() {
   const [time, setTime] = useState(new Date());
@@ -314,8 +247,6 @@ export function Taskbar({
           {user?.displayName?.[0]?.toUpperCase() ?? '?'}
         </button>
 
-        {/* System Status (battery, network) */}
-        <SystemStatus />
         {/* Clock */}
         <Clock />
       </div>

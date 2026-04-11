@@ -18,6 +18,7 @@ from enum import Enum as PyEnum
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
+from router_migration_helper import store_factory, list_store_factory, audit_log_factory
 
 logger = logging.getLogger("infinity-os.self-healing")
 
@@ -81,9 +82,9 @@ class CircuitBreakerState(BaseModel):
 
 # ── In-Memory State ─────────────────────────────────────────
 
-_probes: dict[str, dict] = {}
+_probes = store_factory("self_healing", "probes")
 _remediation_log: list[dict] = []
-_circuit_breakers: dict[str, dict] = {}
+_circuit_breakers = store_factory("self_healing", "circuit_breakers")
 _failure_counters: dict[str, int] = {}
 
 # Default probes for core services

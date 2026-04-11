@@ -1,0 +1,17 @@
+{
+  "name": "@trancendos/event-bus",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Platform Event Bus — Type-safe inter-service communication for Trancendos",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250313.0",
+    "typescript": "^5.7.3",
+    "vitest": "^4.0.18"
+  }
+}

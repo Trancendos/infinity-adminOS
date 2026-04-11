@@ -1,0 +1,250 @@
+# ══════════════════════════════════════════════════════════════
+# TRANCENDOS ECOSYSTEM — Prometheus Scrape Configuration
+# ══════════════════════════════════════════════════════════════
+# Monitors all 31 services + infrastructure components
+# ══════════════════════════════════════════════════════════════
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+  external_labels:
+    cluster: trancendos-ecosystem
+    environment: production
+
+# ── Alerting ────────────────────────────────────────────────
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+# ── Rule Files ──────────────────────────────────────────────
+rule_files:
+  - /etc/prometheus/rules/*.yml
+
+# ── Scrape Configs ──────────────────────────────────────────
+scrape_configs:
+
+  # ── Prometheus Self-Monitoring ────────────────────────────
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: prometheus
+          wave: monitoring
+
+  # ── Wave 1: Core Platform ────────────────────────────────
+  - job_name: wave1-core
+    metrics_path: /metrics
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['infinity-portal:3000']
+        labels:
+          service: infinity-portal
+          wave: '1'
+          category: core
+          critical: 'true'
+
+  # ── Wave 2: AI Agents ───────────────────────────────────
+  - job_name: wave2-agents
+    metrics_path: /metrics
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['guardian-ai:3000']
+        labels:
+          service: guardian-ai
+          wave: '2'
+          category: agent
+          critical: 'true'
+      - targets: ['cornelius-ai:3000']
+        labels:
+          service: cornelius-ai
+          wave: '2'
+          category: agent
+          critical: 'true'
+      - targets: ['dorris-ai:3000']
+        labels:
+          service: dorris-ai
+          wave: '2'
+          category: agent
+      - targets: ['norman-ai:3000']
+        labels:
+          service: norman-ai
+          wave: '2'
+          category: agent
+      - targets: ['the-dr-ai:3000']
+        labels:
+          service: the-dr-ai
+          wave: '2'
+          category: agent
+
+  # ── Wave 3: Infrastructure ──────────────────────────────
+  - job_name: wave3-infrastructure
+    metrics_path: /metrics
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['the-agora:3000']
+        labels:
+          service: the-agora
+          wave: '3'
+          category: infrastructure
+      - targets: ['the-citadel:3000']
+        labels:
+          service: the-citadel
+          wave: '3'
+          category: infrastructure
+          critical: 'true'
+      - targets: ['the-hive:3000']
+        labels:
+          service: the-hive
+          wave: '3'
+          category: infrastructure
+      - targets: ['the-library:3000']
+        labels:
+          service: the-library
+          wave: '3'
+          category: infrastructure
+      - targets: ['the-nexus:3000']
+        labels:
+          service: the-nexus
+          wave: '3'
+          category: infrastructure
+          critical: 'true'
+      - targets: ['the-observatory:3000']
+        labels:
+          service: the-observatory
+          wave: '3'
+          category: infrastructure
+      - targets: ['the-treasury:3000']
+        labels:
+          service: the-treasury
+          wave: '3'
+          category: infrastructure
+      - targets: ['the-workshop:3000']
+        labels:
+          service: the-workshop
+          wave: '3'
+          category: infrastructure
+      - targets: ['arcadia:3000']
+        labels:
+          service: arcadia
+          wave: '3'
+          category: infrastructure
+
+  # ── Wave 4: Intelligence ────────────────────────────────
+  - job_name: wave4-intelligence
+    metrics_path: /metrics
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['serenity-ai:3000']
+        labels:
+          service: serenity-ai
+          wave: '4'
+          category: intelligence
+      - targets: ['oracle-ai:3000']
+        labels:
+          service: oracle-ai
+          wave: '4'
+          category: intelligence
+      - targets: ['porter-family-ai:3000']
+        labels:
+          service: porter-family-ai
+          wave: '4'
+          category: intelligence
+      - targets: ['prometheus-ai:3000']
+        labels:
+          service: prometheus-ai
+          wave: '4'
+          category: intelligence
+          critical: 'true'
+      - targets: ['queen-ai:3000']
+        labels:
+          service: queen-ai
+          wave: '4'
+          category: intelligence
+      - targets: ['renik-ai:3000']
+        labels:
+          service: renik-ai
+          wave: '4'
+          category: intelligence
+      - targets: ['sentinel-ai:3000']
+        labels:
+          service: sentinel-ai
+          wave: '4'
+          category: intelligence
+          critical: 'true'
+      - targets: ['solarscene-ai:3000']
+        labels:
+          service: solarscene-ai
+          wave: '4'
+          category: intelligence
+
+  # ── Wave 5: Marketplace ─────────────────────────────────
+  - job_name: wave5-marketplace
+    metrics_path: /metrics
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['api-marketplace:3000']
+        labels:
+          service: api-marketplace
+          wave: '5'
+          category: marketplace
+      - targets: ['artifactory:3041']
+        labels:
+          service: artifactory
+          wave: '5'
+          category: marketplace
+
+  # ── Wave 6: Studios ─────────────────────────────────────
+  - job_name: wave6-studios
+    metrics_path: /metrics
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['section7:3000']
+        labels:
+          service: section7
+          wave: '6'
+          category: studio
+          ista: bert-joen-kater
+      - targets: ['style-and-shoot:3000']
+        labels:
+          service: style-and-shoot
+          wave: '6'
+          category: studio
+          ista: madam-krystal
+      - targets: ['fabulousa:3000']
+        labels:
+          service: fabulousa
+          wave: '6'
+          category: studio
+          ista: baron-von-hilton
+      - targets: ['tranceflow:3000']
+        labels:
+          service: tranceflow
+          wave: '6'
+          category: studio
+          ista: junior-cesar
+      - targets: ['tateking:3000']
+        labels:
+          service: tateking
+          wave: '6'
+          category: studio
+          ista: benji-and-sam
+      - targets: ['the-digitalgrid:3000']
+        labels:
+          service: the-digitalgrid
+          wave: '6'
+          category: studio
+          ista: tyler-towncroft
+
+  # ── Nginx Gateway ───────────────────────────────────────
+  - job_name: nginx-gateway
+    metrics_path: /gateway/status
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['nginx:80']
+        labels:
+          service: nginx-gateway
+          category: gateway
+          critical: 'true'

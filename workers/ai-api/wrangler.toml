@@ -1,0 +1,42 @@
+# ============================================================
+# Infinity OS — AI API Worker
+# ============================================================
+
+name = "infinity-ai-api"
+main = "src/index.ts"
+compatibility_date = "2025-03-01"
+compatibility_flags = ["nodejs_compat"]
+
+[env.production]
+name = "infinity-ai-api"
+
+[env.production.vars]
+ENVIRONMENT = "production"
+ALLOWED_ORIGINS = "https://infinity-portal.pages.dev,https://infinity-portal.com"
+AUTH_API_URL = "https://infinity-auth-api.luminous-aimastermind.workers.dev"
+
+[env.production.ai]
+binding = "AI"
+
+[[env.production.kv_namespaces]]
+binding = "CACHE"
+id = "placeholder-ai-cache-id"
+
+[env.staging]
+name = "infinity-ai-api-staging"
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+ALLOWED_ORIGINS = "https://infinity-portal.pages.dev,http://localhost:5173"
+AUTH_API_URL = "https://infinity-auth-api-staging.luminous-aimastermind.workers.dev"
+
+[env.staging.ai]
+binding = "AI"
+
+[[env.staging.kv_namespaces]]
+binding = "CACHE"
+id = "placeholder-ai-cache-staging-id"
+# ── Observability ────────────────────────────────────
+[observability]
+enabled = true
+head_sampling_rate = 1.0

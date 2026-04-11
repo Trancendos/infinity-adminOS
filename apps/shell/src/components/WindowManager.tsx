@@ -1,274 +1,267 @@
 /**
- * WindowManager — Module rendering with real implementations
- * Platform Core modules: Infinity-One, Lighthouse, HIVE, The Void, Platform Observatory
+ * WindowManager — Draggable, resizable window system
+ * Manages z-order, focus, minimise, maximise, close
  */
-import React, { Suspense, lazy } from 'react';
 
-// Lazy-load modules for code splitting
-const AdminPanel = lazy(() => import('../modules/AdminPanel'));
-const ComplianceDashboard = lazy(() => import('../modules/ComplianceDashboard'));
-const HITLDashboard = lazy(() => import('../modules/HITLDashboard'));
-const RepositoryManager = lazy(() => import('../modules/RepositoryManager'));
-const BuildManager = lazy(() => import('../modules/BuildManager'));
-const FederationDashboard = lazy(() => import('../modules/FederationDashboard'));
-const KanbanBoard = lazy(() => import('../modules/KanbanBoard'));
-const FileManager = lazy(() => import('../modules/FileManager'));
-const AIStudio = lazy(() => import('../modules/AIStudio'));
-const Settings = lazy(() => import('../modules/Settings'));
-const Terminal = lazy(() => import('../modules/Terminal'));
-const IntegrationHub = lazy(() => import('../modules/IntegrationHub'));
-const AppStore = lazy(() => import('../modules/AppStore'));
-const NotificationCentre = lazy(() => import('../modules/NotificationCentre'));
+import React, { useRef, useCallback } from 'react';
+import type { Window as OSWindow } from '@infinity-os/types';
 
-// Project & IT Management modules
-const ITSMDashboard = lazy(() => import('../modules/ITSMDashboard'));
-const ProjectGates = lazy(() => import('../modules/ProjectGates'));
-const TownHallDashboard = lazy(() => import('../modules/TownHallDashboard'));
-const DocumentLibrary = lazy(() => import('../modules/DocumentLibrary'));
-const AssetRegistry = lazy(() => import('../modules/AssetRegistry'));
-const KnowledgeHub = lazy(() => import('../modules/KnowledgeHub'));
-const DependencyMap = lazy(() => import('../modules/DependencyMap'));
-
-// Production hardening modules
-const WorkflowBuilder = lazy(() => import('../modules/WorkflowBuilder'));
-const SecretsVault = lazy(() => import('../modules/SecretsVault'));
-const ObservabilityDashboard = lazy(() => import('../modules/ObservabilityDashboard'));
-
-// ─── Platform Core modules ────────────────────────────────────────────────────
-// Infinity-One: IAM & Zero-Trust Identity
-const InfinityOneDashboard = lazy(() => import('../modules/InfinityOneDashboard'));
-// Lighthouse: Cryptographic Token Hub & PQC Key Management
-const LighthouseDashboard = lazy(() => import('../modules/LighthouseDashboard'));
-// HIVE: Agent Swarm Intelligence & Orchestration (27 agents)
-const HiveDashboard = lazy(() => import('../modules/HiveDashboard'));
-// The Void: Encrypted Secrets Vault with Crypto-Shredding
-const VoidDashboard = lazy(() => import('../modules/VoidDashboard'));
-// Platform Observatory: Unified Monitoring (Prometheus + Grafana + all services)
-const PlatformObservatory = lazy(() => import('../modules/PlatformObservatory'));
-// ─────────────────────────────────────────────────────────────────────────────
-
-interface WindowProps {
-  id: string;
-  moduleId: string;
-  title: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  isActive: boolean;
-  isMinimized: boolean;
-  isMaximized: boolean;
-  onClose: (id: string) => void;
-  onMinimize: (id: string) => void;
-  onMaximize: (id: string) => void;
-  onFocus: (id: string) => void;
-  onDragStart?: (id: string, e: React.MouseEvent) => void;
+interface WindowManagerProps {
+  windows: OSWindow[];
+  onClose: (windowId: string) => void;
+  onFocus: (windowId: string) => void;
+  onUpdate: (windowId: string, updates: Partial<OSWindow>) => void;
 }
 
-// Loading fallback
-function ModuleLoading() {
+interface DragState {
+  windowId: string;
+  startX: number;
+  startY: number;
+  startWinX: number;
+  startWinY: number;
+}
+
+export function WindowManager({ windows, onClose, onFocus, onUpdate }: WindowManagerProps) {
+  const dragState = useRef<DragState | null>(null);
+
+  const handleTitlebarMouseDown = useCallback((e: React.MouseEvent, window: OSWindow) => {
+    if (window.isMaximised) return;
+    e.preventDefault();
+    onFocus(window.id);
+
+    dragState.current = {
+      windowId: window.id,
+      startX: e.clientX,
+      startY: e.clientY,
+      startWinX: window.x,
+      startWinY: window.y,
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!dragState.current) return;
+      const dx = e.clientX - dragState.current.startX;
+      const dy = e.clientY - dragState.current.startY;
+      onUpdate(dragState.current.windowId, {
+        x: Math.max(0, dragState.current.startWinX + dx),
+        y: Math.max(0, dragState.current.startWinY + dy),
+      });
+    };
+
+    const handleMouseUp = () => {
+      dragState.current = null;
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [onFocus, onUpdate]);
+
+  const handleMaximise = useCallback((window: OSWindow) => {
+    onUpdate(window.id, { isMaximised: !window.isMaximised });
+  }, [onUpdate]);
+
+  const handleMinimise = useCallback((window: OSWindow) => {
+    onUpdate(window.id, { isMinimised: true, isFocused: false });
+  }, [onUpdate]);
+
   return (
-    <div className="flex items-center justify-center h-full bg-slate-900 text-white">
-      <div className="text-center">
-        <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-3" />
-        <p className="text-sm text-white/50">Loading module...</p>
-      </div>
-    </div>
+    <>
+      {windows.filter(w => !w.isMinimised).map(window => (
+        <div
+          key={window.id}
+          className={`window ${window.isFocused ? 'window--focused' : ''}`}
+          role="dialog"
+          aria-label={window.title}
+          aria-modal="false"
+          onClick={() => onFocus(window.id)}
+          style={{
+            left: window.isMaximised ? 0 : window.x,
+            top: window.isMaximised ? 0 : window.y,
+            width: window.isMaximised ? '100vw' : window.width,
+            height: window.isMaximised ? 'calc(100vh - 52px)' : window.height,
+            zIndex: window.zIndex,
+            borderRadius: window.isMaximised ? 0 : undefined,
+          }}
+        >
+          {/* Title Bar */}
+          <div
+            className="window__titlebar"
+            onMouseDown={(e) => handleTitlebarMouseDown(e, window)}
+            onDoubleClick={() => handleMaximise(window)}
+          >
+            <div className="window__controls">
+              <button
+                className="window__control window__control--close"
+                onClick={(e) => { e.stopPropagation(); onClose(window.id); }}
+                aria-label={`Close ${window.title}`}
+                title="Close"
+              />
+              <button
+                className="window__control window__control--min"
+                onClick={(e) => { e.stopPropagation(); handleMinimise(window); }}
+                aria-label={`Minimise ${window.title}`}
+                title="Minimise"
+              />
+              <button
+                className="window__control window__control--max"
+                onClick={(e) => { e.stopPropagation(); handleMaximise(window); }}
+                aria-label={`${window.isMaximised ? 'Restore' : 'Maximise'} ${window.title}`}
+                title={window.isMaximised ? 'Restore' : 'Maximise'}
+              />
+            </div>
+            <span className="window__title">{window.title}</span>
+          </div>
+
+          {/* Window Content — Module renders here */}
+          <div className="window__content">
+            <ModuleRenderer moduleId={window.moduleId} windowId={window.id} />
+          </div>
+        </div>
+      ))}
+    </>
   );
 }
 
-// Placeholder for modules not yet implemented
-function PlaceholderModule({ name, icon }: { name: string; icon: string }) {
-  return (
-    <div className="flex items-center justify-center h-full bg-slate-900 text-white">
-      <div className="text-center">
-        <div className="text-6xl mb-4">{icon}</div>
-        <h3 className="text-xl font-bold mb-2">{name}</h3>
-        <p className="text-sm text-white/50">Module coming soon</p>
-      </div>
-    </div>
-  );
-}
-
-// Module registry — maps module IDs to components
-function ModuleRenderer({ moduleId }: { moduleId: string }) {
-  const moduleMap: Record<string, React.ReactNode> = {
-    // Core modules with full implementations
-    'com.infinity-os.admin-panel': <AdminPanel />,
-    'com.infinity-os.compliance': <ComplianceDashboard />,
-    'com.infinity-os.hitl-dashboard': <HITLDashboard />,
-    'com.infinity-os.repositories': <RepositoryManager />,
-    'com.infinity-os.build-manager': <BuildManager />,
-    'com.infinity-os.federation': <FederationDashboard />,
-    'com.infinity-os.kanban': <KanbanBoard />,
-
-    // Implemented modules
-    'com.infinity-os.file-manager': <FileManager />,
-    'com.infinity-os.terminal': <Terminal />,
-    'com.infinity-os.settings': <Settings />,
-    'com.infinity-os.ai-studio': <AIStudio />,
-    'com.infinity-os.integrations': <IntegrationHub />,
-    'com.infinity-os.appstore': <AppStore />,
-    'com.infinity-os.notifications': <NotificationCentre />,
-
-    // Project & IT Management modules
-    'com.infinity-os.itsm': <ITSMDashboard />,
-    'com.infinity-os.gates': <ProjectGates />,
-    'com.infinity-os.townhall': <TownHallDashboard />,
-    'com.infinity-os.documents': <DocumentLibrary />,
-    'com.infinity-os.assets': <AssetRegistry />,
-    'com.infinity-os.knowledge': <KnowledgeHub />,
-    'com.infinity-os.dependencies': <DependencyMap />,
-    'com.infinity-os.workflows': <WorkflowBuilder />,
-    'com.infinity-os.secrets': <SecretsVault />,
-    'com.infinity-os.observability': <ObservabilityDashboard />,
-
-    // ─── Platform Core ────────────────────────────────────────────────────────
-    // Infinity-One IAM — Zero-Trust Identity & Access Management
-    'com.infinity-os.infinity-one': <InfinityOneDashboard />,
-    // Lighthouse — Cryptographic Token Hub, UETs, PQC Key Management
-    'com.infinity-os.lighthouse': <LighthouseDashboard />,
-    // HIVE — Agent Swarm Intelligence, 27 AI Agents, Canon Governance
-    'com.infinity-os.hive': <HiveDashboard />,
-    // The Void — Encrypted Secrets Vault, Crypto-Shredding, Lighthouse-backed
-    'com.infinity-os.void': <VoidDashboard />,
-    // Platform Observatory — Unified Monitoring (Prometheus + Grafana + all services)
-    'com.infinity-os.observatory': <PlatformObservatory />,
-    // ─────────────────────────────────────────────────────────────────────────
-
-    // Placeholder modules (to be implemented)
-    'com.infinity-os.text-editor': <PlaceholderModule name="Text Editor" icon="📝" />,
-    'com.infinity-os.browser': <PlaceholderModule name="Browser" icon="🌐" />,
-    'com.infinity-os.media-player': <PlaceholderModule name="Media Player" icon="🎵" />,
-    'com.infinity-os.calendar': <PlaceholderModule name="Calendar" icon="📅" />,
-    'com.infinity-os.mail': <PlaceholderModule name="Mail" icon="✉️" />,
-    'com.infinity-os.notes': <PlaceholderModule name="Notes" icon="📒" />,
+/** Renders the appropriate module content inside a window */
+function ModuleRenderer({ moduleId, windowId }: { moduleId: string; windowId: string }) {
+  // In Phase 3: dynamically load micro-frontend via Module Federation
+  // For now: render placeholder content per module
+  const moduleContent: Record<string, React.ReactNode> = {
+    'com.infinity-os.file-manager': <FileManagerPlaceholder />,
+    'com.infinity-os.text-editor':  <TextEditorPlaceholder />,
+    'com.infinity-os.terminal':     <TerminalPlaceholder />,
+    'com.infinity-os.settings':     <SettingsPlaceholder />,
+    'com.infinity-os.app-store':    <AppStorePlaceholder />,
   };
 
   return (
-    <Suspense fallback={<ModuleLoading />}>
-      {moduleMap[moduleId] || <PlaceholderModule name={moduleId} icon="📦" />}
-    </Suspense>
+    <div style={{ padding: 24, height: '100%' }}>
+      {moduleContent[moduleId] ?? (
+        <div style={{ color: 'var(--text-muted)', textAlign: 'center', paddingTop: 40 }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>📦</div>
+          <div>Module <code>{moduleId}</code> is loading...</div>
+        </div>
+      )}
+    </div>
   );
 }
 
-export default function Window({
-  id,
-  moduleId,
-  title,
-  x,
-  y,
-  width,
-  height,
-  isActive,
-  isMinimized,
-  isMaximized,
-  onClose,
-  onMinimize,
-  onMaximize,
-  onFocus,
-  onDragStart,
-}: WindowProps) {
-  if (isMinimized) return null;
-
-  const style: React.CSSProperties = isMaximized
-    ? { position: 'fixed', top: 0, left: 0, right: 0, bottom: 48, zIndex: isActive ? 50 : 10 }
-    : { position: 'absolute', top: y, left: x, width, height, zIndex: isActive ? 50 : 10 };
-
+function FileManagerPlaceholder() {
   return (
-    <div
-      style={style}
-      className={`flex flex-col rounded-lg overflow-hidden shadow-2xl border transition-shadow ${
-        isActive
-          ? 'border-purple-500/50 shadow-purple-500/10'
-          : 'border-white/10 shadow-black/20'
-      }`}
-      onMouseDown={() => onFocus(id)}
-    >
-      {/* Title Bar */}
-      <div
-        className={`flex items-center justify-between px-4 py-2 select-none cursor-move ${
-          isActive
-            ? 'bg-gradient-to-r from-slate-800 to-slate-700'
-            : 'bg-slate-800/80'
-        }`}
-        onMouseDown={(e) => onDragStart?.(id, e)}
-      >
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-white/80 truncate max-w-xs">
-            {title}
-          </span>
-        </div>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={(e) => { e.stopPropagation(); onMinimize(id); }}
-            className="w-6 h-6 rounded flex items-center justify-center hover:bg-white/10 text-white/50 hover:text-white text-xs"
-          >
-            ─
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); onMaximize(id); }}
-            className="w-6 h-6 rounded flex items-center justify-center hover:bg-white/10 text-white/50 hover:text-white text-xs"
-          >
-            □
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); onClose(id); }}
-            className="w-6 h-6 rounded flex items-center justify-center hover:bg-red-500/80 text-white/50 hover:text-white text-xs"
-          >
-            ✕
-          </button>
-        </div>
-      </div>
+    <div>
+      <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, color: 'var(--text-primary)' }}>
+        📁 File Manager
+      </h2>
+      <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>
+        Virtual file system — Phase 1 implementation. Connect to the File System Service worker to browse files.
+      </p>
+    </div>
+  );
+}
 
-      {/* Content */}
-      <div className="flex-1 overflow-hidden bg-slate-900">
-        <ModuleRenderer moduleId={moduleId} />
+function TextEditorPlaceholder() {
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>📝 Text Editor</h2>
+      <textarea
+        style={{
+          flex: 1,
+          background: 'var(--bg-input)',
+          border: '1px solid var(--border-default)',
+          borderRadius: 8,
+          padding: 12,
+          color: 'var(--text-primary)',
+          fontFamily: 'var(--font-mono)',
+          fontSize: 13,
+          resize: 'none',
+          outline: 'none',
+        }}
+        placeholder="Start typing..."
+        aria-label="Text editor content"
+      />
+    </div>
+  );
+}
+
+function TerminalPlaceholder() {
+  return (
+    <div style={{
+      background: '#0a0a0a',
+      height: '100%',
+      borderRadius: 8,
+      padding: 16,
+      fontFamily: 'var(--font-mono)',
+      fontSize: 13,
+      color: '#00ff88',
+    }}>
+      <div>Infinity OS Terminal v0.1.0</div>
+      <div style={{ color: '#606060' }}>Type 'help' for available commands</div>
+      <div style={{ marginTop: 8 }}>
+        <span style={{ color: '#6c63ff' }}>infinity@os</span>
+        <span style={{ color: '#ffffff' }}>:~$ </span>
+        <span style={{ animation: 'pulse 1s infinite' }}>▋</span>
       </div>
     </div>
   );
 }
 
-// Export module registry for desktop icons
-export const MODULE_REGISTRY = [
-  { id: 'com.infinity-os.kanban', name: 'Task Board', icon: '📋', category: 'productivity' },
-  { id: 'com.infinity-os.admin-panel', name: 'Admin Panel', icon: '👥', category: 'system' },
-  { id: 'com.infinity-os.townhall', name: 'The TownHall', icon: '🏛️', category: 'governance' },
-  { id: 'com.infinity-os.compliance', name: 'Compliance', icon: '🛡️', category: 'governance' },
-  { id: 'com.infinity-os.hitl-dashboard', name: 'HITL Oversight', icon: '🔍', category: 'governance' },
-  { id: 'com.infinity-os.repositories', name: 'Repositories', icon: '📦', category: 'development' },
-  { id: 'com.infinity-os.build-manager', name: 'Build & Package', icon: '🔨', category: 'development' },
-  { id: 'com.infinity-os.federation', name: 'Federation Hub', icon: '🌐', category: 'system' },
-  { id: 'com.infinity-os.file-manager', name: 'Files', icon: '📁', category: 'productivity' },
-  { id: 'com.infinity-os.text-editor', name: 'Editor', icon: '📝', category: 'productivity' },
-  { id: 'com.infinity-os.terminal', name: 'Terminal', icon: '💻', category: 'development' },
-  { id: 'com.infinity-os.ai-studio', name: 'AI Studio', icon: '🤖', category: 'ai' },
-  { id: 'com.infinity-os.integrations', name: 'Integrations', icon: '🔗', category: 'system' },
-  { id: 'com.infinity-os.appstore', name: 'App Store', icon: '🏪', category: 'system' },
-  { id: 'com.infinity-os.notifications', name: 'Notifications', icon: '🔔', category: 'system' },
-  { id: 'com.infinity-os.settings', name: 'Settings', icon: '⚙️', category: 'system' },
-  { id: 'com.infinity-os.browser', name: 'Browser', icon: '🌐', category: 'productivity' },
+function SettingsPlaceholder() {
+  return (
+    <div>
+      <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, color: 'var(--text-primary)' }}>
+        ⚙️ Settings
+      </h2>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {['Appearance', 'Privacy & Security', 'Notifications', 'Modules', 'Account', 'About'].map(item => (
+          <button
+            key={item}
+            style={{
+              padding: '10px 14px',
+              background: 'var(--bg-input)',
+              border: '1px solid var(--border-default)',
+              borderRadius: 8,
+              color: 'var(--text-primary)',
+              textAlign: 'left',
+              cursor: 'pointer',
+              fontSize: 14,
+            }}
+          >
+            {item}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-  // Project & IT Management
-  { id: 'com.infinity-os.itsm', name: 'ITSM', icon: '🎫', category: 'management' },
-  { id: 'com.infinity-os.gates', name: 'Project Gates', icon: '🚦', category: 'management' },
-  { id: 'com.infinity-os.documents', name: 'Documents', icon: '📚', category: 'management' },
-  { id: 'com.infinity-os.assets', name: 'Asset Registry', icon: '🏷', category: 'management' },
-  { id: 'com.infinity-os.knowledge', name: 'Knowledge Hub', icon: '🧠', category: 'management' },
-  { id: 'com.infinity-os.dependencies', name: 'Dependencies', icon: '🗺', category: 'management' },
-
-  // Production hardening
-  { id: 'com.infinity-os.workflows', name: 'Workflow Builder', icon: '⚡', category: 'automation' },
-
-  // Security & Secrets
-  { id: 'com.infinity-os.secrets', name: 'Secrets Vault', icon: '🔑', category: 'security' },
-  { id: 'com.infinity-os.observability', name: 'Observability', icon: '📊', category: 'operations' },
-
-  // ─── Platform Core ─────────────────────────────────────────────────────────
-  { id: 'com.infinity-os.infinity-one', name: 'Infinity-One IAM', icon: '∞', category: 'platform-core' },
-  { id: 'com.infinity-os.lighthouse', name: 'Lighthouse', icon: '🔦', category: 'platform-core' },
-  { id: 'com.infinity-os.hive', name: 'HIVE', icon: '🐝', category: 'platform-core' },
-  { id: 'com.infinity-os.void', name: 'The Void', icon: '🌌', category: 'platform-core' },
-  { id: 'com.infinity-os.observatory', name: 'Observatory', icon: '🔭', category: 'platform-core' },
-  // ───────────────────────────────────────────────────────────────────────────
-];
+function AppStorePlaceholder() {
+  return (
+    <div>
+      <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, color: 'var(--text-primary)' }}>
+        🏪 Infinity Market
+      </h2>
+      <p style={{ color: 'var(--text-muted)', fontSize: 13, marginBottom: 16 }}>
+        Discover and install modules for Infinity OS
+      </p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+        {['Calendar', 'Notes', 'Calculator', 'Weather', 'Music', 'Photos'].map(app => (
+          <div
+            key={app}
+            style={{
+              padding: 16,
+              background: 'var(--bg-input)',
+              border: '1px solid var(--border-default)',
+              borderRadius: 12,
+              textAlign: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <div style={{ fontSize: 28, marginBottom: 8 }}>📦</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>{app}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

@@ -6,15 +6,17 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "build": "tsc"
+    "build": "tsc",
+    "test": "vitest run"
   },
   "dependencies": {
-    "hono": "^3.11.0"
+    "hono": "^4.12.8"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20231218.0",
     "@types/node": "^20.10.6",
     "typescript": "^5.3.3",
-    "wrangler": "^3.22.0"
+    "wrangler": "^3.114.17",
+    "vitest": "^4.0.18"
   }
 }

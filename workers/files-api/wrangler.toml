@@ -1,0 +1,48 @@
+# ============================================================
+# Infinity OS — Files API Worker (R2 Storage)
+# ============================================================
+
+name = "infinity-files-api"
+main = "src/index.ts"
+compatibility_date = "2025-03-01"
+compatibility_flags = ["nodejs_compat"]
+
+[env.production]
+name = "infinity-files-api"
+
+[env.production.vars]
+ENVIRONMENT = "production"
+ALLOWED_ORIGINS = "https://infinity-portal.pages.dev,https://infinity-portal.com"
+AUTH_API_URL = "https://infinity-auth-api.luminous-aimastermind.workers.dev"
+MAX_FILE_SIZE_MB = "50"
+
+[[env.production.r2_buckets]]
+binding = "BUCKET"
+bucket_name = "infinity-portal-files"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "infinity-os-db"
+database_id = "placeholder-d1-id"
+
+[env.staging]
+name = "infinity-files-api-staging"
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+ALLOWED_ORIGINS = "https://infinity-portal.pages.dev,http://localhost:5173"
+AUTH_API_URL = "https://infinity-auth-api-staging.luminous-aimastermind.workers.dev"
+MAX_FILE_SIZE_MB = "10"
+
+[[env.staging.r2_buckets]]
+binding = "BUCKET"
+bucket_name = "infinity-portal-files-staging"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "infinity-os-db-staging"
+database_id = "placeholder-d1-staging-id"
+# ── Observability ────────────────────────────────────
+[observability]
+enabled = true
+head_sampling_rate = 1.0

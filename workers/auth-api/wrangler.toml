@@ -1,0 +1,53 @@
+# ============================================================
+# Infinity OS — Auth API Worker
+# ============================================================
+
+name = "infinity-auth-api"
+main = "src/index.ts"
+compatibility_date = "2025-03-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ── Production environment ─────────────────────────────────
+[env.production]
+name = "infinity-auth-api"
+
+[env.production.vars]
+ENVIRONMENT = "production"
+ALLOWED_ORIGINS = "https://infinity-portal.pages.dev,https://infinity-portal.com,https://www.infinity-portal.com"
+TOKEN_EXPIRY_MINUTES = "60"
+REFRESH_EXPIRY_DAYS = "30"
+
+# D1 Database (created by deploy script)
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "infinity-os-db"
+database_id = "placeholder-d1-id"
+
+# KV for session caching
+[[env.production.kv_namespaces]]
+binding = "SESSIONS"
+id = "placeholder-sessions-kv-id"
+
+# ── Staging environment ────────────────────────────────────
+[env.staging]
+name = "infinity-auth-api-staging"
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+ALLOWED_ORIGINS = "https://infinity-portal.pages.dev,http://localhost:5173,http://localhost:3000"
+TOKEN_EXPIRY_MINUTES = "120"
+REFRESH_EXPIRY_DAYS = "7"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "infinity-os-db-staging"
+database_id = "placeholder-d1-staging-id"
+
+[[env.staging.kv_namespaces]]
+binding = "SESSIONS"
+id = "placeholder-sessions-kv-staging-id"
+
+# ── Observability ────────────────────────────────────
+[observability]
+enabled = true
+head_sampling_rate = 1.0

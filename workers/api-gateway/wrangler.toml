@@ -1,0 +1,59 @@
+# ============================================================
+# Infinity Portal — API Gateway Worker
+# ============================================================
+# Edge proxy that routes requests to the backend API
+# with caching, rate limiting, and CORS handling.
+# ============================================================
+
+name = "infinity-api-gateway"
+main = "src/index.ts"
+compatibility_date = "2025-03-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ── Production environment ─────────────────────────────────
+# NOTE: Custom domain route (api.infinity-portal.com) requires
+# the domain to be proxied by Cloudflare. Until then the worker
+# is available at:
+#   https://infinity-api-gateway.<account>.workers.dev
+[env.production]
+name = "infinity-api-gateway"
+# Uncomment once infinity-portal.com is proxied by Cloudflare:
+# routes = [
+#   { pattern = "api.infinity-portal.com/*", zone_name = "infinity-portal.com" }
+# ]
+
+[env.production.vars]
+ENVIRONMENT = "production"
+BACKEND_ORIGIN = "https://infinity-backend.fly.dev"
+RATE_LIMIT_RPM = "120"
+CACHE_TTL = "60"
+
+[[env.production.kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "placeholder-rate-limit-id"
+
+[[env.production.kv_namespaces]]
+binding = "CACHE"
+id = "placeholder-cache-id"
+
+# ── Staging environment ────────────────────────────────────
+[env.staging]
+name = "infinity-api-gateway-staging"
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+BACKEND_ORIGIN = "https://infinity-backend-staging.fly.dev"
+RATE_LIMIT_RPM = "300"
+CACHE_TTL = "30"
+
+[[env.staging.kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "placeholder-rate-limit-id"
+
+[[env.staging.kv_namespaces]]
+binding = "CACHE"
+id = "placeholder-cache-id"
+# ── Observability ────────────────────────────────────
+[observability]
+enabled = true
+head_sampling_rate = 1.0

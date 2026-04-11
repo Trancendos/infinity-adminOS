@@ -411,7 +411,7 @@ export class InfinityOneService {
     if (allowed.conditions && context) {
       const conditionResult = await this.evaluateConditions(allowed.conditions, context);
       if (!conditionResult.passed) {
-        return { allowed: false, reason: conditionResult.reason };
+        return { allowed: false, reason: conditionResult.reason ?? 'Condition check failed' };
       }
     }
 
@@ -1034,7 +1034,7 @@ export class InfinityOneService {
 
   private async generateTOTPSecret(userId: string): Promise<Record<string, unknown>> {
     const secret = this.generateSecureRandom(20);
-    return { secret: Buffer.from(secret).toString('base32'), algorithm: 'SHA1', digits: 6, period: 30 };
+    return { secret: Buffer.from(secret).toString('base64'), algorithm: 'SHA1', digits: 6, period: 30 };
   }
 
   private async generateWebAuthnChallenge(userId: string): Promise<Record<string, unknown>> {

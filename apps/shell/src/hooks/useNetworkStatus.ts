@@ -26,7 +26,7 @@ function getNetworkQuality(
 ): NetworkStatus['quality'] {
   if (!online) return 'offline';
   if (effectiveType === '4g' && (rtt === null || rtt < 100)) return 'excellent';
-  if (effectiveType === '4g' || effectiveType === '3g') return 'good';
+  if (effectiveType === '4g') return 'good';
   if (effectiveType === '3g') return 'fair';
   return 'poor';
 }
