@@ -55,7 +55,7 @@ def _notif_out(n) -> dict:
 # LIST
 # ============================================================
 
-@router.get("")
+@router.get("/")
 async def list_notifications(
     unread_only: bool = Query(default=False),
     priority: Optional[str] = Query(None),
@@ -109,7 +109,7 @@ async def notification_count(
 # CREATE
 # ============================================================
 
-@router.post("", status_code=201)
+@router.post("/", status_code=201)
 async def create_notification(
     data: NotificationCreate,
     db: AsyncSession = Depends(get_db_session),
@@ -125,6 +125,15 @@ async def create_notification(
     db.add(notif)
     await db.commit()
     await db.refresh(notif)
+    
+    # Broadcast notification over WebSocket
+    from .websocket_router import manager
+    await manager.send_to_user(user.id, user.organisation_id, {
+        "type": "notification.new",
+        "notification": _notif_out(notif),
+        "timestamp": notif.created_at.isoformat(),
+    })
+    
     return _notif_out(notif)
 
 
@@ -196,7 +205,7 @@ async def delete_notification(
     return {"status": "deleted"}
 
 
-@router.delete("")
+@router.delete("/")
 async def clear_read_notifications(
     db: AsyncSession = Depends(get_db_session),
     user: CurrentUser = Depends(get_current_user),

@@ -1,0 +1,68 @@
+# VOID Worker — Quantum-Safe Secure Secret Store
+# 100% Cloudflare: D1 + KV + R2 + Zero third-party deps
+
+name = "infinity-void"
+main = "src/index.ts"
+compatibility_date = "2025-03-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+ENVIRONMENT = "development"
+LIGHTHOUSE_URL = "https://infinity-lighthouse.luminous-aimastermind.workers.dev"
+HIVE_URL = "https://infinity-hive.luminous-aimastermind.workers.dev"
+INFINITY_ONE_URL = "https://infinity-auth-api.luminous-aimastermind.workers.dev"
+
+# ── Production ──────────────────────────────────────────────
+[env.production]
+name = "infinity-void"
+
+[env.production.vars]
+ENVIRONMENT = "production"
+LIGHTHOUSE_URL = "https://infinity-lighthouse.luminous-aimastermind.workers.dev"
+HIVE_URL = "https://infinity-hive.luminous-aimastermind.workers.dev"
+INFINITY_ONE_URL = "https://infinity-auth-api.luminous-aimastermind.workers.dev"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "infinity-os-db"
+database_id = "placeholder-d1-id"
+
+[[env.production.kv_namespaces]]
+binding = "KV_SECRETS_CACHE"
+id = "placeholder-void-cache-kv-id"
+
+[[env.production.kv_namespaces]]
+binding = "KV_RATE_LIMIT"
+id = "placeholder-void-ratelimit-kv-id"
+
+[[env.production.r2_buckets]]
+binding = "R2_SECRETS"
+bucket_name = "infinity-void-secrets"
+
+# ── Staging ──────────────────────────────────────────────────
+[env.staging]
+name = "infinity-void-staging"
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "infinity-os-db"
+database_id = "placeholder-d1-staging-id"
+
+[[env.staging.kv_namespaces]]
+binding = "KV_SECRETS_CACHE"
+id = "placeholder-void-cache-kv-staging-id"
+
+[[env.staging.kv_namespaces]]
+binding = "KV_RATE_LIMIT"
+id = "placeholder-void-ratelimit-kv-staging-id"
+
+[[env.staging.r2_buckets]]
+binding = "R2_SECRETS"
+bucket_name = "infinity-void-secrets-staging"
+# ── Observability ────────────────────────────────────
+[observability]
+enabled = true
+head_sampling_rate = 1.0

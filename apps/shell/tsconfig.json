@@ -11,8 +11,9 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
-    "baseUrl": ".",
+     "noEmit": true,
+     "ignoreDeprecations": "6.0",
+     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
     }

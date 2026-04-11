@@ -1,0 +1,18 @@
+name = "knowledge-graph-service"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+DPID = "DPID-KNW-GRP-001"
+SERVICE_NAME = "Knowledge Graph Service"
+PORT = "3085"
+ECOSYSTEM = "SENTIENT"
+GRAPH_VERSION = "3.0"
+ONTOLOGY = "TRANCENDOS_UNIVERSE_V3"
+
+[[services]]
+binding = "SENTINEL_STATION"
+service = "sentinel-station"
+
+[dev]
+port = 3085

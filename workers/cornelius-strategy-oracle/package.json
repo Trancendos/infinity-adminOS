@@ -1,0 +1,23 @@
+{
+  "name": "@trancendos/cornelius-strategy-oracle",
+  "version": "1.0.0",
+  "description": "Cornelius Strategy Oracle \u2014 7-agent council + FAST circuit breaker. DPID: DPID-ORC-COR-001",
+  "scripts": {
+    "dev": "wrangler dev --port 3077",
+    "deploy": "wrangler deploy",
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "hono": "^4.0.0",
+    "zod": "^3.22.0",
+    "pino": "^8.16.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240101.0",
+    "typescript": "^5.3.0",
+    "wrangler": "^3.22.0",
+    "vitest": "^4.0.18"
+  }
+}

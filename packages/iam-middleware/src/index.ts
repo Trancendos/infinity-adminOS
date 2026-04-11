@@ -478,4 +478,18 @@ export function iamHealthStatus(serviceId: string, meshAddress?: string) {
 // ============================================================
 
 export { sha512Hash, evaluatePermissionLocal, auditLog };
-export type { IAMMiddlewareOptions, PermissionRequirement };
+// Note: IAMMiddlewareOptions and PermissionRequirement are already exported
+// as 'export interface' at their declaration sites above; re-exporting here
+// would cause "Export declaration conflicts" TypeScript error.
+
+// Zero Trust exports
+export {
+  extractZeroTrustContext,
+  createZeroTrustMiddleware,
+  adminZeroTrustMiddleware,
+  apiZeroTrustMiddleware,
+  type ZeroTrustContext,
+  type ZeroTrustOptions,
+  type DevicePostureStatus,
+  type AccessPolicy,
+} from './zeroTrust';

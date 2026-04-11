@@ -1,0 +1,19 @@
+# TenantDO — Per-Tenant Stateful Kernel
+# This is a Durable Object, not a standalone worker.
+# It gets bound FROM the Dispatch Worker (workers/dispatch/wrangler.toml).
+# This wrangler.toml is for local dev/testing only.
+
+name = "tenant-do-dev"
+main = "src/index.ts"
+compatibility_date = "2025-03-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Durable Object bindings (self-reference for dev)
+[durable_objects]
+bindings = [
+  { name = "TENANT_DO", class_name = "TenantDO" }
+]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["TenantDO"]

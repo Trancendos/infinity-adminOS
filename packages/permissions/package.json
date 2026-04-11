@@ -1,0 +1,19 @@
+{
+  "name": "@trancendos/permissions",
+  "version": "0.1.0",
+  "private": true,
+  "description": "RBAC permission engine with plan-tier gating for the Trancendos multi-tenant platform",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "lint": "eslint src/"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  }
+}

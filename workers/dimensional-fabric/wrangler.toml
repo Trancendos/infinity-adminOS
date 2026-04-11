@@ -1,0 +1,15 @@
+name = "dimensional-fabric"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+SERVICE_NAME = "dimensional-fabric"
+DPID = "DPID-DIM-FABRIC-001"
+PORT = "3065"
+TOTAL_DIMENSIONALS = "30"
+DIMENSIONAL_CLASSES = "Data,Messaging,Security,AI,Infrastructure,API,Governance"
+
+[[kv_namespaces]]
+binding = "DIM_REGISTRY"
+id = "dimensional_fabric_registry"
+preview_id = "dimensional_fabric_registry_preview"

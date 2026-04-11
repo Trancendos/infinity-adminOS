@@ -23,7 +23,7 @@ import { handleRegister, handleLogin, handleLogout, handleRefresh, handleMe } fr
 import { handleGetMyRoles, handleEvaluate, handleSwitchRole } from './routes/rbac';
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const { pathname, method } = Object.assign(url, { method: request.method });
 

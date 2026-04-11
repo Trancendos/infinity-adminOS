@@ -16,7 +16,7 @@ import type {
   BotAgent,
   Portfolio,
   BotLog,
-} from '../../financial-types/src/index';
+} from '@arcadia/financial-types';
 
 // ─── ENVIRONMENT BINDINGS ────────────────────────────────────────────────────
 
@@ -715,7 +715,7 @@ async function searchMarketplace(env: Env, query: string): Promise<MarketplaceAs
   return demos.filter(a =>
     a.name.toLowerCase().includes(q) ||
     a.description.toLowerCase().includes(q) ||
-    a.tags.some(t => t.toLowerCase().includes(q))
+    a.tags.some((t: string) => t.toLowerCase().includes(q))
   );
 }
 
@@ -1085,7 +1085,7 @@ async function getPassiveIncomeOverview(env: Env): Promise<Record<string, unknow
 
 async function discoverPassiveIncomeOpportunities(env: Env): Promise<unknown[]> {
   try {
-    const response = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+    const response = await env.AI.run('@cf/meta/llama-3.1-8b-instruct' as any, {
       messages: [{
         role: 'user',
         content: `List 5 specific passive income opportunities for a cloud platform in 2025.
@@ -1287,3 +1287,37 @@ const PASSIVE_INCOME_STREAMS = [
   { id: 'data_insights', name: 'Data Insights Licensing', type: 'data_insights', monthlyTarget: 200, riskScore: 10, status: 'researching' },
   { id: 'defi_yield', name: 'DeFi Yield Farming', type: 'defi_yield', monthlyTarget: 500, riskScore: 40, status: 'pending_approval' },
 ];
+// ─── DURABLE OBJECT STUBS ──────────────────────────────────────────────────
+// Required exports for wrangler to deploy with Durable Object bindings
+
+export class TradingEngine implements DurableObject {
+  state: DurableObjectState;
+  env: Env;
+
+  constructor(state: DurableObjectState, env: Env) {
+    this.state = state;
+    this.env = env;
+  }
+
+  async fetch(request: Request): Promise<Response> {
+    return new Response(JSON.stringify({ status: 'trading-engine-ready' }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+}
+
+export class MarketMaker implements DurableObject {
+  state: DurableObjectState;
+  env: Env;
+
+  constructor(state: DurableObjectState, env: Env) {
+    this.state = state;
+    this.env = env;
+  }
+
+  async fetch(request: Request): Promise<Response> {
+    return new Response(JSON.stringify({ status: 'market-maker-ready' }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+}

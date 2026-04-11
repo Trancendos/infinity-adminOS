@@ -1,25 +1,25 @@
 name = "orchestrator"
 main = "src/index.ts"
-compatibility_date = "2024-01-01"
+compatibility_date = "2025-03-01"
 
 # KV Namespaces
 [[kv_namespaces]]
 binding = "ANOMALY_STORE"
-id = "anomaly_store_kv"
+id = "befd0346b33941d4b59e06f094da68d0"
 
 [[kv_namespaces]]
 binding = "HEALING_ACTIONS"
-id = "healing_actions_kv"
+id = "1b441384587b43e38e11632299d501b0"
 
 [[kv_namespaces]]
 binding = "SYSTEM_STATE"
-id = "system_state_kv"
+id = "06494cd20d044e859e5f9ea3181ac692"
 
 # D1 Database
 [[d1_databases]]
 binding = "DB"
 database_name = "infinity_orchestrator"
-database_id = "orchestrator_db"
+database_id = "f9f6024a-5dea-473f-bb29-9209ba3fe27b"
 
 # Environment variables
 [vars]
@@ -30,10 +30,10 @@ LOG_LEVEL = "info"
 [triggers]
 crons = ["*/1 * * * *", "*/5 * * * *", "0 * * * *"]
 
-# Bindings
-[r2_buckets]
-binding = "BACKUP_STORAGE"
-bucket_name = "infinity-backups"
+# R2 Bucket (requires R2 to be enabled in Cloudflare dashboard)
+# [[r2_buckets]]
+# binding = "BACKUP_STORAGE"
+# bucket_name = "infinity-backups"
 
 [ai]
 binding = "AI"
