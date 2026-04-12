@@ -167,8 +167,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/slipstream-protocol
       hono:
-        specifier: ^4.0.0
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
       react:
         specifier: ^18.2.0
         version: 18.3.1
@@ -551,8 +551,8 @@ importers:
   packages/tenant-do:
     dependencies:
       hono:
-        specifier: ^4.7.0
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20260411.1
@@ -570,8 +570,8 @@ importers:
   packages/tiga-middleware:
     dependencies:
       hono:
-        specifier: ^4.0.0
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
       zod:
         specifier: ^3.22.0
         version: 3.25.76
@@ -658,8 +658,8 @@ importers:
   workers/ai:
     dependencies:
       hono:
-        specifier: ^4.7.4
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20260411.1
@@ -683,8 +683,8 @@ importers:
         specifier: ^5.7.3
         version: 5.9.3
       vitest:
-        specifier: ^4.0.18
-        version: 4.1.0(@types/node@20.19.37)(vite@7.3.1)
+        specifier: ^4.1.1
+        version: 4.1.4(@vitest/coverage-v8@1.6.1)(vite@7.3.1)
       wrangler:
         specifier: ^4.10.0
         version: 4.76.0(@cloudflare/workers-types@4.20260411.1)
@@ -725,8 +725,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/financial-types
       hono:
-        specifier: ^4.12.8
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20260411.1
@@ -759,8 +759,8 @@ importers:
   workers/ber-engine:
     dependencies:
       hono:
-        specifier: ^4.0.0
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
       pino:
         specifier: ^8.16.0
         version: 8.21.0
@@ -784,8 +784,8 @@ importers:
   workers/carbon-router:
     dependencies:
       hono:
-        specifier: ^4.0.0
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
       pino:
         specifier: ^8.16.0
         version: 8.21.0
@@ -809,8 +809,8 @@ importers:
   workers/chrono-intelligence:
     dependencies:
       hono:
-        specifier: ^4.0.0
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
       pino:
         specifier: ^8.16.0
         version: 8.21.0
@@ -834,8 +834,8 @@ importers:
   workers/cornelius-strategy-oracle:
     dependencies:
       hono:
-        specifier: ^4.0.0
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
       pino:
         specifier: ^8.16.0
         version: 8.21.0
@@ -859,8 +859,8 @@ importers:
   workers/covert-synthesis:
     dependencies:
       hono:
-        specifier: ^4.0.0
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
       pino:
         specifier: ^8.16.0
         version: 8.21.0
@@ -884,8 +884,8 @@ importers:
   workers/cyber-physical-api:
     dependencies:
       hono:
-        specifier: ^4.0.0
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20260411.1
@@ -903,8 +903,8 @@ importers:
   workers/depin-broker:
     dependencies:
       hono:
-        specifier: ^4.0.0
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
       pino:
         specifier: ^8.16.0
         version: 8.21.0
@@ -928,8 +928,8 @@ importers:
   workers/dimensional-fabric:
     dependencies:
       hono:
-        specifier: ^4.0.0
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
       pino:
         specifier: ^8.16.0
         version: 8.21.0
@@ -972,8 +972,8 @@ importers:
   workers/dpid-registry:
     dependencies:
       hono:
-        specifier: ^4.0.0
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
       pino:
         specifier: ^8.16.0
         version: 8.21.0
@@ -1012,8 +1012,8 @@ importers:
   workers/filesystem:
     dependencies:
       hono:
-        specifier: ^4.7.4
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20260411.1
@@ -1049,8 +1049,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/types
       hono:
-        specifier: ^4.12.8
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
       zod:
         specifier: ^3.22.4
         version: 3.25.76
@@ -1092,8 +1092,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/slipstream-protocol
       hono:
-        specifier: ^4.0.0
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
       zod:
         specifier: ^3.22.0
         version: 3.25.76
@@ -1114,8 +1114,8 @@ importers:
   workers/l402-gateway:
     dependencies:
       hono:
-        specifier: ^4.0.0
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
       pino:
         specifier: ^8.16.0
         version: 8.21.0
@@ -1169,8 +1169,8 @@ importers:
   workers/oracle-foresight:
     dependencies:
       hono:
-        specifier: ^4.0.0
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
       pino:
         specifier: ^8.16.0
         version: 8.21.0
@@ -1194,8 +1194,8 @@ importers:
   workers/orchestrator:
     dependencies:
       hono:
-        specifier: ^4.12.8
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20260411.1
@@ -1216,8 +1216,8 @@ importers:
   workers/pqc-service:
     dependencies:
       hono:
-        specifier: ^4.0.0
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
       pino:
         specifier: ^8.16.0
         version: 8.21.0
@@ -1241,8 +1241,8 @@ importers:
   workers/registry:
     dependencies:
       hono:
-        specifier: ^4.7.0
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20260411.1
@@ -1263,8 +1263,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/financial-types
       hono:
-        specifier: ^4.12.8
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20260411.1
@@ -1282,8 +1282,8 @@ importers:
   workers/sentinel-station:
     dependencies:
       hono:
-        specifier: ^4.0.0
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
       pino:
         specifier: ^8.16.0
         version: 8.21.0
@@ -1307,8 +1307,8 @@ importers:
   workers/the-grid-api:
     dependencies:
       hono:
-        specifier: ^4.0.0
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20260411.1
@@ -1326,8 +1326,8 @@ importers:
   workers/universal-upif:
     dependencies:
       hono:
-        specifier: ^4.0.0
-        version: 4.12.8
+        specifier: ^4.12.12
+        version: 4.12.12
       pino:
         specifier: ^8.16.0
         version: 8.21.0
@@ -5612,6 +5612,17 @@ packages:
       tinyrainbow: 3.1.0
     dev: true
 
+  /@vitest/expect@4.1.4:
+    resolution: {integrity: sha512-iPBpra+VDuXmBFI3FMKHSFXp3Gx5HfmSCE8X67Dn+bwephCnQCaB7qWK2ldHa+8ncN8hJU8VTMcxjPpyMkUjww==}
+    dependencies:
+      '@standard-schema/spec': 1.1.0
+      '@types/chai': 5.2.3
+      '@vitest/spy': 4.1.4
+      '@vitest/utils': 4.1.4
+      chai: 6.2.2
+      tinyrainbow: 3.1.0
+    dev: true
+
   /@vitest/mocker@2.1.9(vite@5.4.21):
     resolution: {integrity: sha512-tVL6uJgoUdi6icpxmdrn5YNo3g3Dxv+IHJBr0GXHaEdTcw3F+cPKnsXFhli6nO+f/6SDKPHEK1UN+k+TQv0Ehg==}
     peerDependencies:
@@ -5646,6 +5657,23 @@ packages:
       vite: 7.3.1(@types/node@20.19.37)(tsx@4.21.0)
     dev: true
 
+  /@vitest/mocker@4.1.4(vite@7.3.1):
+    resolution: {integrity: sha512-R9HTZBhW6yCSGbGQnDnH3QHfJxokKN4KB+Yvk9Q1le7eQNYwiCyKxmLmurSpFy6BzJanSLuEUDrD+j97Q+ZLPg==}
+    peerDependencies:
+      msw: ^2.4.9
+      vite: ^6.0.0 || ^7.0.0 || ^8.0.0
+    peerDependenciesMeta:
+      msw:
+        optional: true
+      vite:
+        optional: true
+    dependencies:
+      '@vitest/spy': 4.1.4
+      estree-walker: 3.0.3
+      magic-string: 0.30.21
+      vite: 7.3.1(@types/node@20.19.37)(tsx@4.21.0)
+    dev: true
+
   /@vitest/pretty-format@2.1.9:
     resolution: {integrity: sha512-KhRIdGV2U9HOUzxfiHmY8IFHTdqtOhIzCpd8WRdJiE7D/HUcZVD0EgQCVjm+Q9gkUXWgBvMmTtZgIG48wq7sOQ==}
     dependencies:
@@ -5654,6 +5682,12 @@ packages:
 
   /@vitest/pretty-format@4.1.0:
     resolution: {integrity: sha512-3RZLZlh88Ib0J7NQTRATfc/3ZPOnSUn2uDBUoGNn5T36+bALixmzphN26OUD3LRXWkJu4H0s5vvUeqBiw+kS0A==}
+    dependencies:
+      tinyrainbow: 3.1.0
+    dev: true
+
+  /@vitest/pretty-format@4.1.4:
+    resolution: {integrity: sha512-ddmDHU0gjEUyEVLxtZa7xamrpIefdEETu3nZjWtHeZX4QxqJ7tRxSteHVXJOcr8jhiLoGAhkK4WJ3WqBpjx42A==}
     dependencies:
       tinyrainbow: 3.1.0
     dev: true
@@ -5677,6 +5711,13 @@ packages:
     resolution: {integrity: sha512-Duvx2OzQ7d6OjchL+trw+aSrb9idh7pnNfxrklo14p3zmNL4qPCDeIJAK+eBKYjkIwG96Bc6vYuxhqDXQOWpoQ==}
     dependencies:
       '@vitest/utils': 4.1.0
+      pathe: 2.0.3
+    dev: true
+
+  /@vitest/runner@4.1.4:
+    resolution: {integrity: sha512-xTp7VZ5aXP5ZJrn15UtJUWlx6qXLnGtF6jNxHepdPHpMfz/aVPx+htHtgcAL2mDXJgKhpoo2e9/hVJsIeFbytQ==}
+    dependencies:
+      '@vitest/utils': 4.1.4
       pathe: 2.0.3
     dev: true
 
@@ -5705,6 +5746,15 @@ packages:
       pathe: 2.0.3
     dev: true
 
+  /@vitest/snapshot@4.1.4:
+    resolution: {integrity: sha512-MCjCFgaS8aZz+m5nTcEcgk/xhWv0rEH4Yl53PPlMXOZ1/Ka2VcZU6CJ+MgYCZbcJvzGhQRjVrGQNZqkGPttIKw==}
+    dependencies:
+      '@vitest/pretty-format': 4.1.4
+      '@vitest/utils': 4.1.4
+      magic-string: 0.30.21
+      pathe: 2.0.3
+    dev: true
+
   /@vitest/spy@1.6.1:
     resolution: {integrity: sha512-MGcMmpGkZebsMZhbQKkAf9CX5zGvjkBTqf8Zx3ApYWXr3wG+QvEu2eXWfnIIWYSJExIp4V9FCKDEeygzkYrXMw==}
     dependencies:
@@ -5719,6 +5769,10 @@ packages:
 
   /@vitest/spy@4.1.0:
     resolution: {integrity: sha512-pz77k+PgNpyMDv2FV6qmk5ZVau6c3R8HC8v342T2xlFxQKTrSeYw9waIJG8KgV9fFwAtTu4ceRzMivPTH6wSxw==}
+    dev: true
+
+  /@vitest/spy@4.1.4:
+    resolution: {integrity: sha512-XxNdAsKW7C+FLydqFJLb5KhJtl3PGCMmYwFRfhvIgxJvLSXhhVI1zM8f1qD3Zg7RCjTSzDVyct6sghs9UEgBEQ==}
     dev: true
 
   /@vitest/utils@1.6.1:
@@ -5742,6 +5796,14 @@ packages:
     resolution: {integrity: sha512-XfPXT6a8TZY3dcGY8EdwsBulFCIw+BeeX0RZn2x/BtiY/75YGh8FeWGG8QISN/WhaqSrE2OrlDgtF8q5uhOTmw==}
     dependencies:
       '@vitest/pretty-format': 4.1.0
+      convert-source-map: 2.0.0
+      tinyrainbow: 3.1.0
+    dev: true
+
+  /@vitest/utils@4.1.4:
+    resolution: {integrity: sha512-13QMT+eysM5uVGa1rG4kegGYNp6cnQcsTc67ELFbhNLQO+vgsygtYJx2khvdt4gVQqSSpC/KT5FZZxUpP3Oatw==}
+    dependencies:
+      '@vitest/pretty-format': 4.1.4
       convert-source-map: 2.0.0
       tinyrainbow: 3.1.0
     dev: true
@@ -5867,7 +5929,7 @@ packages:
     engines: {node: '>= 8'}
     dependencies:
       normalize-path: 3.0.0
-      picomatch: 2.3.1
+      picomatch: 2.3.2
     dev: true
 
   /arg@5.0.2:
@@ -7478,6 +7540,18 @@ packages:
     dependencies:
       picomatch: 4.0.3
 
+  /fdir@6.5.0(picomatch@4.0.4):
+    resolution: {integrity: sha512-tIbYtZbucOs0BRGqPJkshJUYdL+SDH7dVM8gjy+ERp3WAUjLEFJE+02kanyHtwjWOnwrKYBiwAmM0p4kLJAnXg==}
+    engines: {node: '>=12.0.0'}
+    peerDependencies:
+      picomatch: ^3 || ^4
+    peerDependenciesMeta:
+      picomatch:
+        optional: true
+    dependencies:
+      picomatch: 4.0.4
+    dev: true
+
   /file-entry-cache@6.0.1:
     resolution: {integrity: sha512-7Gps/XWymbLk2QLYK4NzpMOrYjMhdIxXuIvy2QBsLE6ljuodKvdkWs/cpyJJ3CVIVpH0Oi1Hvg1ovbMzLdFBBg==}
     engines: {node: ^10.12.0 || >=12.0.0}
@@ -7860,8 +7934,8 @@ packages:
     dependencies:
       function-bind: 1.1.2
 
-  /hono@4.12.8:
-    resolution: {integrity: sha512-VJCEvtrezO1IAR+kqEYnxUOoStaQPGrCmX3j4wDTNOcD1uRPFpGlwQUIW8niPuvHXaTUxeOUl5MMDGrl+tmO9A==}
+  /hono@4.12.12:
+    resolution: {integrity: sha512-p1JfQMKaceuCbpJKAPKVqyqviZdS0eUxH9v82oWo1kb9xjQ5wA6iP3FNVAPDFlz5/p7d45lO+BpSk1tuSZMF4Q==}
     engines: {node: '>=16.9.0'}
     dev: false
 
@@ -9021,7 +9095,7 @@ packages:
     engines: {node: '>=8.6'}
     dependencies:
       braces: 3.0.3
-      picomatch: 2.3.1
+      picomatch: 2.3.2
     dev: true
 
   /mime-db@1.52.0:
@@ -9523,7 +9597,6 @@ packages:
   /picomatch@2.3.2:
     resolution: {integrity: sha512-V7+vQEJ06Z+c5tSye8S+nHUfI51xoXIXjHQ99cQtKUkQqqO1kO/KCJUfZXuB47h/YBlDhah2H3hdUGXn8ie0oA==}
     engines: {node: '>=8.6'}
-    dev: false
 
   /picomatch@4.0.3:
     resolution: {integrity: sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q==}
@@ -9532,7 +9605,6 @@ packages:
   /picomatch@4.0.4:
     resolution: {integrity: sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==}
     engines: {node: '>=12'}
-    dev: false
 
   /pidtree@0.6.0:
     resolution: {integrity: sha512-eG2dWTVw5bzqGRztnHExczNxt5VGsE6OwTeCG3fdUf9KBsZzO3R5OIIIzWR+iZA0NtZ+RDVdaoE2dK1cn6jH4g==}
@@ -9956,7 +10028,7 @@ packages:
     resolution: {integrity: sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA==}
     engines: {node: '>=8.10.0'}
     dependencies:
-      picomatch: 2.3.1
+      picomatch: 2.3.2
     dev: true
 
   /real-require@0.2.0:
@@ -10754,7 +10826,7 @@ packages:
       lines-and-columns: 1.2.4
       mz: 2.7.0
       pirates: 4.0.7
-      tinyglobby: 0.2.15
+      tinyglobby: 0.2.16
       ts-interface-checker: 0.1.13
     dev: true
 
@@ -10953,12 +11025,25 @@ packages:
     engines: {node: '>=18'}
     dev: true
 
+  /tinyexec@1.1.1:
+    resolution: {integrity: sha512-VKS/ZaQhhkKFMANmAOhhXVoIfBXblQxGX1myCQ2faQrfmobMftXeJPcZGp0gS07ocvGJWDLZGyOZDadDBqYIJg==}
+    engines: {node: '>=18'}
+    dev: true
+
   /tinyglobby@0.2.15:
     resolution: {integrity: sha512-j2Zq4NyQYG5XMST4cbs02Ak8iJUdxRM0XI5QyxXuZOzKOINmWurp3smXu3y5wDcJrptwpSjgXHzIQxR0omXljQ==}
     engines: {node: '>=12.0.0'}
     dependencies:
       fdir: 6.5.0(picomatch@4.0.3)
       picomatch: 4.0.3
+
+  /tinyglobby@0.2.16:
+    resolution: {integrity: sha512-pn99VhoACYR8nFHhxqix+uvsbXineAasWm5ojXoN8xEwK5Kd3/TrhNn1wByuD52UxWRLy8pu+kRMniEi6Eq9Zg==}
+    engines: {node: '>=12.0.0'}
+    dependencies:
+      fdir: 6.5.0(picomatch@4.0.4)
+      picomatch: 4.0.4
+    dev: true
 
   /tinypool@0.8.4:
     resolution: {integrity: sha512-i11VH5gS6IFeLY3gMBQ00/MmLncVP7JLXOw1vlgkytLmJK7QnEr7NXf0LBdxfmNPAeyetukOk0bOYrJrFGjYJQ==}
@@ -11695,6 +11780,72 @@ packages:
       tinybench: 2.9.0
       tinyexec: 1.0.4
       tinyglobby: 0.2.15
+      tinyrainbow: 3.1.0
+      vite: 7.3.1(@types/node@20.19.37)(tsx@4.21.0)
+      why-is-node-running: 2.3.0
+    transitivePeerDependencies:
+      - msw
+    dev: true
+
+  /vitest@4.1.4(@vitest/coverage-v8@1.6.1)(vite@7.3.1):
+    resolution: {integrity: sha512-tFuJqTxKb8AvfyqMfnavXdzfy3h3sWZRWwfluGbkeR7n0HUev+FmNgZ8SDrRBTVrVCjgH5cA21qGbCffMNtWvg==}
+    engines: {node: ^20.0.0 || ^22.0.0 || >=24.0.0}
+    hasBin: true
+    peerDependencies:
+      '@edge-runtime/vm': '*'
+      '@opentelemetry/api': ^1.9.0
+      '@types/node': ^20.0.0 || ^22.0.0 || >=24.0.0
+      '@vitest/browser-playwright': 4.1.4
+      '@vitest/browser-preview': 4.1.4
+      '@vitest/browser-webdriverio': 4.1.4
+      '@vitest/coverage-istanbul': 4.1.4
+      '@vitest/coverage-v8': 4.1.4
+      '@vitest/ui': 4.1.4
+      happy-dom: '*'
+      jsdom: '*'
+      vite: ^6.0.0 || ^7.0.0 || ^8.0.0
+    peerDependenciesMeta:
+      '@edge-runtime/vm':
+        optional: true
+      '@opentelemetry/api':
+        optional: true
+      '@types/node':
+        optional: true
+      '@vitest/browser-playwright':
+        optional: true
+      '@vitest/browser-preview':
+        optional: true
+      '@vitest/browser-webdriverio':
+        optional: true
+      '@vitest/coverage-istanbul':
+        optional: true
+      '@vitest/coverage-v8':
+        optional: true
+      '@vitest/ui':
+        optional: true
+      happy-dom:
+        optional: true
+      jsdom:
+        optional: true
+    dependencies:
+      '@vitest/coverage-v8': 1.6.1(vitest@1.6.1)
+      '@vitest/expect': 4.1.4
+      '@vitest/mocker': 4.1.4(vite@7.3.1)
+      '@vitest/pretty-format': 4.1.4
+      '@vitest/runner': 4.1.4
+      '@vitest/snapshot': 4.1.4
+      '@vitest/spy': 4.1.4
+      '@vitest/utils': 4.1.4
+      es-module-lexer: 2.0.0
+      expect-type: 1.3.0
+      magic-string: 0.30.21
+      obug: 2.1.1
+      pathe: 2.0.3
+      picomatch: 4.0.4
+      std-env: 4.0.0
+      tinybench: 2.9.0
+      tinyexec: 1.1.1
+      tinyglobby: 0.2.16
       tinyrainbow: 3.1.0
       vite: 7.3.1(@types/node@20.19.37)(tsx@4.21.0)
       why-is-node-running: 2.3.0
