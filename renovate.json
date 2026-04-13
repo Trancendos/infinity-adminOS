@@ -1,6 +1,108 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Trancendos Infinity OS — Enhanced Dependency Automation",
+
   "extends": [
-    "config:recommended"
-  ]
+    "config:recommended",
+    ":dependencyDashboard"
+  ],
+
+  "timezone": "UTC",
+  "schedule": ["before 6am on monday"],
+
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "branchConcurrentLimit": 10,
+
+  "labels": ["dependencies", "automated"],
+
+  "platformAutomerge": true,
+
+  "packageRules": [
+    {
+      "description": "Group ALL non-major updates into one PR per repo",
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "groupName": "all-non-major",
+      "groupSlug": "all-non-major",
+      "automerge": true,
+      "minimumReleaseAge": "3 days"
+    },
+    {
+      "description": "Group major updates separately — one PR per package manager",
+      "matchUpdateTypes": ["major"],
+      "groupName": "major-updates-{{manager}}",
+      "automerge": false,
+      "labels": ["dependencies", "major", "review-required"]
+    },
+    {
+      "description": "Security patches — fast-track, no waiting",
+      "matchCategories": ["security"],
+      "groupName": "security-patches",
+      "automerge": true,
+      "minimumReleaseAge": "0 days",
+      "prPriority": 10,
+      "labels": ["dependencies", "security", "urgent"]
+    },
+    {
+      "description": "Node/TypeScript — group all minor+patch",
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "node-non-major",
+      "automerge": true
+    },
+    {
+      "description": "Python — group all minor+patch",
+      "matchManagers": ["pip_requirements", "pip_setup", "pipenv", "poetry"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "python-non-major",
+      "automerge": true
+    },
+    {
+      "description": "Docker — group non-major digest and tag updates",
+      "matchManagers": ["dockerfile", "docker-compose"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "groupName": "docker-non-major",
+      "automerge": true
+    },
+    {
+      "description": "Kubernetes/Helm — group non-major",
+      "matchManagers": ["helmv3", "kubernetes"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "k8s-non-major",
+      "automerge": true
+    },
+    {
+      "description": "GitHub Actions — group and automerge",
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions",
+      "automerge": true
+    },
+    {
+      "description": "Lock file maintenance — weekly",
+      "matchUpdateTypes": ["lockFileMaintenance"],
+      "schedule": ["before 6am on monday"],
+      "automerge": true,
+      "groupName": "lock-file-maintenance"
+    },
+    {
+      "description": "Dev dependencies — always automerge",
+      "matchDepTypes": ["devDependencies"],
+      "automerge": true
+    }
+  ],
+
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security", "vulnerability"],
+    "automerge": true,
+    "schedule": ["at any time"]
+  },
+
+  "suppressNotifications": [
+    "prEditedNotification",
+    "prIgnoreNotification"
+  ],
+
+  "dependencyDashboard": true,
+  "dependencyDashboardTitle": "Trancendos Dependency Dashboard"
 }
