@@ -1,0 +1,34 @@
+name = "library"
+main = "src/index.ts"
+compatibility_date = "2025-03-01"
+
+# KV Namespaces for knowledge storage
+[[kv_namespaces]]
+binding = "KNOWLEDGE_BASE"
+id = "a1b2c3d4e5f6g7h8i9j0k1l2"
+
+[[kv_namespaces]]
+binding = "WIKI_STORE"
+id = "m3n4o5p6q7r8s9t0u1v2w3x4"
+
+[[kv_namespaces]]
+binding = "REFINERY_CACHE"
+id = "y5z6a7b8c9d0e1f2g3h4i5j6"
+
+# D1 Database for structured knowledge
+[[d1_databases]]
+binding = "KNOWLEDGE_DB"
+database_name = "infinity_library"
+database_id = "b2c3d4e5f6g7h8i9j0k1l2m3"
+
+# Environment variables
+[vars]
+ENVIRONMENT = "production"
+LOG_LEVEL = "info"
+MAX_KNOWLEDGE_SIZE = "10485760"  # 10MB
+WIKI_CONSOLIDATION_INTERVAL = "3600000"  # 1 hour in ms
+REFINERY_PROCESSING_TIMEOUT = "300000"  # 5 minutes in ms
+
+# Triggers for automated processing
+[triggers]
+crons = ["*/30 * * * *", "0 */2 * * *", "0 0 * * *"]

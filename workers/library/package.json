@@ -1,0 +1,22 @@
+{
+  "name": "@trancendos/worker-library",
+  "version": "1.0.0",
+  "description": "Knowledge library worker for Infinity OS - Knowledge base, wiki consolidation, and refinery functionality",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "hono": "^4.12.8"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260411.1",
+    "@types/node": "^20.10.6",
+    "typescript": "^5.3.3",
+    "wrangler": "^3.114.17",
+    "vitest": "^4.0.18"
+  }
+}
