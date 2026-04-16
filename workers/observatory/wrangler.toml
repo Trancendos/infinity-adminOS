@@ -1,0 +1,80 @@
+# OBSERVATORY Worker — Knowledge Application & VAI Norman Hawkins
+# Advanced Analytics, Data Correlation, Doc Parsing/OCR, Metrics & Monitoring
+#
+# 100% Cloudflare: D1 + KV + R2 + Analytics Engine + Zero third-party deps
+
+name = "infinity-observatory"
+main = "src/index.ts"
+compatibility_date = "2025-03-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+ENVIRONMENT = "development"
+WORKER_VERSION = "1.0.0"
+LIGHTHOUSE_URL = "https://infinity-lighthouse.luminous-aimastermind.workers.dev"
+HIVE_URL = "https://infinity-hive.luminous-aimastermind.workers.dev"
+AUTH_API_URL = "https://infinity-auth-api.luminous-aimastermind.workers.dev"
+INTERNAL_SECRET = "placeholder-secret"
+
+# ── Production ──────────────────────────────────────────────
+[env.production]
+name = "infinity-observatory"
+
+[env.production.vars]
+ENVIRONMENT = "production"
+WORKER_VERSION = "1.0.0"
+LIGHTHOUSE_URL = "https://infinity-lighthouse.luminous-aimastermind.workers.dev"
+HIVE_URL = "https://infinity-hive.luminous-aimastermind.workers.dev"
+AUTH_API_URL = "https://infinity-auth-api.luminous-aimastermind.workers.dev"
+INTERNAL_SECRET = "placeholder-secret-prod"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "infinity-observatory"
+database_id = "placeholder-observatory-d1-id"
+
+[[env.production.kv_namespaces]]
+binding = "KV_ANALYTICS_CACHE"
+id = "placeholder-observatory-analytics-kv-id"
+
+[[env.production.kv_namespaces]]
+binding = "KV_METRICS"
+id = "placeholder-observatory-metrics-kv-id"
+
+[[env.production.r2_buckets]]
+binding = "R2_DOCUMENTS"
+bucket_name = "infinity-observatory-docs"
+
+# ── Staging ──────────────────────────────────────────────────
+[env.staging]
+name = "infinity-observatory-staging"
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+WORKER_VERSION = "1.0.0"
+LIGHTHOUSE_URL = "https://infinity-lighthouse.luminous-aimastermind.workers.dev"
+HIVE_URL = "https://infinity-hive.luminous-aimastermind.workers.dev"
+AUTH_API_URL = "https://infinity-auth-api.luminous-aimastermind.workers.dev"
+INTERNAL_SECRET = "placeholder-secret-staging"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "infinity-observatory-staging"
+database_id = "placeholder-observatory-staging-d1-id"
+
+[[env.staging.kv_namespaces]]
+binding = "KV_ANALYTICS_CACHE"
+id = "placeholder-observatory-analytics-staging-kv-id"
+
+[[env.staging.kv_namespaces]]
+binding = "KV_METRICS"
+id = "placeholder-observatory-metrics-staging-kv-id"
+
+[[env.staging.r2_buckets]]
+binding = "R2_DOCUMENTS"
+bucket_name = "infinity-observatory-docs-staging"
+
+# ── Observability ────────────────────────────────────
+[observability]
+enabled = true
+head_sampling_rate = 1.0
