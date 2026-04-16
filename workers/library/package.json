@@ -1,0 +1,19 @@
+{
+  "name": "@infinity-os/worker-library",
+  "version": "1.0.0",
+  "description": "THE LIBRARY — Knowledge Base & Wiki Consolidation (Cloudflare Worker)",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy --env production",
+    "deploy:staging": "wrangler deploy --env staging",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260411.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18",
+    "wrangler": "^3.114.17"
+  }
+}
