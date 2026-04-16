@@ -1,0 +1,19 @@
+name = "trancendos-worker"
+main = "src/index.js"
+compatibility_date = "2026-04-16"
+
+[[d1_databases]]
+binding = "DB"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+[[queues.producers]]
+binding = "QUEUE"
+queue = "REPLACE_WITH_QUEUE_ID"
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "trancendos-assets"
