@@ -8,6 +8,16 @@ ENVIRONMENT = "production"
 [ai]
 binding = "AI"
 
+[[d1_databases]]
+binding = "DB"
+database_name = "observatory-analytics"
+database_id = "your-d1-id"
+
+[[kv_namespaces]]
+binding = "KV_KNOWLEDGE"
+id = "your-kv-id"
+preview_id = "your-kv-preview-id"
+
 [[routes]]
 pattern = "observatory.example.com/*"
 zone_id = "your-zone-id"

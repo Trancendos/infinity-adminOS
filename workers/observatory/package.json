@@ -9,7 +9,8 @@
     "dev": "wrangler dev"
   },
   "dependencies": {
-    "@cloudflare/workers-types": "^4.20230419.0"
+    "@cloudflare/workers-types": "^4.20230419.0",
+    "@cloudflare/ai": "^1.0.0"
   },
   "devDependencies": {
     "wrangler": "^3.0.0",
