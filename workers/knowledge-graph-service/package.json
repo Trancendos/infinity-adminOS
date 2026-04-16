@@ -10,7 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "hono": "^4.0.0",
+    "hono": "^4.12.14",
     "@trancendos/slipstream-protocol": "workspace:*",
     "zod": "^3.22.0"
   },
