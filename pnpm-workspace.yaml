@@ -1,5 +1,7 @@
 packages:
-  - 'apps/*'
-  - 'packages/*'
-  - 'workers/*'
-  - 'modules/*'
+  - "packages/*"
+  - "workers/*"
+  - "agents/*"
+  - "services/*"
+  - "apps/*"
+  - "wave6-studios/*"

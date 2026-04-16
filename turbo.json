@@ -1,38 +1,28 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": [
-    "**/.env.*local"
-  ],
+  "globalDependencies": ["**/.env.*local"],
+  "globalEnv": ["NETWORK_SEGMENT"],
   "tasks": {
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "dist/**",
-        ".next/**",
-        "!.next/cache/**"
-      ]
+      "dependsOn": [],
+      "inputs": ["$TURBO_ROOT/**", "services/$SERVICE_NAME/**"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
+      "env": ["SERVICE_NAME"]
     },
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "env": ["SERVICE_NAME"]
     },
     "test": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "coverage/**"
-      ]
+      "dependsOn": [],
+      "outputs": ["coverage/**"]
     },
     "lint": {
       "outputs": []
     },
     "typecheck": {
-      "dependsOn": [
-        "^build"
-      ],
+      "dependsOn": [],
       "outputs": []
     },
     "clean": {

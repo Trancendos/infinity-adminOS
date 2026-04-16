@@ -1,0 +1,33 @@
+{
+  "name": "@infinity-ecosystem/agent-savania-wellbeing",
+  "version": "0.1.0",
+  "description": "Savania Wellbeing agent nanoservice — Isolated AI agent",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "echo 'Savania Wellbeing dev'",
+    "build": "echo 'Build Savania Wellbeing'",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist",
+    "docker:build": "docker build -t infinity-ecosystem/savania-wellbeing .",
+    "docker:run": "docker run -p 3063:3063 infinity-ecosystem/savania-wellbeing"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "private": true,
+  "segment": "agents",
+  "isolation": "strict",
+  "apiContracts": [],
+  "meshTopology": "isolated"
+}

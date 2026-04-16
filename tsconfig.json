@@ -18,10 +18,23 @@
     "noUnusedParameters": false,
     "noFallthroughCasesInSwitch": true,
     "allowImportingTsExtensions": false,
+    "baseUrl": ".",
     "paths": {
-      "@infinity-os/types": ["./packages/types/src/index.ts"],
-      "@infinity-os/kernel": ["./packages/kernel/src/index.ts"],
-      "@infinity-os/webauthn": ["./packages/webauthn/src/index.ts"]
+      "@infinity-ecosystem/creative": ["./services/creative/src/index.ts"],
+      "@infinity-ecosystem/financial": ["./services/financial/src/index.ts"],
+      "@infinity-ecosystem/knowledge": ["./services/knowledge/src/index.ts"],
+      "@infinity-ecosystem/security": ["./services/security/src/index.ts"],
+      "@infinity-ecosystem/wellbeing": ["./services/wellbeing/src/index.ts"],
+      "@infinity-ecosystem/agent-cornelius-ai": [
+        "./agents/cornelius-ai/src/index.ts"
+      ],
+      "@infinity-ecosystem/agent-guardian-ai": [
+        "./agents/guardian-ai/src/index.ts"
+      ],
+      "@infinity-ecosystem/agent-savania-wellbeing": [
+        "./agents/savania-wellbeing/src/index.ts"
+      ],
+      "@infinity-ecosystem/agent-the-dr-ai": ["./agents/the-dr-ai/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "dist", "build", "coverage"]

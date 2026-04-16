@@ -1,0 +1,282 @@
+# ============================================================
+# Trancendos Infinity Ecosystem — Master Wrangler Configuration
+# ============================================================
+# This is the root wrangler.toml that orchestrates all
+# Cloudflare Workers, D1 databases, KV stores, R2 buckets,
+# Queues, and Durable Objects for the Trancendos platform.
+# ============================================================
+
+name = "trancendos-infinity-ecosystem"
+main = "packages/nexus-gateway/src/index.ts"
+compatibility_date = "2025-04-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ── Account ID (set via environment variable or replace with your Cloudflare account ID) ──
+# ACCOUNT_ID = "your-account-id"
+
+# ── Environment Variables ───────────────────────────────────
+[vars]
+ENVIRONMENT = "development"
+TRANCENDOS_DOMAIN = "trancendos.com"
+API_VERSION = "v1"
+
+# ── D1 Databases ───────────────────────────────────────────
+# Primary database for the platform
+[[d1_databases]]
+binding = "TRANCENDOS_DB"
+database_name = "trancendos-db"
+database_id = "replace-with-d1-database-id"
+
+# Database for user identity and access management
+[[d1_databases]]
+binding = "INFINITY_IAM_DB"
+database_name = "infinity-iam-db"
+database_id = "replace-with-iam-db-id"
+
+# Database for analytics and observability
+[[d1_databases]]
+binding = "OBSERVATORY_DB"
+database_name = "observatory-db"
+database_id = "replace-with-observatory-db-id"
+
+# Database for fluidmatrix data
+[[d1_databases]]
+binding = "FLUIDMATRIX_DB"
+database_name = "fluidmatrix-db"
+database_id = "replace-with-fluidmatrix-db-id"
+
+# ── KV Namespaces ───────────────────────────────────────────
+# Rate limiting
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+namespace_id = "replace-with-rate-limit-kv-id"
+
+# API response caching
+[[kv_namespaces]]
+binding = "CACHE"
+namespace_id = "replace-with-cache-kv-id"
+
+# Session storage
+[[kv_namespaces]]
+binding = "SESSIONS"
+namespace_id = "replace-with-sessions-kv-id"
+
+# Configuration storage
+[[kv_namespaces]]
+binding = "CONFIG"
+namespace_id = "replace-with-config-kv-id"
+
+# ── R2 Buckets ──────────────────────────────────────────────
+# Static assets storage
+[[r2_buckets]]
+binding = "ASSETS"
+bucket_name = "trancendos-assets"
+
+# User uploads
+[[r2_buckets]]
+binding = "UPLOADS"
+bucket_name = "trancendos-uploads"
+
+# Backup storage
+[[r2_buckets]]
+binding = "BACKUPS"
+bucket_name = "trancendos-backups"
+
+# ── Queues ──────────────────────────────────────────────────
+# Mesh message queue for inter-service communication
+[[queues]]
+binding = "MESH_QUEUE"
+queue_name = "trancendos-mesh-queue"
+
+# Background job queue
+[[queues]]
+binding = "JOBS_QUEUE"
+queue_name = "trancendos-jobs-queue"
+
+# Event processing queue
+[[queues]]
+binding = "EVENTS_QUEUE"
+queue_name = "trancendos-events-queue"
+
+# ── Durable Objects ─────────────────────────────────────────
+# Agent state management
+[[durable_objects.bindings]]
+name = "AGENT_STATE"
+class_name = "AgentState"
+
+# WebSocket hub for real-time communication
+[[durable_objects.bindings]]
+name = "WS_HUB"
+class_name = "WebSocketHub"
+
+# ── Production Environment ───────────────────────────────────
+[env.production]
+name = "trancendos-infinity-ecosystem-prod"
+
+[env.production.vars]
+ENVIRONMENT = "production"
+TRANCENDOS_DOMAIN = "trancendos.com"
+
+# Production D1 databases
+[[env.production.d1_databases]]
+binding = "TRANCENDOS_DB"
+database_name = "trancendos-db-prod"
+database_id = "replace-with-prod-db-id"
+
+[[env.production.d1_databases]]
+binding = "INFINITY_IAM_DB"
+database_name = "infinity-iam-db-prod"
+database_id = "replace-with-prod-iam-db-id"
+
+[[env.production.d1_databases]]
+binding = "OBSERVATORY_DB"
+database_name = "observatory-db-prod"
+database_id = "replace-with-prod-observatory-db-id"
+
+[[env.production.d1_databases]]
+binding = "FLUIDMATRIX_DB"
+database_name = "fluidmatrix-db-prod"
+database_id = "replace-with-prod-fluidmatrix-db-id"
+
+# Production KV
+[[env.production.kv_namespaces]]
+binding = "RATE_LIMIT"
+namespace_id = "replace-with-prod-rate-limit-kv-id"
+
+[[env.production.kv_namespaces]]
+binding = "CACHE"
+namespace_id = "replace-with-prod-cache-kv-id"
+
+[[env.production.kv_namespaces]]
+binding = "SESSIONS"
+namespace_id = "replace-with-prod-sessions-kv-id"
+
+[[env.production.kv_namespaces]]
+binding = "CONFIG"
+namespace_id = "replace-with-prod-config-kv-id"
+
+# Production R2
+[[env.production.r2_buckets]]
+binding = "ASSETS"
+bucket_name = "trancendos-assets-prod"
+
+[[env.production.r2_buckets]]
+binding = "UPLOADS"
+bucket_name = "trancendos-uploads-prod"
+
+[[env.production.r2_buckets]]
+binding = "BACKUPS"
+bucket_name = "trancendos-backups-prod"
+
+# Production Queues
+[[env.production.queues]]
+binding = "MESH_QUEUE"
+queue_name = "trancendos-mesh-queue-prod"
+
+[[env.production.queues]]
+binding = "JOBS_QUEUE"
+queue_name = "trancendos-jobs-queue-prod"
+
+[[env.production.queues]]
+binding = "EVENTS_QUEUE"
+queue_name = "trancendos-events-queue-prod"
+
+# ── Staging Environment ─────────────────────────────────────
+[env.staging]
+name = "trancendos-infinity-ecosystem-staging"
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+TRANCENDOS_DOMAIN = "staging.trancendos.com"
+
+# Staging D1 databases
+[[env.staging.d1_databases]]
+binding = "TRANCENDOS_DB"
+database_name = "trancendos-db-staging"
+database_id = "replace-with-staging-db-id"
+
+[[env.staging.d1_databases]]
+binding = "INFINITY_IAM_DB"
+database_name = "infinity-iam-db-staging"
+database_id = "replace-with-staging-iam-db-id"
+
+[[env.staging.d1_databases]]
+binding = "OBSERVATORY_DB"
+database_name = "observatory-db-staging"
+database_id = "replace-with-staging-observatory-db-id"
+
+[[env.staging.d1_databases]]
+binding = "FLUIDMATRIX_DB"
+database_name = "fluidmatrix-db-staging"
+database_id = "replace-with-staging-fluidmatrix-db-id"
+
+# Staging KV
+[[env.staging.kv_namespaces]]
+binding = "RATE_LIMIT"
+namespace_id = "replace-with-staging-rate-limit-kv-id"
+
+[[env.staging.kv_namespaces]]
+binding = "CACHE"
+namespace_id = "replace-with-staging-cache-kv-id"
+
+[[env.staging.kv_namespaces]]
+binding = "SESSIONS"
+namespace_id = "replace-with-staging-sessions-kv-id"
+
+[[env.staging.kv_namespaces]]
+binding = "CONFIG"
+namespace_id = "replace-with-staging-config-kv-id"
+
+# Staging R2
+[[env.staging.r2_buckets]]
+binding = "ASSETS"
+bucket_name = "trancendos-assets-staging"
+
+[[env.staging.r2_buckets]]
+binding = "UPLOADS"
+bucket_name = "trancendos-uploads-staging"
+
+[[env.staging.r2_buckets]]
+binding = "BACKUPS"
+bucket_name = "trancendos-backups-staging"
+
+# Staging Queues
+[[env.staging.queues]]
+binding = "MESH_QUEUE"
+queue_name = "trancendos-mesh-queue-staging"
+
+[[env.staging.queues]]
+binding = "JOBS_QUEUE"
+queue_name = "trancendos-jobs-queue-staging"
+
+[[env.staging.queues]]
+binding = "EVENTS_QUEUE"
+queue_name = "trancendos-events-queue-staging"
+
+# ── Observability ───────────────────────────────────────────
+[observability]
+enabled = true
+head_sampling_rate = 1.0
+
+# ── Build Configuration ──────────────────────────────────────
+[build]
+command = "npm run build"
+cwd = "packages/nexus-gateway"
+
+[build.upload]
+format = "service"
+
+# ── Service Bindings ───────────────────────────────────────
+# Link to other workers for internal service communication
+# [[services]]
+# binding = "IAM_SERVICE"
+# service = "infinity-iam"
+
+# [[services]]
+# binding = "OBSERVATORY_SERVICE"
+# service = "observatory"
+
+# ── Secret Keys (set via `wrangler secret put`) ─────────────
+# IAM_JWT_SECRET - JWT signing secret (64+ characters)
+# OPENAI_API_KEY - OpenAI API key for AI features
+# ANTHROPIC_API_KEY - Anthropic API key for Claude

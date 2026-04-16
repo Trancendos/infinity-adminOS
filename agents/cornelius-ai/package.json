@@ -1,0 +1,33 @@
+{
+  "name": "@infinity-ecosystem/agent-cornelius-ai",
+  "version": "0.1.0",
+  "description": "Cornelius AI agent nanoservice — Isolated AI agent",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "echo 'Cornelius AI dev'",
+    "build": "echo 'Build Cornelius AI'",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist",
+    "docker:build": "docker build -t infinity-ecosystem/cornelius-ai .",
+    "docker:run": "docker run -p 3061:3061 infinity-ecosystem/cornelius-ai"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "private": true,
+  "segment": "agents",
+  "isolation": "strict",
+  "apiContracts": [],
+  "meshTopology": "isolated"
+}

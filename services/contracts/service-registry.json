@@ -1,0 +1,147 @@
+{
+  "version": "1.0.0",
+  "description": "Service Registry - Defines all nanoservices in the Infinity Ecosystem",
+  "segments": {
+    "packages": {
+      "description": "Core platform packages and shared libraries",
+      "isolation": "strict",
+      "services": [
+        {
+          "name": "nexus-gateway",
+          "namespace": "@infinity-os/nexus-gateway",
+          "type": "gateway",
+          "port": 8787,
+          "protocol": "http",
+          "segment": "packages",
+          "isolation": "strict"
+        },
+        {
+          "name": "infinity-iam",
+          "namespace": "@infinity-os/infinity-iam",
+          "type": "service",
+          "port": 8001,
+          "protocol": "http",
+          "segment": "packages",
+          "isolation": "strict"
+        }
+      ]
+    },
+    "services": {
+      "description": "Business domain nanoservices",
+      "isolation": "strict",
+      "services": [
+        {
+          "name": "artifactory",
+          "namespace": "@trancendos/artifactory",
+          "type": "service",
+          "port": 3041,
+          "protocol": "http",
+          "segment": "services",
+          "isolation": "strict"
+        },
+        {
+          "name": "creative",
+          "namespace": "@infinity-ecosystem/creative",
+          "type": "service",
+          "port": 3051,
+          "protocol": "http",
+          "segment": "services/creative",
+          "isolation": "strict"
+        },
+        {
+          "name": "financial",
+          "namespace": "@infinity-ecosystem/financial",
+          "type": "service",
+          "port": 3052,
+          "protocol": "http",
+          "segment": "services/financial",
+          "isolation": "strict"
+        },
+        {
+          "name": "knowledge",
+          "namespace": "@infinity-ecosystem/knowledge",
+          "type": "service",
+          "port": 3053,
+          "protocol": "http",
+          "segment": "services/knowledge",
+          "isolation": "strict"
+        },
+        {
+          "name": "security",
+          "namespace": "@infinity-ecosystem/security",
+          "type": "service",
+          "port": 3054,
+          "protocol": "http",
+          "segment": "services/security",
+          "isolation": "strict"
+        },
+        {
+          "name": "wellbeing",
+          "namespace": "@infinity-ecosystem/wellbeing",
+          "type": "service",
+          "port": 3055,
+          "protocol": "http",
+          "segment": "services/wellbeing",
+          "isolation": "strict"
+        }
+      ]
+    },
+    "agents": {
+      "description": "AI agent nanoservices",
+      "isolation": "strict",
+      "services": [
+        {
+          "name": "cornelius-ai",
+          "namespace": "@infinity-ecosystem/agent-cornelius-ai",
+          "type": "agent",
+          "port": 3061,
+          "protocol": "http",
+          "segment": "agents",
+          "isolation": "strict"
+        },
+        {
+          "name": "guardian-ai",
+          "namespace": "@infinity-ecosystem/agent-guardian-ai",
+          "type": "agent",
+          "port": 3062,
+          "protocol": "http",
+          "segment": "agents",
+          "isolation": "strict"
+        },
+        {
+          "name": "savania-wellbeing",
+          "namespace": "@infinity-ecosystem/agent-savania-wellbeing",
+          "type": "agent",
+          "port": 3063,
+          "protocol": "http",
+          "segment": "agents",
+          "isolation": "strict"
+        },
+        {
+          "name": "the-dr-ai",
+          "namespace": "@infinity-ecosystem/agent-the-dr-ai",
+          "type": "agent",
+          "port": 3064,
+          "protocol": "http",
+          "segment": "agents",
+          "isolation": "strict"
+        }
+      ]
+    },
+    "workers": {
+      "description": "Cloudflare Workers - Edge compute",
+      "isolation": "strict"
+    }
+  },
+  "architecture": {
+    "type": "nanoservice-mesh",
+    "isolation": "strict",
+    "communication": "api-only",
+    "enforcement": "namespace-boundary"
+  },
+  "meshTopology": {
+    "type": "star",
+    "center": "nexus-gateway",
+    "topology": "isolated"
+  }
+}

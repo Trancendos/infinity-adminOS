@@ -1,0 +1,33 @@
+{
+  "name": "@infinity-ecosystem/agent-guardian-ai",
+  "version": "0.1.0",
+  "description": "Guardian AI agent nanoservice — Isolated AI agent",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "echo 'Guardian AI dev'",
+    "build": "echo 'Build Guardian AI'",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist",
+    "docker:build": "docker build -t infinity-ecosystem/guardian-ai .",
+    "docker:run": "docker run -p 3062:3062 infinity-ecosystem/guardian-ai"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "private": true,
+  "segment": "agents",
+  "isolation": "strict",
+  "apiContracts": [],
+  "meshTopology": "isolated"
+}
