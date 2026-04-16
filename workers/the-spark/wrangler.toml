@@ -1,0 +1,42 @@
+# ============================================================
+# Infinity OS — The Spark MCP Skills Matrix Worker
+# ============================================================
+
+name = "infinity-the-spark"
+main = "src/index.ts"
+compatibility_date = "2025-03-01"
+compatibility_flags = ["nodejs_compat"]
+
+[env.production]
+name = "infinity-the-spark"
+
+[env.production.vars]
+ENVIRONMENT = "production"
+ALLOWED_ORIGINS = "https://infinity-portal.pages.dev,https://infinity-portal.com"
+AUTH_API_URL = "https://infinity-auth-api.luminous-aimastermind.workers.dev"
+
+[[env.production.kv_namespaces]]
+binding = "SKILLS_MATRIX"
+id = "placeholder-skills-matrix-id"
+
+[env.production.ai]
+binding = "AI"
+
+[env.staging]
+name = "infinity-the-spark-staging"
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+ALLOWED_ORIGINS = "https://infinity-portal.pages.dev,http://localhost:5173"
+AUTH_API_URL = "https://infinity-auth-api-staging.luminous-aimastermind.workers.dev"
+
+[[env.staging.kv_namespaces]]
+binding = "SKILLS_MATRIX"
+id = "placeholder-skills-matrix-staging-id"
+
+[env.staging.ai]
+binding = "AI"
+# ── Observability ────────────────────────────────────
+[observability]
+enabled = true
+head_sampling_rate = 1.0
