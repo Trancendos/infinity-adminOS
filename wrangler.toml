@@ -1,0 +1,51 @@
+# Trancendos Infinity OS - Local Development Configuration
+# This wrangler.toml configures local development with SQLite fallback
+# instead of Cloudflare resources
+
+name = "infinity-os-local"
+main = "src/index.ts"  # Placeholder - adjust as needed
+compatibility_date = "2025-03-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Local development environment with SQLite fallback
+[env.local]
+name = "infinity-os-local"
+
+# D1 Database - Local SQLite
+[[d1_databases]]
+binding = "DB"
+database_name = "trancendos-db"
+database_id = "local"  # This will use local SQLite
+local = true
+
+# KV Namespace - Local fallback
+[[kv_namespaces]]
+binding = "TRANCENDOS_KV"
+id = "local"
+preview_id = "local"
+
+# R2 Bucket - Local fallback
+[[r2_buckets]]
+binding = "TRANCENDOS_R2"
+bucket_name = "trancendos-bucket"
+local = true
+
+# Queue - Local fallback
+[[queues.producers]]
+binding = "TRANCENDOS_QUEUE"
+queue = "trancendos-mesh-queue"
+
+[[queues.consumers]]
+queue = "trancendos-mesh-queue"
+max_batch_size = 10
+max_batch_timeout = 30
+
+# Environment variables
+[vars]
+ENVIRONMENT = "local"
+DATABASE_URL = "sqlite:local.db"
+
+# Observability for local development
+[observability]
+enabled = true
+head_sampling_rate = 1.0

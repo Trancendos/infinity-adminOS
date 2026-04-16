@@ -77,6 +77,7 @@ The platform is built around four core security and identity systems that form t
 The central account management hub for the entire Infinity OS platform, inspired by Google One and Microsoft Account but built with 2060-era security standards.
 
 **Capabilities:**
+
 - **IAM** — Full Identity & Access Management with fine-grained resource policies
 - **RBAC + ABAC** — Role-Based and Attribute-Based Access Control with dynamic policy evaluation
 - **OAuth 2.1 / OIDC** — Standards-compliant federation with external identity providers
@@ -88,6 +89,7 @@ The central account management hub for the entire Infinity OS platform, inspired
 - **DID Support** — Decentralised Identity (W3C DID) for self-sovereign identity
 
 **Key Files:**
+
 ```
 packages/infinity-one/src/
   ├── InfinityOneService.ts   # Core IAM service
@@ -104,6 +106,7 @@ apps/portal/src/components/infinity-one/InfinityOneDashboard.tsx
 Every entity on the Infinity OS platform — users, services, devices, AI agents, data packets — receives a **Universal Entity Token (UET)** from The Lighthouse. These cryptographic tokens are the foundation of the platform's zero-trust security model.
 
 **Capabilities:**
+
 - **Universal Entity Tokens (UET)** — ML-DSA-65 signed tokens for every platform entity
 - **Behavioural Fingerprinting** — Continuous risk scoring (0–100) based on entity behaviour
 - **Threat Detection** — Real-time threat analysis with MITRE ATT&CK framework mapping
@@ -115,6 +118,7 @@ Every entity on the Infinity OS platform — users, services, devices, AI agents
 **UET Format:** `UET-{timestamp36}-{8bytehex}`
 
 **Key Files:**
+
 ```
 packages/lighthouse/src/
   ├── LighthouseService.ts    # Core token service
@@ -131,6 +135,7 @@ apps/portal/src/components/lighthouse/LighthouseDashboard.tsx
 A bio-inspired swarm intelligence data routing system modelled on bee colony behaviour. Every data packet flowing through Infinity OS is routed, classified, and monitored by The HIVE.
 
 **Capabilities:**
+
 - **Bee Colony Architecture** — QUEEN (orchestration), WORKER (routing), SCOUT (path discovery), GUARD (security), DRONE (cleanup), NURSE (health), FORAGER (data collection)
 - **Data Classification Separation** — Strict enforcement of 5-level classification hierarchy
 - **Adaptive Routing** — Pheromone-trail inspired path optimisation with real-time rebalancing
@@ -158,6 +163,7 @@ A bio-inspired swarm intelligence data routing system modelled on bee colony beh
 | GUEST | ✓ | ✗ | ✗ | ✗ | ✗ |
 
 **Key Files:**
+
 ```
 packages/hive/src/
   ├── HiveService.ts          # Core routing service
@@ -173,6 +179,7 @@ apps/portal/src/components/hive/HiveDashboard.tsx
 The most secure component of the Infinity OS platform. The Void stores all platform secrets using zero-knowledge proofs, post-quantum encryption, and Shamir's Secret Sharing — ensuring no single party can ever access a secret alone.
 
 **Capabilities:**
+
 - **Zero-Knowledge Proofs** — Groth16, PLONK, STARKs, Bulletproofs, Nova, Halo2
 - **Shamir's Secret Sharing** — 5-of-9 threshold scheme with geo-distributed shard holders
 - **Post-Quantum Encryption** — ML-KEM-1024 for VOID/QUANTUM classification, hybrid schemes for lower levels
@@ -207,6 +214,7 @@ The most secure component of the Infinity OS platform. The Void stores all platf
 | NEURAL | SLH-DSA-256 / SPHINCS+ | 256-bit |
 
 **Key Files:**
+
 ```
 packages/void/src/
   ├── VoidService.ts          # Core secret service (~700 lines)
@@ -323,15 +331,15 @@ Suspicious Activity Detected
 
 Infinity OS is fully prepared for the post-quantum era:
 
-| Algorithm | Standard | Use Case |
-|-----------|----------|----------|
-| ML-KEM-1024 | NIST FIPS 203 | Key encapsulation (VOID/QUANTUM) |
-| ML-KEM-768 | NIST FIPS 203 | Key encapsulation (CLASSIFIED) |
-| ML-DSA-65 | NIST FIPS 204 | Digital signatures (UET tokens) |
-| SLH-DSA-256 | NIST FIPS 205 | Stateless hash signatures (NEURAL) |
-| SPHINCS+ | NIST Round 4 | Hash-based signatures |
-| BIKE-L3 | NIST Alt | Code-based KEM (backup) |
-| Hybrid-X25519-MLKEM | Transitional | Classical + PQC hybrid |
+| Algorithm           | Standard      | Use Case                           |
+| ------------------- | ------------- | ---------------------------------- |
+| ML-KEM-1024         | NIST FIPS 203 | Key encapsulation (VOID/QUANTUM)   |
+| ML-KEM-768          | NIST FIPS 203 | Key encapsulation (CLASSIFIED)     |
+| ML-DSA-65           | NIST FIPS 204 | Digital signatures (UET tokens)    |
+| SLH-DSA-256         | NIST FIPS 205 | Stateless hash signatures (NEURAL) |
+| SPHINCS+            | NIST Round 4  | Hash-based signatures              |
+| BIKE-L3             | NIST Alt      | Code-based KEM (backup)            |
+| Hybrid-X25519-MLKEM | Transitional  | Classical + PQC hybrid             |
 
 ---
 
@@ -339,13 +347,13 @@ Infinity OS is fully prepared for the post-quantum era:
 
 The platform uses 5 PostgreSQL schemas in Supabase:
 
-| Schema | Purpose | Key Tables |
-|--------|---------|------------|
-| `infinity_one` | IAM, users, sessions, OAuth | organisations, users, roles, sessions, applications |
-| `lighthouse` | Tokens, threats, IceBox | entity_tokens, threat_events, warp_transfers, icebox_entries |
-| `hive` | Nodes, routing, channels | nodes, message_log, channels, routing_table |
-| `void` | Secrets, audit, MPC | secrets, secret_audit_log, master_keys, mpc_sessions |
-| `audit` | Cross-system immutable log | platform_events |
+| Schema         | Purpose                     | Key Tables                                                   |
+| -------------- | --------------------------- | ------------------------------------------------------------ |
+| `infinity_one` | IAM, users, sessions, OAuth | organisations, users, roles, sessions, applications          |
+| `lighthouse`   | Tokens, threats, IceBox     | entity_tokens, threat_events, warp_transfers, icebox_entries |
+| `hive`         | Nodes, routing, channels    | nodes, message_log, channels, routing_table                  |
+| `void`         | Secrets, audit, MPC         | secrets, secret_audit_log, master_keys, mpc_sessions         |
+| `audit`        | Cross-system immutable log  | platform_events                                              |
 
 All audit tables are **immutable** — PostgreSQL triggers prevent any UPDATE or DELETE operations.
 
@@ -353,67 +361,67 @@ All audit tables are **immutable** — PostgreSQL triggers prevent any UPDATE or
 
 ## Zero-Cost Stack
 
-| Service | Provider | Free Tier |
-|---------|----------|-----------|
-| Frontend Hosting | Cloudflare Pages | Unlimited bandwidth |
-| Edge Computing | Cloudflare Workers | 100K req/day |
-| Database | Supabase | 500MB PostgreSQL, 50K MAU |
-| File Storage | Cloudflare R2 | 10GB, zero egress |
-| Edge Cache | Cloudflare KV | 100K reads/day |
-| Secret Shards | Cloudflare KV | Included above |
-| Email | Resend | 3K emails/month |
-| CI/CD | GitHub Actions | 2K min/month |
-| AI Features | Cloudflare AI Workers | 10K neurons/day |
-| **Total** | | **$0.00/month** |
+| Service          | Provider              | Free Tier                 |
+| ---------------- | --------------------- | ------------------------- |
+| Frontend Hosting | Cloudflare Pages      | Unlimited bandwidth       |
+| Edge Computing   | Cloudflare Workers    | 100K req/day              |
+| Database         | Supabase              | 500MB PostgreSQL, 50K MAU |
+| File Storage     | Cloudflare R2         | 10GB, zero egress         |
+| Edge Cache       | Cloudflare KV         | 100K reads/day            |
+| Secret Shards    | Cloudflare KV         | Included above            |
+| Email            | Resend                | 3K emails/month           |
+| CI/CD            | GitHub Actions        | 2K min/month              |
+| AI Features      | Cloudflare AI Workers | 10K neurons/day           |
+| **Total**        |                       | **$0.00/month**           |
 
 ---
 
 ## Compliance
 
-| Framework | Status | Coverage |
-|-----------|--------|----------|
-| GDPR | ✅ Full | All 8 data subject rights, crypto-shredding, consent records |
-| CCPA | ✅ Full | Do Not Sell, right to know/delete/opt-out |
-| SOC 2 Type II | ✅ Full | All 5 Trust Service Criteria |
-| ISO 27001 | ✅ Full | ISMS aligned with 2022 standard |
-| PCI-DSS | ✅ Full | Card data isolation, encryption at rest |
-| HIPAA | ✅ Full | PHI encryption, audit trails, BAA-ready |
-| FIPS 140-3 | ✅ Full | Post-quantum algorithms (ML-KEM, ML-DSA, SLH-DSA) |
-| NIST CSF | ✅ Full | Identify, Protect, Detect, Respond, Recover |
-| DORA | ✅ Full | Digital Operational Resilience Act (EU) |
-| NIS2 | ✅ Full | Network and Information Security Directive 2 |
-| WCAG 2.2 AA | ✅ Full | Full accessibility compliance |
-| Zero Trust | ✅ Full | Never trust, always verify at every layer |
+| Framework     | Status  | Coverage                                                     |
+| ------------- | ------- | ------------------------------------------------------------ |
+| GDPR          | ✅ Full | All 8 data subject rights, crypto-shredding, consent records |
+| CCPA          | ✅ Full | Do Not Sell, right to know/delete/opt-out                    |
+| SOC 2 Type II | ✅ Full | All 5 Trust Service Criteria                                 |
+| ISO 27001     | ✅ Full | ISMS aligned with 2022 standard                              |
+| PCI-DSS       | ✅ Full | Card data isolation, encryption at rest                      |
+| HIPAA         | ✅ Full | PHI encryption, audit trails, BAA-ready                      |
+| FIPS 140-3    | ✅ Full | Post-quantum algorithms (ML-KEM, ML-DSA, SLH-DSA)            |
+| NIST CSF      | ✅ Full | Identify, Protect, Detect, Respond, Recover                  |
+| DORA          | ✅ Full | Digital Operational Resilience Act (EU)                      |
+| NIS2          | ✅ Full | Network and Information Security Directive 2                 |
+| WCAG 2.2 AA   | ✅ Full | Full accessibility compliance                                |
+| Zero Trust    | ✅ Full | Never trust, always verify at every layer                    |
 
 ---
 
 ## Role Hierarchy
 
-| Role | Description | HIVE Access | Void Access |
-|------|-------------|-------------|-------------|
-| 👑 Super Admin | Platform owner (Trancendos) | ALL 5 levels | QUANTUM |
-| 🛡️ Org Admin | Manages organisation | Up to CLASSIFIED | CLASSIFIED |
-| ⚡ Power User | Can install modules | Up to CONFIDENTIAL | CONFIDENTIAL |
-| 👤 Standard User | Personal files, approved modules | Up to INTERNAL | INTERNAL |
-| 🤖 Service Account | Automated services | Up to CONFIDENTIAL | CONFIDENTIAL |
-| 👁️ Guest | Read-only public access | PUBLIC only | None |
+| Role               | Description                      | HIVE Access        | Void Access  |
+| ------------------ | -------------------------------- | ------------------ | ------------ |
+| 👑 Super Admin     | Platform owner (Trancendos)      | ALL 5 levels       | QUANTUM      |
+| 🛡️ Org Admin       | Manages organisation             | Up to CLASSIFIED   | CLASSIFIED   |
+| ⚡ Power User      | Can install modules              | Up to CONFIDENTIAL | CONFIDENTIAL |
+| 👤 Standard User   | Personal files, approved modules | Up to INTERNAL     | INTERNAL     |
+| 🤖 Service Account | Automated services               | Up to CONFIDENTIAL | CONFIDENTIAL |
+| 👁️ Guest           | Read-only public access          | PUBLIC only        | None         |
 
 ---
 
 ## 2025–2060 Roadmap
 
-| Phase | Timeline | Milestone |
-|-------|----------|-----------|
-| 1 — Foundation | Months 1–3 | Core OS: Shell, Kernel, Identity, File System |
-| 2 — Platform Core | Months 4–6 | Infinity-One, Lighthouse, HIVE, Void ✅ |
-| 3 — Ecosystem | Months 7–12 | App Store, Collaboration, Admin Dashboard |
-| 4 — Intelligence | Year 2 | AI-native platform integration |
-| 5 — Developer Platform | Year 2–3 | Public SDK, developer portal |
-| 6 — Financial Systems | Year 3 | Royal Bank of Arcadia, Arcadian Exchange |
-| 7 — Spatial Computing | Years 3–5 | WebXR, voice, gesture interfaces |
-| 8 — Decentralisation | Years 5–10 | Self-hosting, federation, data sovereignty |
-| 9 — Quantum Readiness | Years 10–15 | Full post-quantum migration (already started) |
-| 10 — Neural Interface | Years 15–35 | Brain-computer interface (2040–2060) |
+| Phase                  | Timeline    | Milestone                                     |
+| ---------------------- | ----------- | --------------------------------------------- |
+| 1 — Foundation         | Months 1–3  | Core OS: Shell, Kernel, Identity, File System |
+| 2 — Platform Core      | Months 4–6  | Infinity-One, Lighthouse, HIVE, Void ✅       |
+| 3 — Ecosystem          | Months 7–12 | App Store, Collaboration, Admin Dashboard     |
+| 4 — Intelligence       | Year 2      | AI-native platform integration                |
+| 5 — Developer Platform | Year 2–3    | Public SDK, developer portal                  |
+| 6 — Financial Systems  | Year 3      | Royal Bank of Arcadia, Arcadian Exchange      |
+| 7 — Spatial Computing  | Years 3–5   | WebXR, voice, gesture interfaces              |
+| 8 — Decentralisation   | Years 5–10  | Self-hosting, federation, data sovereignty    |
+| 9 — Quantum Readiness  | Years 10–15 | Full post-quantum migration (already started) |
+| 10 — Neural Interface  | Years 15–35 | Brain-computer interface (2040–2060)          |
 
 ---
 
@@ -527,11 +535,76 @@ Infinity OS is the central platform of the Luminous-MastermindAI ecosystem, prov
 
 ---
 
+## Local Development Setup
+
+For local development without Cloudflare credentials, the project uses SQLite fallback. The root `wrangler.toml` and `.dev.vars` files are configured for local development.
+
+### Local Development Configuration
+
+The root `wrangler.toml` configures:
+
+- **D1 Database**: Local SQLite database (`trancendos-db`)
+- **KV Namespace**: Local key-value storage
+- **R2 Bucket**: Local object storage
+- **Queues**: Local queue system
+
+The `.dev.vars` file contains placeholder values for all required environment variables.
+
+### Running Local Development
+
+```bash
+# Install dependencies
+pnpm install
+
+# Start local development (uses local SQLite)
+pnpm dev
+
+# Or run specific services
+pnpm dev:shell  # Start the shell app
+wrangler dev    # Start workers with local resources
+```
+
+---
+
+## Production Cloudflare Deployment
+
+For production deployment with actual Cloudflare resources, follow these steps:
+
+### 1. Create D1 Database
+
+```bash
+npx wrangler d1 create trancendos-db
+```
+
+### 2. Create KV Namespace
+
+```bash
+npx wrangler kv:namespace create "TRANCENDOS_KV"
+```
+
+### 3. Create R2 Bucket
+
+Create an R2 bucket via the Cloudflare Dashboard at https://dash.cloudflare.com/ -> R2
+
+### 4. Create Queue
+
+```bash
+npx wrangler queues create trancendos-mesh-queue
+```
+
+### 5. Update Configuration
+
+After creating the resources, update the production `wrangler.toml` with the actual resource IDs and bucket names.
+
+**Note**: The local development setup uses placeholders and SQLite fallback, while production requires actual Cloudflare resources.
+
+---
+
 ## License
 
 MIT © Trancendos
 
 ---
 
-*The train wreck is over. Infinity OS begins now.*  
-*Platform Core: Online. Zero Trust: Enforced. Quantum-Safe: Active.*
+_The train wreck is over. Infinity OS begins now._  
+_Platform Core: Online. Zero Trust: Enforced. Quantum-Safe: Active._
