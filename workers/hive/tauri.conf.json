@@ -1,0 +1,9 @@
+{
+  "build": {
+    "devtools": true
+  },
+  "bundle": {
+    "targets": ["msi", "nsis", "app", "dmg", "deb", "appimage"],
+    "windows": { "nsis": { "installMode": "perMachine" } }
+  }
+}
