@@ -13,7 +13,7 @@ gunicorn==23.0.0
 # Data Validation & Serialization
 pydantic==2.12.5
 pydantic-settings==2.9.1
-orjson==3.11.7
+orjson==3.11.8
 
 # HTTP & Async
 aiohttp==3.13.4
