@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useWebSocket } from '../providers/BackendProvider';
 
 interface Notification {
   id: string; title: string; body: string; priority: string;
@@ -25,49 +26,120 @@ export default function NotificationCentre() {
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const [unread, setUnread] = useState(0);
   const [urgent, setUrgent] = useState(0);
+  const { connect, on, connected } = useWebSocket();
 
-  useEffect(() => { load(); count(); }, [filter]);
+  useEffect(() => { 
+    load(); 
+    count(); 
+    connect();
+    
+    // Listen for real-time notifications
+    const unsubscribe = on('notification.new', (msg: any) => {
+      const newNotif = msg.notification;
+      setNotifications(prev => [newNotif, ...prev]);
+      setUnread(c => c + 1);
+      if (newNotif.priority === 'urgent') {
+        setUrgent(c => c + 1);
+      }
+      
+      // Show browser notification for urgent notifications
+      if (newNotif.priority === 'urgent' && 'Notification' in window && Notification.permission === 'granted') {
+        new Notification(newNotif.title, {
+          body: newNotif.body,
+          icon: newNotif.icon_url || '/favicon.ico'
+        });
+      }
+    });
+    
+    return unsubscribe;
+  }, [filter, connect, on]);
 
   async function load() {
     setLoading(true);
-    const token = localStorage.getItem('token');
-    const params = new URLSearchParams({ limit: '100' });
-    if (filter === 'unread') params.set('unread_only', 'true');
-    const r = await fetch(`/api/v1/notifications?${params}`, { headers: { Authorization: `Bearer ${token}` } });
-    if (r.ok) setNotifications(await r.json());
+    try {
+      const token = localStorage.getItem('infinity_access_token');
+      const params = new URLSearchParams({ limit: '100' });
+      if (filter === 'unread') params.set('unread_only', 'true');
+      const r = await fetch(`/api/v1/notifications?${params}`, { 
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      if (r.ok) setNotifications(await r.json());
+    } catch (e) {
+      console.error('Failed to load notifications:', e);
+    }
     setLoading(false);
   }
 
   async function count() {
-    const token = localStorage.getItem('token');
-    const r = await fetch('/api/v1/notifications/count', { headers: { Authorization: `Bearer ${token}` } });
-    if (r.ok) { const d = await r.json(); setUnread(d.unread); setUrgent(d.urgent); }
+    try {
+      const token = localStorage.getItem('infinity_access_token');
+      const r = await fetch('/api/v1/notifications/count', { 
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      if (r.ok) { const d = await r.json(); setUnread(d.unread); setUrgent(d.urgent); }
+    } catch (e) {
+      console.error('Failed to get notification count:', e);
+    }
   }
 
   async function markRead(id: string) {
-    const token = localStorage.getItem('token');
-    await fetch(`/api/v1/notifications/${id}/read`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
-    setNotifications(p => p.map(n => n.id === id ? { ...n, is_read: true, read_at: new Date().toISOString() } : n));
-    setUnread(c => Math.max(0, c - 1));
+    try {
+      const token = localStorage.getItem('infinity_access_token');
+      await fetch(`/api/v1/notifications/${id}/read`, { 
+        method: 'POST', 
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      setNotifications(p => p.map(n => n.id === id ? { ...n, is_read: true, read_at: new Date().toISOString() } : n));
+      setUnread(c => Math.max(0, c - 1));
+    } catch (e) {
+      console.error('Failed to mark notification read:', e);
+    }
   }
 
   async function markAllRead() {
-    const token = localStorage.getItem('token');
-    await fetch('/api/v1/notifications/read-all', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
-    setNotifications(p => p.map(n => ({ ...n, is_read: true, read_at: new Date().toISOString() })));
-    setUnread(0); setUrgent(0);
+    try {
+      const token = localStorage.getItem('infinity_access_token');
+      await fetch('/api/v1/notifications/read-all', { 
+        method: 'POST', 
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      setNotifications(p => p.map(n => ({ ...n, is_read: true, read_at: new Date().toISOString() })));
+      setUnread(0); setUrgent(0);
+    } catch (e) {
+      console.error('Failed to mark all read:', e);
+    }
   }
 
   async function del(id: string) {
-    const token = localStorage.getItem('token');
-    await fetch(`/api/v1/notifications/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-    setNotifications(p => p.filter(n => n.id !== id));
+    try {
+      const token = localStorage.getItem('infinity_access_token');
+      await fetch(`/api/v1/notifications/${id}`, { 
+        method: 'DELETE', 
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      setNotifications(p => p.filter(n => n.id !== id));
+    } catch (e) {
+      console.error('Failed to delete notification:', e);
+    }
   }
 
   async function clearRead() {
-    const token = localStorage.getItem('token');
-    await fetch('/api/v1/notifications', { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-    setNotifications(p => p.filter(n => !n.is_read));
+    try {
+      const token = localStorage.getItem('infinity_access_token');
+      await fetch('/api/v1/notifications/', { 
+        method: 'DELETE', 
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      setNotifications(p => p.filter(n => !n.is_read));
+    } catch (e) {
+      console.error('Failed to clear read notifications:', e);
+    }
   }
 
   return (

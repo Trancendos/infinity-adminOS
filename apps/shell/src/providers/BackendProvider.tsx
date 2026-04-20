@@ -427,7 +427,7 @@ export function useNotifications() {
     markAllRead: () => apiCall('/api/v1/notifications/read-all', { method: 'POST' }),
     create: (data: any) => apiCall('/api/v1/notifications', { method: 'POST', body: JSON.stringify(data) }),
     delete: (id: string) => apiCall(`/api/v1/notifications/${id}`, { method: 'DELETE' }),
-    clearRead: () => apiCall('/api/v1/notifications', { method: 'DELETE' }),
+    clearRead: () => apiCall('/api/v1/notifications/', { method: 'DELETE' }),
   };
 }
 
