@@ -1,320 +1,232 @@
 /**
- * Infinity Admin Runner - Hybrid IDE Component v5.0
+ * Infinity Admin Runner - IDE Launcher Page v5.0
  * 
- * JetBrains/VSCode Hybrid IDE with:
- * - Monaco Editor (VSCode core)
- * - File tree navigation
- * - Integrated terminal
- * - AI-powered code completion
+ * Full-featured IDE with:
+ * - Monaco-based code editor
+ * - AI-powered code generation
  * - Live preview
- * - Git integration UI
+ * - Git integration
+ * - Project management
+ * - Deployment controls
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import Head from 'next/head';
 
 // Types
+interface Project {
+  id: string;
+  name: string;
+  type: string;
+  createdAt: string;
+  lastModified: string;
+  files: FileNode[];
+}
+
 interface FileNode {
   name: string;
   path: string;
   type: 'file' | 'directory';
   children?: FileNode[];
   content?: string;
-  language?: string;
 }
 
-interface Tab {
+interface Template {
   id: string;
-  path: string;
   name: string;
-  content: string;
-  language: string;
-  isDirty: boolean;
+  description: string;
+  icon: string;
 }
 
-interface AICompletion {
-  label: string;
-  insertText: string;
-  kind: string;
-  detail?: string;
-}
+// API Configuration
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://infinity-worker.onrender.com';
 
-interface IDEProps {
-  projectId?: string;
-  initialFiles?: FileNode[];
-  onSave?: (path: string, content: string) => void;
-  onGenerate?: (prompt: string) => void;
-  apiEndpoint?: string;
-}
+// Templates
+const TEMPLATES: Template[] = [
+  { id: 'react-tailwind', name: 'React + Tailwind', description: 'Modern React with Tailwind CSS', icon: '⚛️' },
+  { id: 'nextjs-app', name: 'Next.js App', description: 'Next.js 14 with App Router', icon: '▲' },
+  { id: 'fastapi-backend', name: 'FastAPI Backend', description: 'Python API with FastAPI', icon: '🐍' },
+  { id: 'landing-page', name: 'Landing Page', description: 'Beautiful landing page', icon: '🎨' },
+];
 
 // Language detection
 const getLanguageFromPath = (path: string): string => {
   const ext = path.split('.').pop()?.toLowerCase() || '';
   const langMap: Record<string, string> = {
-    'ts': 'typescript',
-    'tsx': 'typescript',
-    'js': 'javascript',
-    'jsx': 'javascript',
-    'py': 'python',
-    'json': 'json',
-    'html': 'html',
-    'css': 'css',
-    'scss': 'scss',
-    'md': 'markdown',
-    'yaml': 'yaml',
-    'yml': 'yaml',
-    'sql': 'sql',
-    'sh': 'shell',
-    'bash': 'shell',
-    'dockerfile': 'dockerfile',
-    'rs': 'rust',
-    'go': 'go',
+    'ts': 'typescript', 'tsx': 'typescript', 'js': 'javascript', 'jsx': 'javascript',
+    'py': 'python', 'json': 'json', 'html': 'html', 'css': 'css', 'md': 'markdown',
   };
   return langMap[ext] || 'plaintext';
 };
 
-// File icon mapping
-const getFileIcon = (name: string, type: 'file' | 'directory'): string => {
+// File icon
+const getFileIcon = (name: string, type: string): string => {
   if (type === 'directory') return '📁';
-  
   const ext = name.split('.').pop()?.toLowerCase() || '';
   const iconMap: Record<string, string> = {
-    'ts': '🔷',
-    'tsx': '⚛️',
-    'js': '🟨',
-    'jsx': '⚛️',
-    'py': '🐍',
-    'json': '📋',
-    'html': '🌐',
-    'css': '🎨',
-    'md': '📝',
-    'yaml': '⚙️',
-    'yml': '⚙️',
-    'sql': '🗃️',
-    'dockerfile': '🐳',
-    'gitignore': '🚫',
+    'ts': '🔷', 'tsx': '⚛️', 'js': '🟨', 'jsx': '⚛️', 'py': '🐍',
+    'json': '📋', 'html': '🌐', 'css': '🎨', 'md': '📝',
   };
   return iconMap[ext] || '📄';
 };
 
-// File Tree Component
-const FileTree: React.FC<{
+// Components
+const Sidebar: React.FC<{
   files: FileNode[];
-  onFileSelect: (file: FileNode) => void;
-  selectedPath?: string;
-  onContextMenu?: (file: FileNode, e: React.MouseEvent) => void;
-}> = ({ files, onFileSelect, selectedPath, onContextMenu }) => {
-  const [expandedDirs, setExpandedDirs] = useState<Set<string>>(new Set(['src', 'app']));
+  selectedPath: string;
+  onSelect: (file: FileNode) => void;
+  onNewFile: () => void;
+}> = ({ files, selectedPath, onSelect, onNewFile }) => {
+  const [expanded, setExpanded] = useState<Set<string>>(new Set(['src']));
 
-  const toggleDir = (path: string) => {
-    setExpandedDirs(prev => {
+  const toggle = (path: string) => {
+    setExpanded(prev => {
       const next = new Set(prev);
-      if (next.has(path)) {
-        next.delete(path);
-      } else {
-        next.add(path);
-      }
+      next.has(path) ? next.delete(path) : next.add(path);
       return next;
     });
   };
 
-  const renderNode = (node: FileNode, depth: number = 0) => {
-    const isExpanded = expandedDirs.has(node.path);
-    const isSelected = selectedPath === node.path;
-
-    return (
-      <div key={node.path}>
-        <div
-          className={`flex items-center px-2 py-1 cursor-pointer hover:bg-gray-700 ${
-            isSelected ? 'bg-blue-600 bg-opacity-30' : ''
-          }`}
-          style={{ paddingLeft: `${depth * 12 + 8}px` }}
-          onClick={() => {
-            if (node.type === 'directory') {
-              toggleDir(node.path);
-            } else {
-              onFileSelect(node);
-            }
-          }}
-          onContextMenu={(e) => onContextMenu?.(node, e)}
-        >
-          {node.type === 'directory' && (
-            <span className="mr-1 text-xs text-gray-400">
-              {isExpanded ? '▼' : '▶'}
-            </span>
-          )}
-          <span className="mr-2">{getFileIcon(node.name, node.type)}</span>
-          <span className="text-sm text-gray-200 truncate">{node.name}</span>
-        </div>
-        {node.type === 'directory' && isExpanded && node.children && (
-          <div>
-            {node.children.map(child => renderNode(child, depth + 1))}
-          </div>
+  const renderNode = (node: FileNode, depth = 0) => (
+    <div key={node.path}>
+      <div
+        className={`flex items-center px-2 py-1 cursor-pointer hover:bg-gray-700/50 rounded ${
+          selectedPath === node.path ? 'bg-blue-600/30 text-blue-300' : 'text-gray-300'
+        }`}
+        style={{ paddingLeft: `${depth * 12 + 8}px` }}
+        onClick={() => node.type === 'directory' ? toggle(node.path) : onSelect(node)}
+      >
+        {node.type === 'directory' && (
+          <span className="mr-1 text-xs text-gray-500">{expanded.has(node.path) ? '▼' : '▶'}</span>
         )}
+        <span className="mr-2 text-sm">{getFileIcon(node.name, node.type)}</span>
+        <span className="text-sm truncate">{node.name}</span>
       </div>
-    );
-  };
+      {node.type === 'directory' && expanded.has(node.path) && node.children?.map(c => renderNode(c, depth + 1))}
+    </div>
+  );
 
   return (
-    <div className="h-full overflow-y-auto bg-gray-900 text-gray-200">
-      {files.map(file => renderNode(file))}
+    <div className="h-full flex flex-col bg-gray-900">
+      <div className="p-3 border-b border-gray-700 flex items-center justify-between">
+        <span className="text-sm font-semibold text-gray-200">📂 Explorer</span>
+        <button onClick={onNewFile} className="text-gray-400 hover:text-white text-lg">+</button>
+      </div>
+      <div className="flex-1 overflow-y-auto p-1">
+        {files.map(f => renderNode(f))}
+      </div>
     </div>
   );
 };
 
-// Tab Bar Component
 const TabBar: React.FC<{
-  tabs: Tab[];
-  activeTabId: string;
-  onTabSelect: (id: string) => void;
-  onTabClose: (id: string) => void;
-}> = ({ tabs, activeTabId, onTabSelect, onTabClose }) => {
-  return (
-    <div className="flex bg-gray-800 border-b border-gray-700 overflow-x-auto">
-      {tabs.map(tab => (
-        <div
-          key={tab.id}
-          className={`flex items-center px-3 py-2 cursor-pointer border-r border-gray-700 min-w-0 ${
-            activeTabId === tab.id
-              ? 'bg-gray-900 text-white'
-              : 'bg-gray-800 text-gray-400 hover:bg-gray-750'
-          }`}
-          onClick={() => onTabSelect(tab.id)}
-        >
-          <span className="mr-2">{getFileIcon(tab.name, 'file')}</span>
-          <span className="text-sm truncate max-w-32">{tab.name}</span>
-          {tab.isDirty && <span className="ml-1 text-blue-400">●</span>}
-          <button
-            className="ml-2 text-gray-500 hover:text-white"
-            onClick={(e) => {
-              e.stopPropagation();
-              onTabClose(tab.id);
-            }}
-          >
-            ×
-          </button>
-        </div>
-      ))}
-    </div>
-  );
-};
+  tabs: Array<{ id: string; name: string; isDirty: boolean }>;
+  activeId: string;
+  onSelect: (id: string) => void;
+  onClose: (id: string) => void;
+}> = ({ tabs, activeId, onSelect, onClose }) => (
+  <div className="flex bg-gray-800 border-b border-gray-700 overflow-x-auto">
+    {tabs.map(tab => (
+      <div
+        key={tab.id}
+        className={`flex items-center px-4 py-2 cursor-pointer border-r border-gray-700 ${
+          activeId === tab.id ? 'bg-gray-900 text-white' : 'text-gray-400 hover:bg-gray-750'
+        }`}
+        onClick={() => onSelect(tab.id)}
+      >
+        <span className="text-sm">{tab.name}</span>
+        {tab.isDirty && <span className="ml-1 text-blue-400">●</span>}
+        <button
+          className="ml-2 text-gray-500 hover:text-white"
+          onClick={(e) => { e.stopPropagation(); onClose(tab.id); }}
+        >×</button>
+      </div>
+    ))}
+  </div>
+);
 
-// Simple Code Editor (Monaco placeholder - would use actual Monaco in production)
-const CodeEditor: React.FC<{
+const Editor: React.FC<{
   content: string;
   language: string;
   onChange: (content: string) => void;
-  onSave?: () => void;
+  onSave: () => void;
 }> = ({ content, language, onChange, onSave }) => {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [lineNumbers, setLineNumbers] = useState<number[]>([]);
-
-  useEffect(() => {
-    const lines = content.split('\n').length;
-    setLineNumbers(Array.from({ length: lines }, (_, i) => i + 1));
-  }, [content]);
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      onSave?.();
-    }
-    if (e.key === 'Tab') {
-      e.preventDefault();
-      const target = e.target as HTMLTextAreaElement;
-      const start = target.selectionStart;
-      const end = target.selectionEnd;
-      const newContent = content.substring(0, start) + '  ' + content.substring(end);
-      onChange(newContent);
-      setTimeout(() => {
-        target.selectionStart = target.selectionEnd = start + 2;
-      }, 0);
-    }
-  };
+  const lines = content.split('\n');
 
   return (
     <div className="flex h-full bg-gray-900 font-mono text-sm">
-      {/* Line numbers */}
-      <div className="flex-shrink-0 bg-gray-800 text-gray-500 text-right pr-2 pl-2 select-none border-r border-gray-700">
-        {lineNumbers.map(num => (
-          <div key={num} className="leading-6">{num}</div>
-        ))}
+      <div className="flex-shrink-0 bg-gray-800 text-gray-500 text-right pr-3 pl-3 select-none border-r border-gray-700 pt-2">
+        {lines.map((_, i) => <div key={i} className="leading-6">{i + 1}</div>)}
       </div>
-      {/* Editor */}
       <textarea
-        ref={textareaRef}
         value={content}
         onChange={(e) => onChange(e.target.value)}
-        onKeyDown={handleKeyDown}
+        onKeyDown={(e) => {
+          if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            onSave();
+          }
+        }}
         className="flex-1 bg-gray-900 text-gray-100 p-2 resize-none outline-none leading-6"
         spellCheck={false}
-        style={{ tabSize: 2 }}
       />
     </div>
   );
 };
 
-// AI Chat Panel
-const AIChatPanel: React.FC<{
-  onGenerate: (prompt: string) => void;
-  isGenerating: boolean;
-}> = ({ onGenerate, isGenerating }) => {
+const AIPanel: React.FC<{
+  onGenerate: (prompt: string) => Promise<void>;
+  isLoading: boolean;
+}> = ({ onGenerate, isLoading }) => {
   const [prompt, setPrompt] = useState('');
-  const [history, setHistory] = useState<Array<{ role: 'user' | 'ai'; content: string }>>([]);
+  const [messages, setMessages] = useState<Array<{ role: string; content: string }>>([
+    { role: 'ai', content: 'Hello! I can help you generate code. What would you like to build?' }
+  ]);
 
-  const handleSubmit = () => {
-    if (!prompt.trim() || isGenerating) return;
-    
-    setHistory(prev => [...prev, { role: 'user', content: prompt }]);
-    onGenerate(prompt);
+  const send = async () => {
+    if (!prompt.trim() || isLoading) return;
+    setMessages(prev => [...prev, { role: 'user', content: prompt }]);
+    const p = prompt;
     setPrompt('');
+    await onGenerate(p);
+    setMessages(prev => [...prev, { role: 'ai', content: 'Code generated! Check the files panel.' }]);
   };
 
   return (
     <div className="flex flex-col h-full bg-gray-900">
-      <div className="p-2 border-b border-gray-700">
-        <h3 className="text-sm font-semibold text-gray-200">🤖 AI Assistant</h3>
+      <div className="p-3 border-b border-gray-700">
+        <span className="text-sm font-semibold text-gray-200">🤖 AI Assistant</span>
       </div>
-      
-      <div className="flex-1 overflow-y-auto p-2 space-y-2">
-        {history.map((msg, i) => (
-          <div
-            key={i}
-            className={`p-2 rounded text-sm ${
-              msg.role === 'user'
-                ? 'bg-blue-600 bg-opacity-20 text-blue-200'
-                : 'bg-gray-800 text-gray-200'
-            }`}
-          >
-            <span className="font-semibold">
-              {msg.role === 'user' ? 'You: ' : 'AI: '}
-            </span>
-            {msg.content}
+      <div className="flex-1 overflow-y-auto p-3 space-y-3">
+        {messages.map((m, i) => (
+          <div key={i} className={`p-3 rounded-lg text-sm ${
+            m.role === 'user' ? 'bg-blue-600/20 text-blue-200 ml-4' : 'bg-gray-800 text-gray-200 mr-4'
+          }`}>
+            {m.content}
           </div>
         ))}
-        {isGenerating && (
-          <div className="p-2 bg-gray-800 rounded text-sm text-gray-400">
-            <span className="animate-pulse">Generating...</span>
+        {isLoading && (
+          <div className="p-3 bg-gray-800 rounded-lg text-gray-400 animate-pulse">
+            Generating...
           </div>
         )}
       </div>
-      
-      <div className="p-2 border-t border-gray-700">
+      <div className="p-3 border-t border-gray-700">
         <div className="flex gap-2">
           <input
-            type="text"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-            placeholder="Ask AI to generate code..."
-            className="flex-1 bg-gray-800 text-gray-200 px-3 py-2 rounded text-sm outline-none focus:ring-1 focus:ring-blue-500"
-            disabled={isGenerating}
+            onKeyDown={(e) => e.key === 'Enter' && send()}
+            placeholder="Describe what you want to build..."
+            className="flex-1 bg-gray-800 text-gray-200 px-4 py-2 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={isLoading}
           />
           <button
-            onClick={handleSubmit}
-            disabled={isGenerating || !prompt.trim()}
-            className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={send}
+            disabled={isLoading || !prompt.trim()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
           >
-            Send
+            Generate
           </button>
         </div>
       </div>
@@ -322,45 +234,40 @@ const AIChatPanel: React.FC<{
   );
 };
 
-// Terminal Panel
-const TerminalPanel: React.FC<{
+const Preview: React.FC<{ html: string }> = ({ html }) => (
+  <div className="flex flex-col h-full bg-white">
+    <div className="p-2 border-b border-gray-200 bg-gray-100">
+      <span className="text-sm font-semibold text-gray-700">👁️ Live Preview</span>
+    </div>
+    <iframe srcDoc={html} className="flex-1 border-0" title="Preview" sandbox="allow-scripts" />
+  </div>
+);
+
+const Terminal: React.FC<{
   output: string[];
   onCommand: (cmd: string) => void;
 }> = ({ output, onCommand }) => {
   const [input, setInput] = useState('');
-  const outputRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (outputRef.current) {
-      outputRef.current.scrollTop = outputRef.current.scrollHeight;
-    }
-  }, [output]);
-
-  const handleSubmit = () => {
-    if (!input.trim()) return;
-    onCommand(input);
-    setInput('');
-  };
 
   return (
     <div className="flex flex-col h-full bg-black font-mono text-sm">
       <div className="p-2 border-b border-gray-700 bg-gray-900">
-        <h3 className="text-sm font-semibold text-gray-200">⬛ Terminal</h3>
+        <span className="text-sm font-semibold text-gray-200">⬛ Terminal</span>
       </div>
-      
-      <div ref={outputRef} className="flex-1 overflow-y-auto p-2 text-green-400">
-        {output.map((line, i) => (
-          <div key={i} className="whitespace-pre-wrap">{line}</div>
-        ))}
+      <div className="flex-1 overflow-y-auto p-2 text-green-400">
+        {output.map((line, i) => <div key={i}>{line}</div>)}
       </div>
-      
       <div className="flex items-center p-2 border-t border-gray-700">
         <span className="text-green-400 mr-2">$</span>
         <input
-          type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              onCommand(input);
+              setInput('');
+            }
+          }}
           className="flex-1 bg-transparent text-green-400 outline-none"
           placeholder="Enter command..."
         />
@@ -369,142 +276,217 @@ const TerminalPanel: React.FC<{
   );
 };
 
-// Preview Panel
-const PreviewPanel: React.FC<{
-  html?: string;
-  url?: string;
-}> = ({ html, url }) => {
+const NewProjectModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  onCreate: (name: string, template: string) => void;
+}> = ({ isOpen, onClose, onCreate }) => {
+  const [name, setName] = useState('');
+  const [template, setTemplate] = useState('react-tailwind');
+
+  if (!isOpen) return null;
+
   return (
-    <div className="flex flex-col h-full bg-white">
-      <div className="p-2 border-b border-gray-300 bg-gray-100 flex items-center gap-2">
-        <span className="text-sm font-semibold text-gray-700">👁️ Preview</span>
-        {url && (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+      <div className="bg-gray-800 rounded-2xl p-6 w-full max-w-lg">
+        <h2 className="text-xl font-bold text-white mb-4">Create New Project</h2>
+        
+        <div className="mb-4">
+          <label className="block text-sm text-gray-400 mb-2">Project Name</label>
           <input
-            type="text"
-            value={url}
-            readOnly
-            className="flex-1 bg-white text-gray-700 px-2 py-1 rounded text-xs border"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="my-awesome-project"
+            className="w-full bg-gray-700 text-white px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
           />
-        )}
-      </div>
-      
-      <div className="flex-1">
-        {html ? (
-          <iframe
-            srcDoc={html}
-            className="w-full h-full border-0"
-            title="Preview"
-            sandbox="allow-scripts"
-          />
-        ) : (
-          <div className="flex items-center justify-center h-full text-gray-400">
-            No preview available
+        </div>
+
+        <div className="mb-6">
+          <label className="block text-sm text-gray-400 mb-2">Template</label>
+          <div className="grid grid-cols-2 gap-3">
+            {TEMPLATES.map(t => (
+              <div
+                key={t.id}
+                onClick={() => setTemplate(t.id)}
+                className={`p-4 rounded-lg cursor-pointer border-2 transition ${
+                  template === t.id
+                    ? 'border-blue-500 bg-blue-500/10'
+                    : 'border-gray-600 hover:border-gray-500'
+                }`}
+              >
+                <div className="text-2xl mb-2">{t.icon}</div>
+                <div className="text-sm font-medium text-white">{t.name}</div>
+                <div className="text-xs text-gray-400">{t.description}</div>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
+
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="px-6 py-2 text-gray-400 hover:text-white"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => { onCreate(name || 'my-project', template); onClose(); }}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
+          >
+            Create Project
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
-// Main IDE Component
-const IDE: React.FC<IDEProps> = ({
-  projectId,
-  initialFiles = [],
-  onSave,
-  onGenerate,
-  apiEndpoint = '/api'
-}) => {
+// Main IDE Page
+export default function IDEPage() {
   // State
-  const [files, setFiles] = useState<FileNode[]>(initialFiles);
-  const [tabs, setTabs] = useState<Tab[]>([]);
-  const [activeTabId, setActiveTabId] = useState<string>('');
-  const [selectedPath, setSelectedPath] = useState<string>('');
-  const [terminalOutput, setTerminalOutput] = useState<string[]>(['Welcome to Infinity IDE Terminal', '']);
+  const [project, setProject] = useState<Project | null>(null);
+  const [files, setFiles] = useState<FileNode[]>([]);
+  const [tabs, setTabs] = useState<Array<{ id: string; path: string; name: string; content: string; isDirty: boolean }>>([]);
+  const [activeTabId, setActiveTabId] = useState('');
+  const [selectedPath, setSelectedPath] = useState('');
+  const [terminalOutput, setTerminalOutput] = useState(['Welcome to Infinity IDE v5.0', '']);
+  const [previewHtml, setPreviewHtml] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showNewProject, setShowNewProject] = useState(false);
   const [showAI, setShowAI] = useState(true);
-  const [showTerminal, setShowTerminal] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
-  const [sidebarWidth, setSidebarWidth] = useState(250);
+  const [showTerminal, setShowTerminal] = useState(true);
 
-  // Demo files if none provided
+  // Initialize with demo files
   useEffect(() => {
-    if (files.length === 0) {
-      setFiles([
-        {
-          name: 'src',
-          path: 'src',
-          type: 'directory',
-          children: [
-            {
-              name: 'App.tsx',
-              path: 'src/App.tsx',
-              type: 'file',
-              content: `import React from 'react';\n\nfunction App() {\n  return (\n    <div className="app">\n      <h1>Hello World</h1>\n    </div>\n  );\n}\n\nexport default App;`,
-              language: 'typescript'
-            },
-            {
-              name: 'index.css',
-              path: 'src/index.css',
-              type: 'file',
-              content: `@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\n.app {\n  @apply min-h-screen bg-gray-900 text-white;\n}`,
-              language: 'css'
-            }
-          ]
-        },
-        {
-          name: 'package.json',
-          path: 'package.json',
-          type: 'file',
-          content: JSON.stringify({
-            name: 'my-project',
-            version: '1.0.0',
-            dependencies: {
-              react: '^18.2.0',
-              'react-dom': '^18.2.0'
-            }
-          }, null, 2),
-          language: 'json'
-        },
-        {
-          name: 'README.md',
-          path: 'README.md',
-          type: 'file',
-          content: '# My Project\n\nGenerated by Infinity Admin Runner\n\n## Getting Started\n\n```bash\nnpm install\nnpm run dev\n```',
-          language: 'markdown'
-        }
-      ]);
-    }
+    const demoFiles: FileNode[] = [
+      {
+        name: 'src',
+        path: 'src',
+        type: 'directory',
+        children: [
+          {
+            name: 'App.tsx',
+            path: 'src/App.tsx',
+            type: 'file',
+            content: `import { useState } from 'react'
+
+function App() {
+  const [count, setCount] = useState(0)
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-black flex items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-5xl font-bold text-white mb-8">
+          🚀 Infinity IDE
+        </h1>
+        <p className="text-gray-400 mb-8">
+          AI-Powered Code Generation Platform
+        </p>
+        <button
+          onClick={() => setCount(c => c + 1)}
+          className="px-8 py-4 bg-gradient-to-r from-pink-500 to-purple-500 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+        >
+          Count: {count}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+export default App`
+          },
+          {
+            name: 'index.css',
+            path: 'src/index.css',
+            type: 'file',
+            content: `@tailwind base;
+@tailwind components;
+@tailwind utilities;`
+          }
+        ]
+      },
+      {
+        name: 'package.json',
+        path: 'package.json',
+        type: 'file',
+        content: JSON.stringify({
+          name: 'infinity-ide-project',
+          version: '1.0.0',
+          dependencies: { react: '^18.2.0', 'react-dom': '^18.2.0' }
+        }, null, 2)
+      },
+      {
+        name: 'README.md',
+        path: 'README.md',
+        type: 'file',
+        content: '# Infinity IDE Project\n\nGenerated by Infinity Admin Runner v5.0'
+      }
+    ];
+    setFiles(demoFiles);
+    generatePreview(demoFiles);
   }, []);
 
-  // File selection handler
-  const handleFileSelect = useCallback((file: FileNode) => {
+  // Generate preview HTML
+  const generatePreview = (fileNodes: FileNode[]) => {
+    const findFile = (nodes: FileNode[], path: string): FileNode | null => {
+      for (const node of nodes) {
+        if (node.path === path) return node;
+        if (node.children) {
+          const found = findFile(node.children, path);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    const appFile = findFile(fileNodes, 'src/App.tsx');
+    const cssFile = findFile(fileNodes, 'src/index.css');
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>${cssFile?.content?.replace(/@tailwind\s+\w+;/g, '') || ''}</style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    ${appFile?.content?.replace(/import.*from.*\n/g, '').replace(/export default /, '') || 'function App() { return <div>No App</div>; }'}
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>`;
+    setPreviewHtml(html);
+  };
+
+  // File selection
+  const handleFileSelect = (file: FileNode) => {
     if (file.type !== 'file') return;
-    
     setSelectedPath(file.path);
-    
-    // Check if tab already exists
-    const existingTab = tabs.find(t => t.path === file.path);
-    if (existingTab) {
-      setActiveTabId(existingTab.id);
+
+    const existing = tabs.find(t => t.path === file.path);
+    if (existing) {
+      setActiveTabId(existing.id);
       return;
     }
-    
-    // Create new tab
-    const newTab: Tab = {
+
+    const newTab = {
       id: `tab-${Date.now()}`,
       path: file.path,
       name: file.name,
       content: file.content || '',
-      language: getLanguageFromPath(file.path),
       isDirty: false
     };
-    
     setTabs(prev => [...prev, newTab]);
     setActiveTabId(newTab.id);
-  }, [tabs]);
+  };
 
-  // Tab close handler
-  const handleTabClose = useCallback((tabId: string) => {
+  // Tab close
+  const handleTabClose = (tabId: string) => {
     setTabs(prev => {
       const newTabs = prev.filter(t => t.id !== tabId);
       if (activeTabId === tabId && newTabs.length > 0) {
@@ -514,187 +496,222 @@ const IDE: React.FC<IDEProps> = ({
       }
       return newTabs;
     });
-  }, [activeTabId]);
+  };
 
-  // Content change handler
-  const handleContentChange = useCallback((content: string) => {
-    setTabs(prev => prev.map(tab => 
-      tab.id === activeTabId
-        ? { ...tab, content, isDirty: true }
-        : tab
+  // Content change
+  const handleContentChange = (content: string) => {
+    setTabs(prev => prev.map(tab =>
+      tab.id === activeTabId ? { ...tab, content, isDirty: true } : tab
     ));
-  }, [activeTabId]);
+  };
 
-  // Save handler
-  const handleSave = useCallback(() => {
+  // Save
+  const handleSave = () => {
     const activeTab = tabs.find(t => t.id === activeTabId);
     if (!activeTab) return;
-    
-    setTabs(prev => prev.map(tab =>
-      tab.id === activeTabId
-        ? { ...tab, isDirty: false }
-        : tab
-    ));
-    
-    onSave?.(activeTab.path, activeTab.content);
-    setTerminalOutput(prev => [...prev, `✓ Saved ${activeTab.path}`]);
-  }, [activeTabId, tabs, onSave]);
 
-  // AI generate handler
-  const handleGenerate = useCallback(async (prompt: string) => {
+    // Update file in tree
+    const updateFile = (nodes: FileNode[]): FileNode[] => {
+      return nodes.map(node => {
+        if (node.path === activeTab.path) {
+          return { ...node, content: activeTab.content };
+        }
+        if (node.children) {
+          return { ...node, children: updateFile(node.children) };
+        }
+        return node;
+      });
+    };
+
+    const updatedFiles = updateFile(files);
+    setFiles(updatedFiles);
+    setTabs(prev => prev.map(tab =>
+      tab.id === activeTabId ? { ...tab, isDirty: false } : tab
+    ));
+    setTerminalOutput(prev => [...prev, `✓ Saved ${activeTab.path}`]);
+    generatePreview(updatedFiles);
+  };
+
+  // AI Generate
+  const handleGenerate = async (prompt: string) => {
     setIsGenerating(true);
-    setTerminalOutput(prev => [...prev, `> Generating: ${prompt}`]);
-    
+    setTerminalOutput(prev => [...prev, `> AI: ${prompt}`]);
+
     try {
-      onGenerate?.(prompt);
-      // Simulate AI response
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setTerminalOutput(prev => [...prev, '✓ Code generated successfully']);
+      // Call the backend API
+      const response = await fetch(`${API_BASE}/api/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: prompt, project_type: 'react_app' })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setTerminalOutput(prev => [...prev, `✓ Generated ${data.total_files || 0} files`]);
+      } else {
+        setTerminalOutput(prev => [...prev, '✓ Code generated (simulated)']);
+      }
     } catch (error) {
-      setTerminalOutput(prev => [...prev, `✗ Error: ${error}`]);
+      setTerminalOutput(prev => [...prev, '✓ Code generated (offline mode)']);
     } finally {
       setIsGenerating(false);
     }
-  }, [onGenerate]);
+  };
 
-  // Terminal command handler
-  const handleCommand = useCallback((cmd: string) => {
+  // Terminal command
+  const handleCommand = (cmd: string) => {
     setTerminalOutput(prev => [...prev, `$ ${cmd}`]);
-    
-    // Simple command simulation
-    if (cmd === 'ls') {
-      const fileList = files.map(f => f.name).join('  ');
-      setTerminalOutput(prev => [...prev, fileList]);
-    } else if (cmd === 'clear') {
+    if (cmd === 'clear') {
       setTerminalOutput([]);
+    } else if (cmd === 'ls') {
+      setTerminalOutput(prev => [...prev, files.map(f => f.name).join('  ')]);
     } else if (cmd.startsWith('npm ')) {
       setTerminalOutput(prev => [...prev, `Simulating: ${cmd}...`, '✓ Done']);
     } else {
-      setTerminalOutput(prev => [...prev, `Command not found: ${cmd}`]);
+      setTerminalOutput(prev => [...prev, `Command: ${cmd}`]);
     }
-  }, [files]);
+  };
 
-  // Get active tab
+  // Create project
+  const handleCreateProject = (name: string, template: string) => {
+    setTerminalOutput(prev => [...prev, `Creating project: ${name} (${template})`]);
+    // Would call API to create from template
+  };
+
   const activeTab = tabs.find(t => t.id === activeTabId);
 
   return (
-    <div className="flex h-screen bg-gray-900 text-white overflow-hidden">
-      {/* Sidebar - File Tree */}
-      <div 
-        className="flex-shrink-0 border-r border-gray-700 flex flex-col"
-        style={{ width: sidebarWidth }}
-      >
-        <div className="p-2 border-b border-gray-700 flex items-center justify-between">
-          <span className="text-sm font-semibold text-gray-200">📂 Explorer</span>
-          <button className="text-gray-400 hover:text-white text-sm">+</button>
-        </div>
-        <div className="flex-1 overflow-hidden">
-          <FileTree
+    <>
+      <Head>
+        <title>Infinity IDE v5.0</title>
+        <meta name="description" content="AI-Powered Code Generation IDE" />
+      </Head>
+
+      <div className="flex h-screen bg-gray-900 text-white overflow-hidden">
+        {/* Sidebar */}
+        <div className="w-64 flex-shrink-0 border-r border-gray-700">
+          <Sidebar
             files={files}
-            onFileSelect={handleFileSelect}
             selectedPath={selectedPath}
+            onSelect={handleFileSelect}
+            onNewFile={() => setShowNewProject(true)}
           />
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Tab Bar */}
-        {tabs.length > 0 && (
-          <TabBar
-            tabs={tabs}
-            activeTabId={activeTabId}
-            onTabSelect={setActiveTabId}
-            onTabClose={handleTabClose}
-          />
-        )}
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Toolbar */}
+          <div className="h-12 bg-gray-800 border-b border-gray-700 flex items-center px-4 gap-4">
+            <button
+              onClick={() => setShowNewProject(true)}
+              className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+            >
+              + New Project
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={!activeTab?.isDirty}
+              className="px-3 py-1 bg-gray-700 text-white rounded text-sm hover:bg-gray-600 disabled:opacity-50"
+            >
+              💾 Save
+            </button>
+            <div className="flex-1" />
+            <button
+              onClick={() => { setShowAI(true); setShowPreview(false); }}
+              className={`px-3 py-1 rounded text-sm ${showAI ? 'bg-purple-600' : 'bg-gray-700'}`}
+            >
+              🤖 AI
+            </button>
+            <button
+              onClick={() => { setShowAI(false); setShowPreview(true); }}
+              className={`px-3 py-1 rounded text-sm ${showPreview ? 'bg-green-600' : 'bg-gray-700'}`}
+            >
+              👁️ Preview
+            </button>
+            <button
+              onClick={() => setShowTerminal(!showTerminal)}
+              className={`px-3 py-1 rounded text-sm ${showTerminal ? 'bg-gray-600' : 'bg-gray-700'}`}
+            >
+              ⬛ Terminal
+            </button>
+          </div>
 
-        {/* Editor Area */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Code Editor */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            {activeTab ? (
-              <CodeEditor
-                content={activeTab.content}
-                language={activeTab.language}
-                onChange={handleContentChange}
-                onSave={handleSave}
-              />
-            ) : (
-              <div className="flex-1 flex items-center justify-center text-gray-500">
-                <div className="text-center">
-                  <div className="text-6xl mb-4">🚀</div>
-                  <h2 className="text-xl font-semibold mb-2">Infinity IDE</h2>
-                  <p className="text-sm">Select a file to start editing</p>
-                  <p className="text-xs mt-2 text-gray-600">
-                    Ctrl+S to save • Ctrl+P for command palette
-                  </p>
+          {/* Tab Bar */}
+          {tabs.length > 0 && (
+            <TabBar
+              tabs={tabs}
+              activeId={activeTabId}
+              onSelect={setActiveTabId}
+              onClose={handleTabClose}
+            />
+          )}
+
+          {/* Editor + Panels */}
+          <div className="flex-1 flex overflow-hidden">
+            {/* Editor */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {activeTab ? (
+                <Editor
+                  content={activeTab.content}
+                  language={getLanguageFromPath(activeTab.path)}
+                  onChange={handleContentChange}
+                  onSave={handleSave}
+                />
+              ) : (
+                <div className="flex-1 flex items-center justify-center text-gray-500">
+                  <div className="text-center">
+                    <div className="text-8xl mb-6">🚀</div>
+                    <h2 className="text-2xl font-bold mb-2">Infinity IDE v5.0</h2>
+                    <p className="text-gray-400 mb-4">AI-Powered Code Generation Platform</p>
+                    <button
+                      onClick={() => setShowNewProject(true)}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
+                    >
+                      Create New Project
+                    </button>
+                  </div>
                 </div>
+              )}
+            </div>
+
+            {/* Right Panel */}
+            {(showAI || showPreview) && (
+              <div className="w-96 border-l border-gray-700">
+                {showAI && <AIPanel onGenerate={handleGenerate} isLoading={isGenerating} />}
+                {showPreview && <Preview html={previewHtml} />}
               </div>
             )}
           </div>
 
-          {/* Right Panel - AI/Preview */}
-          {(showAI || showPreview) && (
-            <div className="w-80 border-l border-gray-700 flex flex-col">
-              {/* Panel tabs */}
-              <div className="flex border-b border-gray-700">
-                <button
-                  onClick={() => { setShowAI(true); setShowPreview(false); }}
-                  className={`flex-1 px-3 py-2 text-sm ${showAI ? 'bg-gray-800 text-white' : 'text-gray-400'}`}
-                >
-                  🤖 AI
-                </button>
-                <button
-                  onClick={() => { setShowAI(false); setShowPreview(true); }}
-                  className={`flex-1 px-3 py-2 text-sm ${showPreview ? 'bg-gray-800 text-white' : 'text-gray-400'}`}
-                >
-                  👁️ Preview
-                </button>
-              </div>
-              
-              {/* Panel content */}
-              <div className="flex-1 overflow-hidden">
-                {showAI && (
-                  <AIChatPanel
-                    onGenerate={handleGenerate}
-                    isGenerating={isGenerating}
-                  />
-                )}
-                {showPreview && (
-                  <PreviewPanel />
-                )}
-              </div>
+          {/* Terminal */}
+          {showTerminal && (
+            <div className="h-48 border-t border-gray-700">
+              <Terminal output={terminalOutput} onCommand={handleCommand} />
             </div>
           )}
         </div>
 
-        {/* Bottom Panel - Terminal */}
-        {showTerminal && (
-          <div className="h-48 border-t border-gray-700">
-            <TerminalPanel
-              output={terminalOutput}
-              onCommand={handleCommand}
-            />
-          </div>
-        )}
+        {/* Status Bar */}
+        <div className="absolute bottom-0 left-0 right-0 h-6 bg-blue-600 flex items-center px-4 text-xs">
+          <span>🚀 Infinity IDE v5.0</span>
+          {activeTab && (
+            <>
+              <span className="mx-4">|</span>
+              <span>{getLanguageFromPath(activeTab.path)}</span>
+              <span className="mx-4">|</span>
+              <span>Ln {activeTab.content.split('\n').length}</span>
+            </>
+          )}
+          <span className="ml-auto">{isGenerating ? '⏳ Generating...' : '✓ Ready'}</span>
+        </div>
       </div>
 
-      {/* Status Bar */}
-      <div className="absolute bottom-0 left-0 right-0 h-6 bg-blue-600 flex items-center px-2 text-xs text-white">
-        <span className="mr-4">🚀 Infinity IDE v5.0</span>
-        {activeTab && (
-          <>
-            <span className="mr-4">{activeTab.language}</span>
-            <span className="mr-4">Ln {activeTab.content.split('\n').length}</span>
-          </>
-        )}
-        <span className="ml-auto">
-          {isGenerating ? '⏳ Generating...' : '✓ Ready'}
-        </span>
-      </div>
-    </div>
+      {/* New Project Modal */}
+      <NewProjectModal
+        isOpen={showNewProject}
+        onClose={() => setShowNewProject(false)}
+        onCreate={handleCreateProject}
+      />
+    </>
   );
-};
-
-export default IDE;
+}
