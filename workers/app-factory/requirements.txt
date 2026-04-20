@@ -13,22 +13,22 @@ gunicorn==23.0.0
 # Data Validation & Serialization
 pydantic==2.12.5
 pydantic-settings==2.9.1
-orjson==3.11.7
+orjson==3.11.8
 
 # HTTP & Async
-aiohttp==3.13.3
+aiohttp==3.13.4
 httpx==0.28.1
-requests==2.32.4
+requests==2.33.0
 
 # Caching & Database
 redis[hiredis]==5.2.1
 
 # AI Provider SDKs
-google-generativeai==0.8.5
+google-generativeai==0.8.6
 
 # Security & Auth — python-jose REPLACED with PyJWT (5 CVEs fixed)
 # python-jose is abandoned with multiple unpatched vulnerabilities
-PyJWT[crypto]==2.12.0
+PyJWT[crypto]==2.12.1
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.22
 cryptography>=46.0.5
@@ -50,7 +50,7 @@ python-dotenv==1.1.0
 python-dateutil==2.9.0.post0
 
 # Testing (optional for dev)
-pytest==8.3.5
+pytest==9.0.3
 pytest-asyncio==0.25.3
 pytest-cov==6.1.0
 

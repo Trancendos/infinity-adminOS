@@ -17,10 +17,12 @@ export interface Env {
   USAGE_ANALYTICS: AnalyticsEngineDataset;
   OPENAI_API_KEY?: string;
   ANTHROPIC_API_KEY?: string;
+  OPENROUTER_API_KEY?: string;
+  HUGGINGFACE_API_KEY?: string;
   ENVIRONMENT: string;
 }
 
-export type AIProvider = 'workers-ai' | 'openai' | 'anthropic';
+export type AIProvider = 'workers-ai' | 'openai' | 'anthropic' | 'openrouter' | 'huggingface' | 'offline';
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -137,6 +139,72 @@ const MODEL_REGISTRY: Record<string, ModelInfo> = {
     max_tokens: 8192,
     supports_streaming: true,
   },
+  // OpenRouter models (subset - many more available)
+  'anthropic/claude-3.5-sonnet': {
+    id: 'anthropic/claude-3.5-sonnet',
+    provider: 'openrouter',
+    name: 'Claude 3.5 Sonnet (OpenRouter)',
+    description: 'Anthropic Claude 3.5 Sonnet via OpenRouter',
+    capabilities: ['chat', 'text-generation', 'reasoning'],
+    max_tokens: 8192,
+    supports_streaming: true,
+  },
+  'openai/gpt-4o': {
+    id: 'openai/gpt-4o',
+    provider: 'openrouter',
+    name: 'GPT-4o (OpenRouter)',
+    description: 'OpenAI GPT-4o via OpenRouter',
+    capabilities: ['chat', 'text-generation', 'reasoning', 'vision'],
+    max_tokens: 16384,
+    supports_streaming: true,
+  },
+  'meta-llama/llama-3.1-70b-instruct': {
+    id: 'meta-llama/llama-3.1-70b-instruct',
+    provider: 'openrouter',
+    name: 'Llama 3.1 70B Instruct (OpenRouter)',
+    description: 'Meta Llama 3.1 70B via OpenRouter',
+    capabilities: ['chat', 'text-generation', 'reasoning'],
+    max_tokens: 4096,
+    supports_streaming: true,
+  },
+  // Hugging Face models
+  'microsoft/DialoGPT-medium': {
+    id: 'microsoft/DialoGPT-medium',
+    provider: 'huggingface',
+    name: 'DialoGPT Medium',
+    description: 'Conversational AI model',
+    capabilities: ['chat', 'text-generation'],
+    max_tokens: 1024,
+    supports_streaming: false,
+  },
+  'facebook/blenderbot-400M-distill': {
+    id: 'facebook/blenderbot-400M-distill',
+    provider: 'huggingface',
+    name: 'BlenderBot 400M',
+    description: 'Conversational AI model',
+    capabilities: ['chat', 'text-generation'],
+    max_tokens: 1024,
+    supports_streaming: false,
+  },
+  // Offline models (Transformers.js)
+  'Xenova/distilbert-base-uncased-finetuned-sst-2-english': {
+    id: 'Xenova/distilbert-base-uncased-finetuned-sst-2-english',
+    provider: 'offline',
+    name: 'DistilBERT SST-2 (Offline)',
+    description: 'Sentiment analysis - runs locally',
+    capabilities: ['sentiment-analysis'],
+    max_tokens: 512,
+    supports_streaming: false,
+  },
+  'Xenova/all-MiniLM-L6-v2': {
+    id: 'Xenova/all-MiniLM-L6-v2',
+    provider: 'offline',
+    name: 'All MiniLM L6 v2 (Offline)',
+    description: 'Text embeddings - runs locally',
+    capabilities: ['embeddings', 'semantic-search'],
+    max_tokens: 512,
+    supports_streaming: false,
+  },
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -149,10 +217,16 @@ function resolveProvider(model: string, requestedProvider?: AIProvider): AIProvi
   if (requestedProvider) return requestedProvider;
   const info = MODEL_REGISTRY[model];
   if (info) return info.provider;
+
+  // Provider detection by model name patterns
   if (model.startsWith('@cf/')) return 'workers-ai';
-  if (model.startsWith('gpt-')) return 'openai';
-  if (model.startsWith('claude-')) return 'anthropic';
-  return 'workers-ai';
+  if (model.startsWith('gpt-') || model.startsWith('openai/')) return 'openai';
+  if (model.startsWith('claude-') || model.startsWith('anthropic/')) return 'anthropic';
+  if (model.includes('/') && !model.startsWith('@cf/')) return 'openrouter'; // OpenRouter format
+  if (model.includes('/') && model.includes('microsoft') || model.includes('facebook') || model.includes('google')) return 'huggingface';
+  if (model.startsWith('Xenova/')) return 'offline';
+
+  return 'workers-ai'; // Default fallback
 }
 
 // ── Rate Limiter ───────────────────────────────────────────────────────────
@@ -311,6 +385,138 @@ async function inferAnthropic(
   };
 }
 
+async function inferOpenRouter(
+  apiKey: string,
+  request: InferenceRequest,
+): Promise<{ content: string; usage: TokenUsage }> {
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://infinity-os.dev',
+      'X-Title': 'Infinity OS',
+    },
+    body: JSON.stringify({
+      model: request.model,
+      messages: request.messages || [{ role: 'user', content: request.prompt || '' }],
+      max_tokens: request.max_tokens || 1024,
+      temperature: request.temperature ?? 0.7,
+      top_p: request.top_p,
+      stream: false,
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`OpenRouter API error (${response.status}): ${err}`);
+  }
+
+  const data = await response.json() as {
+    choices: { message: { content: string } }[];
+    usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
+  };
+
+  return {
+    content: data.choices?.[0]?.message?.content || '',
+    usage: {
+      prompt_tokens: data.usage?.prompt_tokens || 0,
+      completion_tokens: data.usage?.completion_tokens || 0,
+      total_tokens: data.usage?.total_tokens || 0,
+    },
+  };
+}
+
+async function inferHuggingFace(
+  apiKey: string,
+  request: InferenceRequest,
+): Promise<{ content: string; usage: TokenUsage }> {
+  // Determine task based on model
+  let endpoint = '';
+  let payload: any = {};
+
+  if (request.model?.includes('DialoGPT') || request.model?.includes('blenderbot')) {
+    // Conversational models
+    endpoint = `/models/${request.model}`;
+    payload = {
+      inputs: {
+        past_user_inputs: [],
+        generated_responses: [],
+        text: request.messages?.[request.messages.length - 1]?.content || request.prompt || '',
+      },
+      parameters: {
+        max_length: request.max_tokens || 100,
+        temperature: request.temperature ?? 0.7,
+      },
+    };
+  } else {
+    // Text generation models
+    endpoint = `/models/${request.model}`;
+    payload = {
+      inputs: request.messages?.[request.messages.length - 1]?.content || request.prompt || '',
+      parameters: {
+        max_new_tokens: request.max_tokens || 100,
+        temperature: request.temperature ?? 0.7,
+        top_p: request.top_p ?? 0.9,
+        do_sample: true,
+        return_full_text: false,
+      },
+    };
+  }
+
+  const response = await fetch(`https://api-inference.huggingface.co${endpoint}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`Hugging Face API error (${response.status}): ${err}`);
+  }
+
+  const data = await response.json();
+
+  let content = '';
+  if (Array.isArray(data)) {
+    if (data[0]?.generated_text) {
+      content = data[0].generated_text;
+    } else if (data[0]?.conversation) {
+      content = data[0].conversation.generated_responses?.[0] || '';
+    } else {
+      content = JSON.stringify(data[0]);
+    }
+  } else if (typeof data === 'object') {
+    if (data.generated_text) {
+      content = data.generated_text;
+    } else if (data.conversation) {
+      content = data.conversation.generated_responses?.[0] || '';
+    } else {
+      content = JSON.stringify(data);
+    }
+  } else {
+    content = String(data);
+  }
+
+  // Estimate token usage (Hugging Face doesn't provide exact counts)
+  const promptChars = request.messages?.reduce((sum, msg) => sum + msg.content.length, 0) || 0;
+  const responseChars = content.length;
+  const promptTokens = Math.ceil(promptChars / 4);
+  const completionTokens = Math.ceil(responseChars / 4);
+
+  return {
+    content,
+    usage: {
+      prompt_tokens: promptTokens,
+      completion_tokens: completionTokens,
+      total_tokens: promptTokens + completionTokens,
+    },
+  };
+}
+
 // ── Hono App ───────────────────────────────────────────────────────────────
 
 const app = new Hono<{ Bindings: Env }>();
@@ -422,6 +628,33 @@ app.post('/v1/inference', async (c) => {
         usage = result.usage;
         break;
       }
+      case 'openrouter': {
+        if (!c.env.OPENROUTER_API_KEY) {
+          return c.json({ error: 'PROVIDER_NOT_CONFIGURED', message: 'OpenRouter API key not set' }, 503);
+        }
+        const result = await inferOpenRouter(c.env.OPENROUTER_API_KEY, body);
+        content = result.content;
+        usage = result.usage;
+        break;
+      }
+      case 'huggingface': {
+        if (!c.env.HUGGINGFACE_API_KEY) {
+          return c.json({ error: 'PROVIDER_NOT_CONFIGURED', message: 'Hugging Face API key not set' }, 503);
+        }
+        const result = await inferHuggingFace(c.env.HUGGINGFACE_API_KEY, body);
+        content = result.content;
+        usage = result.usage;
+        break;
+      }
+      case 'offline': {
+        // Offline inference is handled on the client side
+        return c.json({
+          error: 'OFFLINE_MODE',
+          message: 'Offline inference must be handled client-side',
+          model: body.model,
+          provider: 'offline'
+        }, 400);
+      }
       default:
         return c.json({ error: 'UNKNOWN_PROVIDER', message: `Unknown provider: ${provider}` }, 400);
     }
@@ -524,4 +757,6 @@ export {
   inferWorkersAI,
   inferOpenAI,
   inferAnthropic,
+  inferOpenRouter,
+  inferHuggingFace,
 };
