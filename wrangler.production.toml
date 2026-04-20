@@ -1,0 +1,456 @@
+# ============================================================
+# Trancendos Production Configuration
+# Domain: transcendos.com
+# ============================================================
+# This file provides production-ready configuration templates
+# for all Cloudflare Workers in the Trancendos ecosystem.
+# ============================================================
+
+# ============================================================
+# PLATFORM CORE - Infinity-One (Authentication)
+# ============================================================
+# name = "infinity-one"
+# main = "src/index.ts"
+# compatibility_date = "2025-03-01"
+# compatibility_flags = ["nodejs_compat"]
+# 
+# [vars]
+# ENVIRONMENT = "production"
+# LIGHTHOUSE_URL = "https://tokens.transcendos.com"
+# HIVE_URL = "https://router.transcendos.com"
+# VOID_URL = "https://secrets.transcendos.com"
+# 
+# [[routes]]
+# pattern = "auth.transcendos.com/*"
+# zone_name = "transcendos.com"
+# 
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "infinity-os-db"
+# database_id = "PRODUCTION_D1_ID_PLACEHOLDER"
+# 
+# [[kv_namespaces]]
+# binding = "KV_SESSIONS"
+# id = "PRODUCTION_KV_SESSIONS_ID_PLACEHOLDER"
+# 
+# [[kv_namespaces]]
+# binding = "KV_RATE_LIMIT"
+# id = "PRODUCTION_KV_RATELIMIT_ID_PLACEHOLDER"
+# 
+# [observability]
+# enabled = true
+# head_sampling_rate = 1.0
+
+# ============================================================
+# PLATFORM CORE - Lighthouse (Token Management)
+# ============================================================
+# name = "infinity-lighthouse"
+# main = "src/index.ts"
+# compatibility_date = "2025-03-01"
+# compatibility_flags = ["nodejs_compat"]
+# 
+# [vars]
+# ENVIRONMENT = "production"
+# HIVE_URL = "https://router.transcendos.com"
+# VOID_URL = "https://secrets.transcendos.com"
+# 
+# [[routes]]
+# pattern = "tokens.transcendos.com/*"
+# zone_name = "transcendos.com"
+# 
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "infinity-os-db"
+# database_id = "PRODUCTION_D1_ID_PLACEHOLDER"
+# 
+# [[kv_namespaces]]
+# binding = "KV_TOKEN_CACHE"
+# id = "PRODUCTION_KV_TOKENS_ID_PLACEHOLDER"
+# 
+# [[kv_namespaces]]
+# binding = "KV_RATE_LIMIT"
+# id = "PRODUCTION_KV_RATELIMIT_ID_PLACEHOLDER"
+
+# ============================================================
+# PLATFORM CORE - HIVE (Data Router)
+# ============================================================
+# name = "infinity-hive"
+# main = "src/index.ts"
+# compatibility_date = "2025-03-01"
+# compatibility_flags = ["nodejs_compat"]
+# 
+# [vars]
+# ENVIRONMENT = "production"
+# LIGHTHOUSE_URL = "https://tokens.transcendos.com"
+# VOID_URL = "https://secrets.transcendos.com"
+# 
+# [[routes]]
+# pattern = "router.transcendos.com/*"
+# zone_name = "transcendos.com"
+# 
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "infinity-os-db"
+# database_id = "PRODUCTION_D1_ID_PLACEHOLDER"
+# 
+# [[kv_namespaces]]
+# binding = "KV_CACHE"
+# id = "PRODUCTION_KV_CACHE_ID_PLACEHOLDER"
+# 
+# [[kv_namespaces]]
+# binding = "KV_RATE_LIMIT"
+# id = "PRODUCTION_KV_RATELIMIT_ID_PLACEHOLDER"
+
+# ============================================================
+# PLATFORM CORE - Void (Secret Storage)
+# ============================================================
+# name = "infinity-void"
+# main = "src/index.ts"
+# compatibility_date = "2025-03-01"
+# compatibility_flags = ["nodejs_compat"]
+# 
+# [vars]
+# ENVIRONMENT = "production"
+# LIGHTHOUSE_URL = "https://tokens.transcendos.com"
+# 
+# [[routes]]
+# pattern = "secrets.transcendos.com/*"
+# zone_name = "transcendos.com"
+# 
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "infinity-os-db"
+# database_id = "PRODUCTION_D1_ID_PLACEHOLDER"
+# 
+# [[kv_namespaces]]
+# binding = "KV_SECRETS"
+# id = "PRODUCTION_KV_SECRETS_ID_PLACEHOLDER"
+# 
+# [[kv_namespaces]]
+# binding = "KV_RATE_LIMIT"
+# id = "PRODUCTION_KV_RATELIMIT_ID_PLACEHOLDER"
+
+# ============================================================
+# SERVICE LAYER - API Gateway
+# ============================================================
+# name = "infinity-api-gateway"
+# main = "src/index.ts"
+# compatibility_date = "2025-03-01"
+# compatibility_flags = ["nodejs_compat"]
+# 
+# [vars]
+# ENVIRONMENT = "production"
+# BACKEND_ORIGIN = "https://api.transcendos.com"
+# RATE_LIMIT_RPM = "300"
+# CACHE_TTL = "60"
+# 
+# [[routes]]
+# pattern = "api.transcendos.com/*"
+# zone_name = "transcendos.com"
+# 
+# [[kv_namespaces]]
+# binding = "RATE_LIMIT"
+# id = "PRODUCTION_KV_RATELIMIT_ID_PLACEHOLDER"
+# 
+# [[kv_namespaces]]
+# binding = "CACHE"
+# id = "PRODUCTION_KV_CACHE_ID_PLACEHOLDER"
+
+# ============================================================
+# SERVICE LAYER - AI API
+# ============================================================
+# name = "ai-api"
+# main = "src/index.ts"
+# compatibility_date = "2025-03-01"
+# compatibility_flags = ["nodejs_compat"]
+# 
+# [vars]
+# ENVIRONMENT = "production"
+# 
+# [[routes]]
+# pattern = "ai.transcendos.com/*"
+# zone_name = "transcendos.com"
+# 
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "infinity-os-db"
+# database_id = "PRODUCTION_D1_ID_PLACEHOLDER"
+# 
+# [[kv_namespaces]]
+# binding = "KV_CACHE"
+# id = "PRODUCTION_KV_CACHE_ID_PLACEHOLDER"
+
+# ============================================================
+# SERVICE LAYER - PQC Service (Post-Quantum Cryptography)
+# ============================================================
+# name = "pqc-service"
+# main = "src/index.ts"
+# compatibility_date = "2025-03-01"
+# compatibility_flags = ["nodejs_compat"]
+# 
+# [vars]
+# ENVIRONMENT = "production"
+# DPID = "DPID-DIM-SEC-PQC-001"
+# SERVICE_NAME = "PQC Service"
+# PQC_ALGORITHM = "ML-KEM-768"
+# KEY_ROTATION_INTERVAL_HOURS = "24"
+# QUANTUM_THREAT_LEVEL = "HARVEST_NOW_DECRYPT_LATER"
+# 
+# [[routes]]
+# pattern = "pqc.transcendos.com/*"
+# zone_name = "transcendos.com"
+# 
+# [[services]]
+# binding = "SENTINEL_STATION"
+# service = "sentinel-station"
+
+# ============================================================
+# SERVICE LAYER - Registry
+# ============================================================
+# name = "registry"
+# main = "src/index.ts"
+# compatibility_date = "2025-03-01"
+# compatibility_flags = ["nodejs_compat"]
+# 
+# [vars]
+# ENVIRONMENT = "production"
+# 
+# [[routes]]
+# pattern = "registry.transcendos.com/*"
+# zone_name = "transcendos.com"
+# 
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "infinity-os-db"
+# database_id = "PRODUCTION_D1_ID_PLACEHOLDER"
+# 
+# [[kv_namespaces]]
+# binding = "KV_CACHE"
+# id = "PRODUCTION_KV_CACHE_ID_PLACEHOLDER"
+
+# ============================================================
+# SERVICE LAYER - Dispatch
+# ============================================================
+# name = "dispatch"
+# main = "src/index.ts"
+# compatibility_date = "2025-03-01"
+# compatibility_flags = ["nodejs_compat"]
+# 
+# [vars]
+# ENVIRONMENT = "production"
+# 
+# [[routes]]
+# pattern = "dispatch.transcendos.com/*"
+# zone_name = "transcendos.com"
+# 
+# [[queues.consumers]]
+# queue = "dispatch-queue"
+# max_batch_size = 10
+# max_batch_timeout = 30
+
+# ============================================================
+# SPECIALIZED - Oracle Foresight
+# ============================================================
+# name = "oracle-foresight"
+# main = "src/index.ts"
+# compatibility_date = "2025-03-01"
+# compatibility_flags = ["nodejs_compat"]
+# 
+# [vars]
+# ENVIRONMENT = "production"
+# HIVE_URL = "https://router.transcendos.com"
+# LIGHTHOUSE_URL = "https://tokens.transcendos.com"
+# 
+# [[routes]]
+# pattern = "oracle.transcendos.com/*"
+# zone_name = "transcendos.com"
+# 
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "infinity-os-db"
+# database_id = "PRODUCTION_D1_ID_PLACEHOLDER"
+# 
+# [[ai]]
+# binding = "AI"
+# 
+# [[hyperdrive]]
+# binding = "HYPERDRIVE"
+# connection_string = "postgresql://..."
+
+# ============================================================
+# SPECIALIZED - Dimensional Fabric
+# ============================================================
+# name = "dimensional-fabric"
+# main = "src/index.ts"
+# compatibility_date = "2025-03-01"
+# compatibility_flags = ["nodejs_compat"]
+# 
+# [vars]
+# ENVIRONMENT = "production"
+# HIVE_URL = "https://router.transcendos.com"
+# 
+# [[routes]]
+# pattern = "fabric.transcendos.com/*"
+# zone_name = "transcendos.com"
+# 
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "infinity-os-db"
+# database_id = "PRODUCTION_D1_ID_PLACEHOLDER"
+
+# ============================================================
+# SPECIALIZED - Universal UPIF
+# ============================================================
+# name = "universal-upif"
+# main = "src/index.ts"
+# compatibility_date = "2025-03-01"
+# compatibility_flags = ["nodejs_compat"]
+# 
+# [vars]
+# ENVIRONMENT = "production"
+# INFINITY_ONE_URL = "https://auth.transcendos.com"
+# HIVE_URL = "https://router.transcendos.com"
+# 
+# [[routes]]
+# pattern = "upif.transcendos.com/*"
+# zone_name = "transcendos.com"
+
+# ============================================================
+# SPECIALIZED - L402 Gateway
+# ============================================================
+# name = "l402-gateway"
+# main = "src/index.ts"
+# compatibility_date = "2025-03-01"
+# compatibility_flags = ["nodejs_compat"]
+# 
+# [vars]
+# ENVIRONMENT = "production"
+# INFINITY_ONE_URL = "https://auth.transcendos.com"
+# LIGHTHOUSE_URL = "https://tokens.transcendos.com"
+# 
+# [[routes]]
+# pattern = "l402.transcendos.com/*"
+# zone_name = "transcendos.com"
+
+# ============================================================
+# SPECIALIZED - DePIN Broker
+# ============================================================
+# name = "depin-broker"
+# main = "src/index.ts"
+# compatibility_date = "2025-03-01"
+# compatibility_flags = ["nodejs_compat"]
+# 
+# [vars]
+# ENVIRONMENT = "production"
+# HIVE_URL = "https://router.transcendos.com"
+# REGISTRY_URL = "https://registry.transcendos.com"
+# 
+# [[routes]]
+# pattern = "depin.transcendos.com/*"
+# zone_name = "transcendos.com"
+
+# ============================================================
+# SPECIALIZED - Arcadian Exchange
+# ============================================================
+# name = "arcadian-exchange"
+# main = "src/index.ts"
+# compatibility_date = "2025-03-01"
+# compatibility_flags = ["nodejs_compat"]
+# 
+# [vars]
+# ENVIRONMENT = "production"
+# LIGHTHOUSE_URL = "https://tokens.transcendos.com"
+# HIVE_URL = "https://router.transcendos.com"
+# 
+# [[routes]]
+# pattern = "market.transcendos.com/*"
+# zone_name = "transcendos.com"
+# 
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "infinity-os-db"
+# database_id = "PRODUCTION_D1_ID_PLACEHOLDER"
+
+# ============================================================
+# SPECIALIZED - Knowledge Graph Service
+# ============================================================
+# name = "knowledge-graph-service"
+# main = "src/index.ts"
+# compatibility_date = "2025-03-01"
+# compatibility_flags = ["nodejs_compat"]
+# 
+# [vars]
+# ENVIRONMENT = "production"
+# HIVE_URL = "https://router.transcendos.com"
+# 
+# [[routes]]
+# pattern = "graph.transcendos.com/*"
+# zone_name = "transcendos.com"
+# 
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "infinity-os-db"
+# database_id = "PRODUCTION_D1_ID_PLACEHOLDER"
+# 
+# [[vectorize]]
+# binding = "VECTORIZE"
+# index_name = "knowledge-embeddings"
+
+# ============================================================
+# SPECIALIZED - Sentinel Station
+# ============================================================
+# name = "sentinel-station"
+# main = "src/index.ts"
+# compatibility_date = "2025-03-01"
+# compatibility_flags = ["nodejs_compat"]
+# 
+# [vars]
+# ENVIRONMENT = "production"
+# LIGHTHOUSE_URL = "https://tokens.transcendos.com"
+# VOID_URL = "https://secrets.transcendos.com"
+# 
+# [[routes]]
+# pattern = "sentinel.transcendos.com/*"
+# zone_name = "transcendos.com"
+# 
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "infinity-os-db"
+# database_id = "PRODUCTION_D1_ID_PLACEHOLDER"
+
+# ============================================================
+# SPECIALIZED - Monitoring Dashboard
+# ============================================================
+# name = "monitoring-dashboard"
+# main = "src/index.ts"
+# compatibility_date = "2025-03-01"
+# compatibility_flags = ["nodejs_compat"]
+# 
+# [vars]
+# ENVIRONMENT = "production"
+# 
+# [[routes]]
+# pattern = "monitoring.transcendos.com/*"
+# zone_name = "transcendos.com"
+# 
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "infinity-analytics-db"
+# database_id = "PRODUCTION_ANALYTICS_D1_ID_PLACEHOLDER"
+# 
+# [[analytics_engine_datasets]]
+# binding = "ANALYTICS"
+# dataset = "platform-metrics"
+
+# ============================================================
+# NOTES FOR PRODUCTION DEPLOYMENT
+# ============================================================
+# 1. Replace all PRODUCTION_*_PLACEHOLDER values with actual IDs
+# 2. Create D1 databases: wrangler d1 create infinity-os-db
+# 3. Create KV namespaces: wrangler kv:namespace create KV_SESSIONS
+# 4. Create R2 buckets: wrangler r2 bucket create transcendos-assets
+# 5. Configure custom domains in Cloudflare dashboard
+# 6. Set up SSL/TLS certificates (automatic with Cloudflare)
+# 7. Configure WAF rules in Cloudflare Security
+# 8. Enable Cloudflare Analytics
+# ============================================================
