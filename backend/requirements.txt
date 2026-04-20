@@ -13,13 +13,13 @@ uvicorn[standard]==0.34.3
 pydantic[email]==2.12.5
 
 # Database
-sqlalchemy[asyncio]==2.0.40
+sqlalchemy[asyncio]==2.0.49
 asyncpg==0.30.0
 alembic==1.16.1
 
 # Auth — python-jose REPLACED with PyJWT (5 CVEs fixed: PYSEC-2024-232, PYSEC-2024-233, PYSEC-2017-28, GHSA-cjwg, GHSA-6c5p)
 # python-jose is abandoned and has multiple unpatched vulnerabilities
-PyJWT[crypto]==2.12.0
+PyJWT[crypto]==2.12.1
 bcrypt==4.3.0
 cryptography>=46.0.5
 
@@ -33,7 +33,7 @@ c2pa-python>=0.6.0
 # Utilities
 python-multipart==0.0.22
 python-dotenv==1.1.0
-orjson==3.11.7
+orjson==3.11.8
 
 # Observability
 structlog==25.3.0
@@ -45,7 +45,7 @@ opentelemetry-instrumentation-httpx>=0.43b0
 opentelemetry-exporter-otlp-proto-grpc>=1.22.0
 
 # Testing
-pytest>=8.2,<9
+pytest>=9,<10
 pytest-asyncio>=0.25.0
 pytest-cov>=4.1.0
 aiosqlite>=0.19.0
