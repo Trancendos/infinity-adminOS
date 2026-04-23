@@ -18,7 +18,7 @@ orjson==3.11.8
 # HTTP & Async
 aiohttp==3.13.4
 httpx==0.28.1
-requests==2.33.0
+requests==2.33.1
 
 # Caching & Database
 redis[hiredis]==5.2.1
