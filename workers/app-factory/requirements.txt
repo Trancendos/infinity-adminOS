@@ -30,7 +30,7 @@ google-generativeai==0.8.6
 # python-jose is abandoned with multiple unpatched vulnerabilities
 PyJWT[crypto]==2.12.1
 passlib[bcrypt]==1.7.4
-python-multipart==0.0.22
+python-multipart==0.0.26
 cryptography>=46.0.5
 
 # Monitoring & Observability
