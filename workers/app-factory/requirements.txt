@@ -41,7 +41,7 @@ prometheus-fastapi-instrumentator==7.1.0
 slowapi==0.1.9
 
 # Retry Logic
-tenacity==9.1.2
+tenacity==9.1.4
 
 # Environment & Config
 python-dotenv==1.1.0
