@@ -479,7 +479,7 @@ export class NanoserviceIntelligence {
     if (circuitState === 'half-open') risks.push('circuit-half-open');
 
     const latencyBudget = request.maxLatencyMs || this.config.defaultLatencyBudgetMs;
-    const latency = telemetry?.p95LatencyMs || telemetry?.health?.latencyMs || latencyBudget;
+    const latency = telemetry?.p95LatencyMs ?? telemetry?.health?.latencyMs ?? latencyBudget;
     const latencyScore = Math.max(0, Math.min(1, 1 - latency / Math.max(1, latencyBudget * 2)));
     if (latency > latencyBudget) risks.push('latency-over-budget');
 
