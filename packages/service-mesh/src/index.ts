@@ -50,6 +50,7 @@ export type {
 };
 
 export { DEFAULT_MESH_CONFIG, DEFAULT_CIRCUIT_BREAKER_CONFIG };
+export * from './nanoservice-intelligence';
 
 // ── Circuit Breaker ─────────────────────────────────────────
 
