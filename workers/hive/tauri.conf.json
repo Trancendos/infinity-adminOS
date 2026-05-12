@@ -1,0 +1,12 @@
+{
+  "package": {
+    "productName": "trancendos-hive",
+    "version": "1.0.0"
+  },
+  "tauri": {
+    "bundle": {
+      "targets": ["msi", "nsis", "app", "dmg", "deb", "appimage"],
+      "identifier": "com.trancendos.hive"
+    }
+  }
+}
