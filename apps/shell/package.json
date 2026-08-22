@@ -18,7 +18,7 @@
     "@infinity-os/ui": "workspace:*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.21.0",
+    "react-router-dom": "^6.30.5",
     "zustand": "^4.4.7",
     "react-hook-form": "^7.49.0",
     "zod": "^3.22.4",
@@ -41,8 +41,8 @@
     "vite-plugin-pwa": "^0.17.4",
     "tailwindcss": "^3.4.0",
     "autoprefixer": "^10.4.16",
-    "postcss": "^8.5.9",
-    "vitest": "^4.0.18",
+    "postcss": "^8.5.23",
+    "vitest": "^3.2.6",
     "@testing-library/react": "^14.1.2",
     "@testing-library/user-event": "^14.5.2"
   }
