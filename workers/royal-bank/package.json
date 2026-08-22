@@ -11,13 +11,13 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "hono": "^4.12.8",
+    "hono": "^4.12.34",
     "@arcadia/financial-types": "workspace:*"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260411.1",
     "typescript": "^5.0.0",
-    "vitest": "^4.0.18",
+    "vitest": "^3.2.6",
     "wrangler": "^3.114.17"
   }
 }
